@@ -34,10 +34,10 @@ func (c *productDetail) Get(ctx echo.Context) error {
 	}
 
 	page := controller.NewPage(ctx)
-	page.Data = product
 	page.Layout = "main"
 	page.Name = "product"
 	page.Title = product.Name
+	page.Data = product
 
 	return c.RenderPage(ctx, page)
 
