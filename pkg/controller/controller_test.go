@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -98,7 +99,7 @@ func TestController_RenderPage(t *testing.T) {
 		expectedTemplates := make(map[string]bool)
 		expectedTemplates[p.Name+config.TemplateExt] = true
 		expectedTemplates[p.Layout+config.TemplateExt] = true
-		components, err := os.ReadDir(c.TemplateRenderer.GetTemplatesPath() + "/components")
+		components, err := ioutil.ReadDir(c.TemplateRenderer.GetTemplatesPath() + "/components")
 		require.NoError(t, err)
 		for _, f := range components {
 			expectedTemplates[f.Name()] = true
@@ -131,7 +132,7 @@ func TestController_RenderPage(t *testing.T) {
 		expectedTemplates := make(map[string]bool)
 		expectedTemplates[p.Name+config.TemplateExt] = true
 		expectedTemplates["htmx"+config.TemplateExt] = true
-		components, err := os.ReadDir(c.TemplateRenderer.GetTemplatesPath() + "/components")
+		components, err := ioutil.ReadDir(c.TemplateRenderer.GetTemplatesPath() + "/components")
 		require.NoError(t, err)
 		for _, f := range components {
 			expectedTemplates[f.Name()] = true
