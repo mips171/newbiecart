@@ -77,6 +77,14 @@ func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 	contact := contact{Controller: ctr}
 	g.GET("/contact", contact.Get).Name = "contact"
 	g.POST("/contact", contact.Post).Name = "contact.post"
+
+	products := ProductController{Controller: ctr}
+	g.GET("/products", products.Get).Name = "products"
+
+	addProduct := AddProductController{Controller: ctr}
+	g.GET("/products/add", addProduct.Get).Name = "add_product"
+	g.POST("/products/add", addProduct.Post).Name = "add_product.post"
+
 }
 
 func userRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
