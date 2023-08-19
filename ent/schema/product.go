@@ -16,6 +16,10 @@ func (Product) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
 			NotEmpty(),
+		field.String("sku").
+			NotEmpty().
+			Unique().
+			Immutable(),
 		field.String("description").
 			NotEmpty(),
 		field.Float("price").

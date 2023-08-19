@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/mikestefanello/pagoda/ent/cart"
 	"github.com/mikestefanello/pagoda/ent/cartitem"
 	"github.com/mikestefanello/pagoda/ent/order"
 	"github.com/mikestefanello/pagoda/ent/passwordtoken"
@@ -26,6 +27,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Cart is the client for interacting with the Cart builders.
+	Cart *CartClient
 	// CartItem is the client for interacting with the CartItem builders.
 	CartItem *CartItemClient
 	// Order is the client for interacting with the Order builders.
@@ -49,6 +52,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Cart = NewCartClient(c.config)
 	c.CartItem = NewCartItemClient(c.config)
 	c.Order = NewOrderClient(c.config)
 	c.PasswordToken = NewPasswordTokenClient(c.config)
@@ -136,6 +140,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:           ctx,
 		config:        cfg,
+		Cart:          NewCartClient(cfg),
 		CartItem:      NewCartItemClient(cfg),
 		Order:         NewOrderClient(cfg),
 		PasswordToken: NewPasswordTokenClient(cfg),
@@ -160,6 +165,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:           ctx,
 		config:        cfg,
+		Cart:          NewCartClient(cfg),
 		CartItem:      NewCartItemClient(cfg),
 		Order:         NewOrderClient(cfg),
 		PasswordToken: NewPasswordTokenClient(cfg),
@@ -171,7 +177,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		CartItem.
+//		Cart.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -193,26 +199,28 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.CartItem.Use(hooks...)
-	c.Order.Use(hooks...)
-	c.PasswordToken.Use(hooks...)
-	c.Product.Use(hooks...)
-	c.User.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Cart, c.CartItem, c.Order, c.PasswordToken, c.Product, c.User,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.CartItem.Intercept(interceptors...)
-	c.Order.Intercept(interceptors...)
-	c.PasswordToken.Intercept(interceptors...)
-	c.Product.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Cart, c.CartItem, c.Order, c.PasswordToken, c.Product, c.User,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *CartMutation:
+		return c.Cart.mutate(ctx, m)
 	case *CartItemMutation:
 		return c.CartItem.mutate(ctx, m)
 	case *OrderMutation:
@@ -225,6 +233,124 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// CartClient is a client for the Cart schema.
+type CartClient struct {
+	config
+}
+
+// NewCartClient returns a client for the Cart from the given config.
+func NewCartClient(c config) *CartClient {
+	return &CartClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `cart.Hooks(f(g(h())))`.
+func (c *CartClient) Use(hooks ...Hook) {
+	c.hooks.Cart = append(c.hooks.Cart, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `cart.Intercept(f(g(h())))`.
+func (c *CartClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Cart = append(c.inters.Cart, interceptors...)
+}
+
+// Create returns a builder for creating a Cart entity.
+func (c *CartClient) Create() *CartCreate {
+	mutation := newCartMutation(c.config, OpCreate)
+	return &CartCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Cart entities.
+func (c *CartClient) CreateBulk(builders ...*CartCreate) *CartCreateBulk {
+	return &CartCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Cart.
+func (c *CartClient) Update() *CartUpdate {
+	mutation := newCartMutation(c.config, OpUpdate)
+	return &CartUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CartClient) UpdateOne(ca *Cart) *CartUpdateOne {
+	mutation := newCartMutation(c.config, OpUpdateOne, withCart(ca))
+	return &CartUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CartClient) UpdateOneID(id int) *CartUpdateOne {
+	mutation := newCartMutation(c.config, OpUpdateOne, withCartID(id))
+	return &CartUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Cart.
+func (c *CartClient) Delete() *CartDelete {
+	mutation := newCartMutation(c.config, OpDelete)
+	return &CartDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CartClient) DeleteOne(ca *Cart) *CartDeleteOne {
+	return c.DeleteOneID(ca.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CartClient) DeleteOneID(id int) *CartDeleteOne {
+	builder := c.Delete().Where(cart.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CartDeleteOne{builder}
+}
+
+// Query returns a query builder for Cart.
+func (c *CartClient) Query() *CartQuery {
+	return &CartQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCart},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Cart entity by its id.
+func (c *CartClient) Get(ctx context.Context, id int) (*Cart, error) {
+	return c.Query().Where(cart.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CartClient) GetX(ctx context.Context, id int) *Cart {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *CartClient) Hooks() []Hook {
+	return c.hooks.Cart
+}
+
+// Interceptors returns the client interceptors.
+func (c *CartClient) Interceptors() []Interceptor {
+	return c.inters.Cart
+}
+
+func (c *CartClient) mutate(ctx context.Context, m *CartMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CartCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CartUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CartUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CartDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Cart mutation op: %q", m.Op())
 	}
 }
 
@@ -950,9 +1076,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		CartItem, Order, PasswordToken, Product, User []ent.Hook
+		Cart, CartItem, Order, PasswordToken, Product, User []ent.Hook
 	}
 	inters struct {
-		CartItem, Order, PasswordToken, Product, User []ent.Interceptor
+		Cart, CartItem, Order, PasswordToken, Product, User []ent.Interceptor
 	}
 )

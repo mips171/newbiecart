@@ -17,6 +17,7 @@ type (
 		Name        string
 		Description string
 		Price       float64
+		ID          int
 	}
 )
 
@@ -48,6 +49,7 @@ func (c *ProductController) fetchProducts(ctx echo.Context, pager *controller.Pa
 			Name:        p.Name,
 			Description: p.Description,
 			Price:       p.Price,
+			ID:          p.ID,
 		}
 	}
 	return products

@@ -51,16 +51,20 @@ func init() {
 	productDescName := productFields[0].Descriptor()
 	// product.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	product.NameValidator = productDescName.Validators[0].(func(string) error)
+	// productDescSku is the schema descriptor for sku field.
+	productDescSku := productFields[1].Descriptor()
+	// product.SkuValidator is a validator for the "sku" field. It is called by the builders before save.
+	product.SkuValidator = productDescSku.Validators[0].(func(string) error)
 	// productDescDescription is the schema descriptor for description field.
-	productDescDescription := productFields[1].Descriptor()
+	productDescDescription := productFields[2].Descriptor()
 	// product.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	product.DescriptionValidator = productDescDescription.Validators[0].(func(string) error)
 	// productDescPrice is the schema descriptor for price field.
-	productDescPrice := productFields[2].Descriptor()
+	productDescPrice := productFields[3].Descriptor()
 	// product.PriceValidator is a validator for the "price" field. It is called by the builders before save.
 	product.PriceValidator = productDescPrice.Validators[0].(func(float64) error)
 	// productDescQuantity is the schema descriptor for quantity field.
-	productDescQuantity := productFields[3].Descriptor()
+	productDescQuantity := productFields[4].Descriptor()
 	// product.QuantityValidator is a validator for the "quantity" field. It is called by the builders before save.
 	product.QuantityValidator = productDescQuantity.Validators[0].(func(int) error)
 	userHooks := schema.User{}.Hooks()

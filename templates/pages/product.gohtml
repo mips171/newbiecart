@@ -1,0 +1,13 @@
+{{define "content"}}
+    <h1>{{.Data.Name}}</h1>
+    <p>{{.Data.Description}}</p>
+    <div class="product-price">
+        Price: ${{printf "%.2f" .Data.Price}}
+    </div>
+    <div class="product-quantity">
+        Quantity: {{.Data.Quantity}}
+    </div>
+    <div class="product-actions">
+        <button class="button">Add to Cart</button>
+    </div>
+{{end}}

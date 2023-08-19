@@ -26,6 +26,12 @@ func (pc *ProductCreate) SetName(s string) *ProductCreate {
 	return pc
 }
 
+// SetSku sets the "sku" field.
+func (pc *ProductCreate) SetSku(s string) *ProductCreate {
+	pc.mutation.SetSku(s)
+	return pc
+}
+
 // SetDescription sets the "description" field.
 func (pc *ProductCreate) SetDescription(s string) *ProductCreate {
 	pc.mutation.SetDescription(s)
@@ -101,6 +107,14 @@ func (pc *ProductCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Product.name": %w`, err)}
 		}
 	}
+	if _, ok := pc.mutation.Sku(); !ok {
+		return &ValidationError{Name: "sku", err: errors.New(`ent: missing required field "Product.sku"`)}
+	}
+	if v, ok := pc.mutation.Sku(); ok {
+		if err := product.SkuValidator(v); err != nil {
+			return &ValidationError{Name: "sku", err: fmt.Errorf(`ent: validator failed for field "Product.sku": %w`, err)}
+		}
+	}
 	if _, ok := pc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Product.description"`)}
 	}
@@ -154,6 +168,10 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.Name(); ok {
 		_spec.SetField(product.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := pc.mutation.Sku(); ok {
+		_spec.SetField(product.FieldSku, field.TypeString, value)
+		_node.Sku = value
 	}
 	if value, ok := pc.mutation.Description(); ok {
 		_spec.SetField(product.FieldDescription, field.TypeString, value)

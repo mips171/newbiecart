@@ -14,6 +14,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldSku holds the string denoting the sku field in the database.
+	FieldSku = "sku"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
 	// FieldPrice holds the string denoting the price field in the database.
@@ -37,6 +39,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldSku,
 	FieldDescription,
 	FieldPrice,
 	FieldQuantity,
@@ -55,6 +58,8 @@ func ValidColumn(column string) bool {
 var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// SkuValidator is a validator for the "sku" field. It is called by the builders before save.
+	SkuValidator func(string) error
 	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	DescriptionValidator func(string) error
 	// PriceValidator is a validator for the "price" field. It is called by the builders before save.
@@ -74,6 +79,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// BySku orders the results by the sku field.
+func BySku(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSku, opts...).ToFunc()
 }
 
 // ByDescription orders the results by the description field.
