@@ -16,22 +16,23 @@ func (Product) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
 			NotEmpty(),
-		field.String("sku").
-			NotEmpty().
-			Unique().
-			Immutable(),
-		field.String("description").
-			NotEmpty(),
+		field.Text("description"),
 		field.Float("price").
 			Positive(),
-		field.Int("quantity").
-			Positive(),
+		field.Int("stock_count").
+			Default(0).
+			NonNegative(),
+		field.String("image_url"),
 	}
+
 }
 
 // Edges of the Product.
 func (Product) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("cart_items", CartItem.Type),
+		edge.To("order_items", OrderItem.Type),
+		edge.From("category", ProductCategory.Type).
+			Ref("products"),
 	}
 }

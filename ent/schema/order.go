@@ -22,15 +22,21 @@ func (Order) Fields() []ent.Field {
 		field.Time("placed_at").
 			Default(time.Now).
 			Immutable(),
+		field.Float("balance_due").
+			Default(0).
+			Positive(),
 	}
 }
 
 // Edges of the Order.
 func (Order) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("user", User.Type).
-			Ref("orders").
-			Unique(),
-		edge.To("cart_items", CartItem.Type),
+		edge.From("customer", Customer.Type).
+			Ref("orders"),
+		edge.To("order_items", OrderItem.Type),
+		edge.To("payments", Payment.Type).
+			From("order"),
+		edge.From("processed_by", StaffMember.Type).
+			Ref("processed_orders"),
 	}
 }
