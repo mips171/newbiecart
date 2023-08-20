@@ -1,5 +1,6 @@
 {{define "content"}}
     <h1>{{.Data.Name}}</h1>
+	<p>SKU: <pre>{{.Data.Sku}}</pre></p>
     <p>{{.Data.Description}}</p>
     <div class="product-price">
         Price: ${{printf "%.2f" .Data.Price}}
