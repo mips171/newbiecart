@@ -10,9 +10,11 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/cartitem"
+	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/order"
-	"github.com/mikestefanello/pagoda/ent/user"
+	"github.com/mikestefanello/pagoda/ent/orderitem"
+	"github.com/mikestefanello/pagoda/ent/payment"
+	"github.com/mikestefanello/pagoda/ent/staffmember"
 )
 
 // OrderCreate is the builder for creating a Order entity.
@@ -50,38 +52,78 @@ func (oc *OrderCreate) SetNillablePlacedAt(t *time.Time) *OrderCreate {
 	return oc
 }
 
-// SetUserID sets the "user" edge to the User entity by ID.
-func (oc *OrderCreate) SetUserID(id int) *OrderCreate {
-	oc.mutation.SetUserID(id)
+// SetBalanceDue sets the "balance_due" field.
+func (oc *OrderCreate) SetBalanceDue(f float64) *OrderCreate {
+	oc.mutation.SetBalanceDue(f)
 	return oc
 }
 
-// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (oc *OrderCreate) SetNillableUserID(id *int) *OrderCreate {
-	if id != nil {
-		oc = oc.SetUserID(*id)
+// SetNillableBalanceDue sets the "balance_due" field if the given value is not nil.
+func (oc *OrderCreate) SetNillableBalanceDue(f *float64) *OrderCreate {
+	if f != nil {
+		oc.SetBalanceDue(*f)
 	}
 	return oc
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (oc *OrderCreate) SetUser(u *User) *OrderCreate {
-	return oc.SetUserID(u.ID)
-}
-
-// AddCartItemIDs adds the "cart_items" edge to the CartItem entity by IDs.
-func (oc *OrderCreate) AddCartItemIDs(ids ...int) *OrderCreate {
-	oc.mutation.AddCartItemIDs(ids...)
+// AddCustomerIDs adds the "customer" edge to the Customer entity by IDs.
+func (oc *OrderCreate) AddCustomerIDs(ids ...int) *OrderCreate {
+	oc.mutation.AddCustomerIDs(ids...)
 	return oc
 }
 
-// AddCartItems adds the "cart_items" edges to the CartItem entity.
-func (oc *OrderCreate) AddCartItems(c ...*CartItem) *OrderCreate {
+// AddCustomer adds the "customer" edges to the Customer entity.
+func (oc *OrderCreate) AddCustomer(c ...*Customer) *OrderCreate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return oc.AddCartItemIDs(ids...)
+	return oc.AddCustomerIDs(ids...)
+}
+
+// AddOrderItemIDs adds the "order_items" edge to the OrderItem entity by IDs.
+func (oc *OrderCreate) AddOrderItemIDs(ids ...int) *OrderCreate {
+	oc.mutation.AddOrderItemIDs(ids...)
+	return oc
+}
+
+// AddOrderItems adds the "order_items" edges to the OrderItem entity.
+func (oc *OrderCreate) AddOrderItems(o ...*OrderItem) *OrderCreate {
+	ids := make([]int, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return oc.AddOrderItemIDs(ids...)
+}
+
+// AddPaymentIDs adds the "payments" edge to the Payment entity by IDs.
+func (oc *OrderCreate) AddPaymentIDs(ids ...int) *OrderCreate {
+	oc.mutation.AddPaymentIDs(ids...)
+	return oc
+}
+
+// AddPayments adds the "payments" edges to the Payment entity.
+func (oc *OrderCreate) AddPayments(p ...*Payment) *OrderCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return oc.AddPaymentIDs(ids...)
+}
+
+// AddProcessedByIDs adds the "processed_by" edge to the StaffMember entity by IDs.
+func (oc *OrderCreate) AddProcessedByIDs(ids ...int) *OrderCreate {
+	oc.mutation.AddProcessedByIDs(ids...)
+	return oc
+}
+
+// AddProcessedBy adds the "processed_by" edges to the StaffMember entity.
+func (oc *OrderCreate) AddProcessedBy(s ...*StaffMember) *OrderCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return oc.AddProcessedByIDs(ids...)
 }
 
 // Mutation returns the OrderMutation object of the builder.
@@ -127,6 +169,10 @@ func (oc *OrderCreate) defaults() {
 		v := order.DefaultPlacedAt()
 		oc.mutation.SetPlacedAt(v)
 	}
+	if _, ok := oc.mutation.BalanceDue(); !ok {
+		v := order.DefaultBalanceDue
+		oc.mutation.SetBalanceDue(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -141,6 +187,14 @@ func (oc *OrderCreate) check() error {
 	}
 	if _, ok := oc.mutation.PlacedAt(); !ok {
 		return &ValidationError{Name: "placed_at", err: errors.New(`ent: missing required field "Order.placed_at"`)}
+	}
+	if _, ok := oc.mutation.BalanceDue(); !ok {
+		return &ValidationError{Name: "balance_due", err: errors.New(`ent: missing required field "Order.balance_due"`)}
+	}
+	if v, ok := oc.mutation.BalanceDue(); ok {
+		if err := order.BalanceDueValidator(v); err != nil {
+			return &ValidationError{Name: "balance_due", err: fmt.Errorf(`ent: validator failed for field "Order.balance_due": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -176,32 +230,67 @@ func (oc *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 		_spec.SetField(order.FieldPlacedAt, field.TypeTime, value)
 		_node.PlacedAt = value
 	}
-	if nodes := oc.mutation.UserIDs(); len(nodes) > 0 {
+	if value, ok := oc.mutation.BalanceDue(); ok {
+		_spec.SetField(order.FieldBalanceDue, field.TypeFloat64, value)
+		_node.BalanceDue = value
+	}
+	if nodes := oc.mutation.CustomerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   order.UserTable,
-			Columns: []string{order.UserColumn},
+			Table:   order.CustomerTable,
+			Columns: order.CustomerPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(customer.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_orders = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := oc.mutation.CartItemsIDs(); len(nodes) > 0 {
+	if nodes := oc.mutation.OrderItemsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   order.CartItemsTable,
-			Columns: order.CartItemsPrimaryKey,
+			Table:   order.OrderItemsTable,
+			Columns: order.OrderItemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(orderitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := oc.mutation.PaymentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   order.PaymentsTable,
+			Columns: order.PaymentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(payment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := oc.mutation.ProcessedByIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   order.ProcessedByTable,
+			Columns: order.ProcessedByPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(staffmember.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

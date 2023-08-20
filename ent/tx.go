@@ -16,12 +16,22 @@ type Tx struct {
 	Cart *CartClient
 	// CartItem is the client for interacting with the CartItem builders.
 	CartItem *CartItemClient
+	// Customer is the client for interacting with the Customer builders.
+	Customer *CustomerClient
 	// Order is the client for interacting with the Order builders.
 	Order *OrderClient
+	// OrderItem is the client for interacting with the OrderItem builders.
+	OrderItem *OrderItemClient
 	// PasswordToken is the client for interacting with the PasswordToken builders.
 	PasswordToken *PasswordTokenClient
+	// Payment is the client for interacting with the Payment builders.
+	Payment *PaymentClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
+	// ProductCategory is the client for interacting with the ProductCategory builders.
+	ProductCategory *ProductCategoryClient
+	// StaffMember is the client for interacting with the StaffMember builders.
+	StaffMember *StaffMemberClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -157,9 +167,14 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Cart = NewCartClient(tx.config)
 	tx.CartItem = NewCartItemClient(tx.config)
+	tx.Customer = NewCustomerClient(tx.config)
 	tx.Order = NewOrderClient(tx.config)
+	tx.OrderItem = NewOrderItemClient(tx.config)
 	tx.PasswordToken = NewPasswordTokenClient(tx.config)
+	tx.Payment = NewPaymentClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
+	tx.ProductCategory = NewProductCategoryClient(tx.config)
+	tx.StaffMember = NewStaffMemberClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

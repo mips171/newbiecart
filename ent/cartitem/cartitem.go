@@ -14,24 +14,22 @@ const (
 	FieldID = "id"
 	// FieldQuantity holds the string denoting the quantity field in the database.
 	FieldQuantity = "quantity"
+	// EdgeCart holds the string denoting the cart edge name in mutations.
+	EdgeCart = "cart"
 	// EdgeProduct holds the string denoting the product edge name in mutations.
 	EdgeProduct = "product"
-	// EdgeOrder holds the string denoting the order edge name in mutations.
-	EdgeOrder = "order"
 	// Table holds the table name of the cartitem in the database.
 	Table = "cart_items"
-	// ProductTable is the table that holds the product relation/edge.
-	ProductTable = "cart_items"
+	// CartTable is the table that holds the cart relation/edge. The primary key declared below.
+	CartTable = "cart_cart_items"
+	// CartInverseTable is the table name for the Cart entity.
+	// It exists in this package in order to avoid circular dependency with the "cart" package.
+	CartInverseTable = "carts"
+	// ProductTable is the table that holds the product relation/edge. The primary key declared below.
+	ProductTable = "product_cart_items"
 	// ProductInverseTable is the table name for the Product entity.
 	// It exists in this package in order to avoid circular dependency with the "product" package.
 	ProductInverseTable = "products"
-	// ProductColumn is the table column denoting the product relation/edge.
-	ProductColumn = "product_cart_items"
-	// OrderTable is the table that holds the order relation/edge. The primary key declared below.
-	OrderTable = "order_cart_items"
-	// OrderInverseTable is the table name for the Order entity.
-	// It exists in this package in order to avoid circular dependency with the "order" package.
-	OrderInverseTable = "orders"
 )
 
 // Columns holds all SQL columns for cartitem fields.
@@ -40,16 +38,13 @@ var Columns = []string{
 	FieldQuantity,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the "cart_items"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"product_cart_items",
-}
-
 var (
-	// OrderPrimaryKey and OrderColumn2 are the table columns denoting the
-	// primary key for the order relation (M2M).
-	OrderPrimaryKey = []string{"order_id", "cart_item_id"}
+	// CartPrimaryKey and CartColumn2 are the table columns denoting the
+	// primary key for the cart relation (M2M).
+	CartPrimaryKey = []string{"cart_id", "cart_item_id"}
+	// ProductPrimaryKey and ProductColumn2 are the table columns denoting the
+	// primary key for the product relation (M2M).
+	ProductPrimaryKey = []string{"product_id", "cart_item_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -59,15 +54,12 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
-			return true
-		}
-	}
 	return false
 }
 
 var (
+	// DefaultQuantity holds the default value on creation for the "quantity" field.
+	DefaultQuantity int
 	// QuantityValidator is a validator for the "quantity" field. It is called by the builders before save.
 	QuantityValidator func(int) error
 )
@@ -85,37 +77,44 @@ func ByQuantity(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldQuantity, opts...).ToFunc()
 }
 
-// ByProductField orders the results by product field.
-func ByProductField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByCartCount orders the results by cart count.
+func ByCartCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newProductStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newCartStep(), opts...)
 	}
 }
 
-// ByOrderCount orders the results by order count.
-func ByOrderCount(opts ...sql.OrderTermOption) OrderOption {
+// ByCart orders the results by cart terms.
+func ByCart(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newOrderStep(), opts...)
+		sqlgraph.OrderByNeighborTerms(s, newCartStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
-// ByOrder orders the results by order terms.
-func ByOrder(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByProductCount orders the results by product count.
+func ByProductCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOrderStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborsCount(s, newProductStep(), opts...)
 	}
+}
+
+// ByProduct orders the results by product terms.
+func ByProduct(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProductStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newCartStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CartInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, CartTable, CartPrimaryKey...),
+	)
 }
 func newProductStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ProductInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ProductTable, ProductColumn),
-	)
-}
-func newOrderStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OrderInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, OrderTable, OrderPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.M2M, true, ProductTable, ProductPrimaryKey...),
 	)
 }

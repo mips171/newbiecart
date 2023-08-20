@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,16 +12,21 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mikestefanello/pagoda/ent/cart"
+	"github.com/mikestefanello/pagoda/ent/cartitem"
+	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/predicate"
 )
 
 // CartQuery is the builder for querying Cart entities.
 type CartQuery struct {
 	config
-	ctx        *QueryContext
-	order      []cart.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Cart
+	ctx           *QueryContext
+	order         []cart.OrderOption
+	inters        []Interceptor
+	predicates    []predicate.Cart
+	withCartItems *CartItemQuery
+	withCustomer  *CustomerQuery
+	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -55,6 +61,50 @@ func (cq *CartQuery) Unique(unique bool) *CartQuery {
 func (cq *CartQuery) Order(o ...cart.OrderOption) *CartQuery {
 	cq.order = append(cq.order, o...)
 	return cq
+}
+
+// QueryCartItems chains the current query on the "cart_items" edge.
+func (cq *CartQuery) QueryCartItems() *CartItemQuery {
+	query := (&CartItemClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cart.Table, cart.FieldID, selector),
+			sqlgraph.To(cartitem.Table, cartitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, cart.CartItemsTable, cart.CartItemsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCustomer chains the current query on the "customer" edge.
+func (cq *CartQuery) QueryCustomer() *CustomerQuery {
+	query := (&CustomerClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cart.Table, cart.FieldID, selector),
+			sqlgraph.To(customer.Table, customer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, cart.CustomerTable, cart.CustomerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Cart entity from the query.
@@ -244,15 +294,39 @@ func (cq *CartQuery) Clone() *CartQuery {
 		return nil
 	}
 	return &CartQuery{
-		config:     cq.config,
-		ctx:        cq.ctx.Clone(),
-		order:      append([]cart.OrderOption{}, cq.order...),
-		inters:     append([]Interceptor{}, cq.inters...),
-		predicates: append([]predicate.Cart{}, cq.predicates...),
+		config:        cq.config,
+		ctx:           cq.ctx.Clone(),
+		order:         append([]cart.OrderOption{}, cq.order...),
+		inters:        append([]Interceptor{}, cq.inters...),
+		predicates:    append([]predicate.Cart{}, cq.predicates...),
+		withCartItems: cq.withCartItems.Clone(),
+		withCustomer:  cq.withCustomer.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
 	}
+}
+
+// WithCartItems tells the query-builder to eager-load the nodes that are connected to
+// the "cart_items" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CartQuery) WithCartItems(opts ...func(*CartItemQuery)) *CartQuery {
+	query := (&CartItemClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withCartItems = query
+	return cq
+}
+
+// WithCustomer tells the query-builder to eager-load the nodes that are connected to
+// the "customer" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CartQuery) WithCustomer(opts ...func(*CustomerQuery)) *CartQuery {
+	query := (&CustomerClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withCustomer = query
+	return cq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -309,15 +383,27 @@ func (cq *CartQuery) prepareQuery(ctx context.Context) error {
 
 func (cq *CartQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cart, error) {
 	var (
-		nodes = []*Cart{}
-		_spec = cq.querySpec()
+		nodes       = []*Cart{}
+		withFKs     = cq.withFKs
+		_spec       = cq.querySpec()
+		loadedTypes = [2]bool{
+			cq.withCartItems != nil,
+			cq.withCustomer != nil,
+		}
 	)
+	if cq.withCustomer != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, cart.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Cart).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Cart{config: cq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -329,7 +415,114 @@ func (cq *CartQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cart, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := cq.withCartItems; query != nil {
+		if err := cq.loadCartItems(ctx, query, nodes,
+			func(n *Cart) { n.Edges.CartItems = []*CartItem{} },
+			func(n *Cart, e *CartItem) { n.Edges.CartItems = append(n.Edges.CartItems, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := cq.withCustomer; query != nil {
+		if err := cq.loadCustomer(ctx, query, nodes, nil,
+			func(n *Cart, e *Customer) { n.Edges.Customer = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (cq *CartQuery) loadCartItems(ctx context.Context, query *CartItemQuery, nodes []*Cart, init func(*Cart), assign func(*Cart, *CartItem)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Cart)
+	nids := make(map[int]map[*Cart]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(cart.CartItemsTable)
+		s.Join(joinT).On(s.C(cartitem.FieldID), joinT.C(cart.CartItemsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(cart.CartItemsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(cart.CartItemsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Cart]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*CartItem](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "cart_items" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (cq *CartQuery) loadCustomer(ctx context.Context, query *CustomerQuery, nodes []*Cart, init func(*Cart), assign func(*Cart, *Customer)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Cart)
+	for i := range nodes {
+		if nodes[i].customer_cart == nil {
+			continue
+		}
+		fk := *nodes[i].customer_cart
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(customer.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "customer_cart" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (cq *CartQuery) sqlCount(ctx context.Context) (int, error) {

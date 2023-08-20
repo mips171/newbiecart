@@ -11,8 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mikestefanello/pagoda/ent/cartitem"
+	"github.com/mikestefanello/pagoda/ent/orderitem"
 	"github.com/mikestefanello/pagoda/ent/predicate"
 	"github.com/mikestefanello/pagoda/ent/product"
+	"github.com/mikestefanello/pagoda/ent/productcategory"
 )
 
 // ProductUpdate is the builder for updating Product entities.
@@ -31,6 +33,12 @@ func (pu *ProductUpdate) Where(ps ...predicate.Product) *ProductUpdate {
 // SetName sets the "name" field.
 func (pu *ProductUpdate) SetName(s string) *ProductUpdate {
 	pu.mutation.SetName(s)
+	return pu
+}
+
+// SetSku sets the "sku" field.
+func (pu *ProductUpdate) SetSku(s string) *ProductUpdate {
+	pu.mutation.SetSku(s)
 	return pu
 }
 
@@ -53,16 +61,38 @@ func (pu *ProductUpdate) AddPrice(f float64) *ProductUpdate {
 	return pu
 }
 
-// SetQuantity sets the "quantity" field.
-func (pu *ProductUpdate) SetQuantity(i int) *ProductUpdate {
-	pu.mutation.ResetQuantity()
-	pu.mutation.SetQuantity(i)
+// SetStockCount sets the "stock_count" field.
+func (pu *ProductUpdate) SetStockCount(i int) *ProductUpdate {
+	pu.mutation.ResetStockCount()
+	pu.mutation.SetStockCount(i)
 	return pu
 }
 
-// AddQuantity adds i to the "quantity" field.
-func (pu *ProductUpdate) AddQuantity(i int) *ProductUpdate {
-	pu.mutation.AddQuantity(i)
+// SetNillableStockCount sets the "stock_count" field if the given value is not nil.
+func (pu *ProductUpdate) SetNillableStockCount(i *int) *ProductUpdate {
+	if i != nil {
+		pu.SetStockCount(*i)
+	}
+	return pu
+}
+
+// AddStockCount adds i to the "stock_count" field.
+func (pu *ProductUpdate) AddStockCount(i int) *ProductUpdate {
+	pu.mutation.AddStockCount(i)
+	return pu
+}
+
+// SetImageURL sets the "image_url" field.
+func (pu *ProductUpdate) SetImageURL(s string) *ProductUpdate {
+	pu.mutation.SetImageURL(s)
+	return pu
+}
+
+// SetNillableImageURL sets the "image_url" field if the given value is not nil.
+func (pu *ProductUpdate) SetNillableImageURL(s *string) *ProductUpdate {
+	if s != nil {
+		pu.SetImageURL(*s)
+	}
 	return pu
 }
 
@@ -79,6 +109,36 @@ func (pu *ProductUpdate) AddCartItems(c ...*CartItem) *ProductUpdate {
 		ids[i] = c[i].ID
 	}
 	return pu.AddCartItemIDs(ids...)
+}
+
+// AddOrderItemIDs adds the "order_items" edge to the OrderItem entity by IDs.
+func (pu *ProductUpdate) AddOrderItemIDs(ids ...int) *ProductUpdate {
+	pu.mutation.AddOrderItemIDs(ids...)
+	return pu
+}
+
+// AddOrderItems adds the "order_items" edges to the OrderItem entity.
+func (pu *ProductUpdate) AddOrderItems(o ...*OrderItem) *ProductUpdate {
+	ids := make([]int, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return pu.AddOrderItemIDs(ids...)
+}
+
+// AddCategoryIDs adds the "category" edge to the ProductCategory entity by IDs.
+func (pu *ProductUpdate) AddCategoryIDs(ids ...int) *ProductUpdate {
+	pu.mutation.AddCategoryIDs(ids...)
+	return pu
+}
+
+// AddCategory adds the "category" edges to the ProductCategory entity.
+func (pu *ProductUpdate) AddCategory(p ...*ProductCategory) *ProductUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return pu.AddCategoryIDs(ids...)
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -105,6 +165,48 @@ func (pu *ProductUpdate) RemoveCartItems(c ...*CartItem) *ProductUpdate {
 		ids[i] = c[i].ID
 	}
 	return pu.RemoveCartItemIDs(ids...)
+}
+
+// ClearOrderItems clears all "order_items" edges to the OrderItem entity.
+func (pu *ProductUpdate) ClearOrderItems() *ProductUpdate {
+	pu.mutation.ClearOrderItems()
+	return pu
+}
+
+// RemoveOrderItemIDs removes the "order_items" edge to OrderItem entities by IDs.
+func (pu *ProductUpdate) RemoveOrderItemIDs(ids ...int) *ProductUpdate {
+	pu.mutation.RemoveOrderItemIDs(ids...)
+	return pu
+}
+
+// RemoveOrderItems removes "order_items" edges to OrderItem entities.
+func (pu *ProductUpdate) RemoveOrderItems(o ...*OrderItem) *ProductUpdate {
+	ids := make([]int, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return pu.RemoveOrderItemIDs(ids...)
+}
+
+// ClearCategory clears all "category" edges to the ProductCategory entity.
+func (pu *ProductUpdate) ClearCategory() *ProductUpdate {
+	pu.mutation.ClearCategory()
+	return pu
+}
+
+// RemoveCategoryIDs removes the "category" edge to ProductCategory entities by IDs.
+func (pu *ProductUpdate) RemoveCategoryIDs(ids ...int) *ProductUpdate {
+	pu.mutation.RemoveCategoryIDs(ids...)
+	return pu
+}
+
+// RemoveCategory removes "category" edges to ProductCategory entities.
+func (pu *ProductUpdate) RemoveCategory(p ...*ProductCategory) *ProductUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return pu.RemoveCategoryIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -141,9 +243,9 @@ func (pu *ProductUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Product.name": %w`, err)}
 		}
 	}
-	if v, ok := pu.mutation.Description(); ok {
-		if err := product.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Product.description": %w`, err)}
+	if v, ok := pu.mutation.Sku(); ok {
+		if err := product.SkuValidator(v); err != nil {
+			return &ValidationError{Name: "sku", err: fmt.Errorf(`ent: validator failed for field "Product.sku": %w`, err)}
 		}
 	}
 	if v, ok := pu.mutation.Price(); ok {
@@ -151,9 +253,9 @@ func (pu *ProductUpdate) check() error {
 			return &ValidationError{Name: "price", err: fmt.Errorf(`ent: validator failed for field "Product.price": %w`, err)}
 		}
 	}
-	if v, ok := pu.mutation.Quantity(); ok {
-		if err := product.QuantityValidator(v); err != nil {
-			return &ValidationError{Name: "quantity", err: fmt.Errorf(`ent: validator failed for field "Product.quantity": %w`, err)}
+	if v, ok := pu.mutation.StockCount(); ok {
+		if err := product.StockCountValidator(v); err != nil {
+			return &ValidationError{Name: "stock_count", err: fmt.Errorf(`ent: validator failed for field "Product.stock_count": %w`, err)}
 		}
 	}
 	return nil
@@ -174,6 +276,9 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.Name(); ok {
 		_spec.SetField(product.FieldName, field.TypeString, value)
 	}
+	if value, ok := pu.mutation.Sku(); ok {
+		_spec.SetField(product.FieldSku, field.TypeString, value)
+	}
 	if value, ok := pu.mutation.Description(); ok {
 		_spec.SetField(product.FieldDescription, field.TypeString, value)
 	}
@@ -183,18 +288,21 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.AddedPrice(); ok {
 		_spec.AddField(product.FieldPrice, field.TypeFloat64, value)
 	}
-	if value, ok := pu.mutation.Quantity(); ok {
-		_spec.SetField(product.FieldQuantity, field.TypeInt, value)
+	if value, ok := pu.mutation.StockCount(); ok {
+		_spec.SetField(product.FieldStockCount, field.TypeInt, value)
 	}
-	if value, ok := pu.mutation.AddedQuantity(); ok {
-		_spec.AddField(product.FieldQuantity, field.TypeInt, value)
+	if value, ok := pu.mutation.AddedStockCount(); ok {
+		_spec.AddField(product.FieldStockCount, field.TypeInt, value)
+	}
+	if value, ok := pu.mutation.ImageURL(); ok {
+		_spec.SetField(product.FieldImageURL, field.TypeString, value)
 	}
 	if pu.mutation.CartItemsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   product.CartItemsTable,
-			Columns: []string{product.CartItemsColumn},
+			Columns: product.CartItemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
@@ -204,10 +312,10 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := pu.mutation.RemovedCartItemsIDs(); len(nodes) > 0 && !pu.mutation.CartItemsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   product.CartItemsTable,
-			Columns: []string{product.CartItemsColumn},
+			Columns: product.CartItemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
@@ -220,13 +328,103 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := pu.mutation.CartItemsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   product.CartItemsTable,
-			Columns: []string{product.CartItemsColumn},
+			Columns: product.CartItemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.OrderItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   product.OrderItemsTable,
+			Columns: product.OrderItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderitem.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedOrderItemsIDs(); len(nodes) > 0 && !pu.mutation.OrderItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   product.OrderItemsTable,
+			Columns: product.OrderItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.OrderItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   product.OrderItemsTable,
+			Columns: product.OrderItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.CategoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   product.CategoryTable,
+			Columns: product.CategoryPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productcategory.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedCategoryIDs(); len(nodes) > 0 && !pu.mutation.CategoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   product.CategoryTable,
+			Columns: product.CategoryPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productcategory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   product.CategoryTable,
+			Columns: product.CategoryPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productcategory.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -260,6 +458,12 @@ func (puo *ProductUpdateOne) SetName(s string) *ProductUpdateOne {
 	return puo
 }
 
+// SetSku sets the "sku" field.
+func (puo *ProductUpdateOne) SetSku(s string) *ProductUpdateOne {
+	puo.mutation.SetSku(s)
+	return puo
+}
+
 // SetDescription sets the "description" field.
 func (puo *ProductUpdateOne) SetDescription(s string) *ProductUpdateOne {
 	puo.mutation.SetDescription(s)
@@ -279,16 +483,38 @@ func (puo *ProductUpdateOne) AddPrice(f float64) *ProductUpdateOne {
 	return puo
 }
 
-// SetQuantity sets the "quantity" field.
-func (puo *ProductUpdateOne) SetQuantity(i int) *ProductUpdateOne {
-	puo.mutation.ResetQuantity()
-	puo.mutation.SetQuantity(i)
+// SetStockCount sets the "stock_count" field.
+func (puo *ProductUpdateOne) SetStockCount(i int) *ProductUpdateOne {
+	puo.mutation.ResetStockCount()
+	puo.mutation.SetStockCount(i)
 	return puo
 }
 
-// AddQuantity adds i to the "quantity" field.
-func (puo *ProductUpdateOne) AddQuantity(i int) *ProductUpdateOne {
-	puo.mutation.AddQuantity(i)
+// SetNillableStockCount sets the "stock_count" field if the given value is not nil.
+func (puo *ProductUpdateOne) SetNillableStockCount(i *int) *ProductUpdateOne {
+	if i != nil {
+		puo.SetStockCount(*i)
+	}
+	return puo
+}
+
+// AddStockCount adds i to the "stock_count" field.
+func (puo *ProductUpdateOne) AddStockCount(i int) *ProductUpdateOne {
+	puo.mutation.AddStockCount(i)
+	return puo
+}
+
+// SetImageURL sets the "image_url" field.
+func (puo *ProductUpdateOne) SetImageURL(s string) *ProductUpdateOne {
+	puo.mutation.SetImageURL(s)
+	return puo
+}
+
+// SetNillableImageURL sets the "image_url" field if the given value is not nil.
+func (puo *ProductUpdateOne) SetNillableImageURL(s *string) *ProductUpdateOne {
+	if s != nil {
+		puo.SetImageURL(*s)
+	}
 	return puo
 }
 
@@ -305,6 +531,36 @@ func (puo *ProductUpdateOne) AddCartItems(c ...*CartItem) *ProductUpdateOne {
 		ids[i] = c[i].ID
 	}
 	return puo.AddCartItemIDs(ids...)
+}
+
+// AddOrderItemIDs adds the "order_items" edge to the OrderItem entity by IDs.
+func (puo *ProductUpdateOne) AddOrderItemIDs(ids ...int) *ProductUpdateOne {
+	puo.mutation.AddOrderItemIDs(ids...)
+	return puo
+}
+
+// AddOrderItems adds the "order_items" edges to the OrderItem entity.
+func (puo *ProductUpdateOne) AddOrderItems(o ...*OrderItem) *ProductUpdateOne {
+	ids := make([]int, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return puo.AddOrderItemIDs(ids...)
+}
+
+// AddCategoryIDs adds the "category" edge to the ProductCategory entity by IDs.
+func (puo *ProductUpdateOne) AddCategoryIDs(ids ...int) *ProductUpdateOne {
+	puo.mutation.AddCategoryIDs(ids...)
+	return puo
+}
+
+// AddCategory adds the "category" edges to the ProductCategory entity.
+func (puo *ProductUpdateOne) AddCategory(p ...*ProductCategory) *ProductUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return puo.AddCategoryIDs(ids...)
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -331,6 +587,48 @@ func (puo *ProductUpdateOne) RemoveCartItems(c ...*CartItem) *ProductUpdateOne {
 		ids[i] = c[i].ID
 	}
 	return puo.RemoveCartItemIDs(ids...)
+}
+
+// ClearOrderItems clears all "order_items" edges to the OrderItem entity.
+func (puo *ProductUpdateOne) ClearOrderItems() *ProductUpdateOne {
+	puo.mutation.ClearOrderItems()
+	return puo
+}
+
+// RemoveOrderItemIDs removes the "order_items" edge to OrderItem entities by IDs.
+func (puo *ProductUpdateOne) RemoveOrderItemIDs(ids ...int) *ProductUpdateOne {
+	puo.mutation.RemoveOrderItemIDs(ids...)
+	return puo
+}
+
+// RemoveOrderItems removes "order_items" edges to OrderItem entities.
+func (puo *ProductUpdateOne) RemoveOrderItems(o ...*OrderItem) *ProductUpdateOne {
+	ids := make([]int, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return puo.RemoveOrderItemIDs(ids...)
+}
+
+// ClearCategory clears all "category" edges to the ProductCategory entity.
+func (puo *ProductUpdateOne) ClearCategory() *ProductUpdateOne {
+	puo.mutation.ClearCategory()
+	return puo
+}
+
+// RemoveCategoryIDs removes the "category" edge to ProductCategory entities by IDs.
+func (puo *ProductUpdateOne) RemoveCategoryIDs(ids ...int) *ProductUpdateOne {
+	puo.mutation.RemoveCategoryIDs(ids...)
+	return puo
+}
+
+// RemoveCategory removes "category" edges to ProductCategory entities.
+func (puo *ProductUpdateOne) RemoveCategory(p ...*ProductCategory) *ProductUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return puo.RemoveCategoryIDs(ids...)
 }
 
 // Where appends a list predicates to the ProductUpdate builder.
@@ -380,9 +678,9 @@ func (puo *ProductUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Product.name": %w`, err)}
 		}
 	}
-	if v, ok := puo.mutation.Description(); ok {
-		if err := product.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Product.description": %w`, err)}
+	if v, ok := puo.mutation.Sku(); ok {
+		if err := product.SkuValidator(v); err != nil {
+			return &ValidationError{Name: "sku", err: fmt.Errorf(`ent: validator failed for field "Product.sku": %w`, err)}
 		}
 	}
 	if v, ok := puo.mutation.Price(); ok {
@@ -390,9 +688,9 @@ func (puo *ProductUpdateOne) check() error {
 			return &ValidationError{Name: "price", err: fmt.Errorf(`ent: validator failed for field "Product.price": %w`, err)}
 		}
 	}
-	if v, ok := puo.mutation.Quantity(); ok {
-		if err := product.QuantityValidator(v); err != nil {
-			return &ValidationError{Name: "quantity", err: fmt.Errorf(`ent: validator failed for field "Product.quantity": %w`, err)}
+	if v, ok := puo.mutation.StockCount(); ok {
+		if err := product.StockCountValidator(v); err != nil {
+			return &ValidationError{Name: "stock_count", err: fmt.Errorf(`ent: validator failed for field "Product.stock_count": %w`, err)}
 		}
 	}
 	return nil
@@ -430,6 +728,9 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	if value, ok := puo.mutation.Name(); ok {
 		_spec.SetField(product.FieldName, field.TypeString, value)
 	}
+	if value, ok := puo.mutation.Sku(); ok {
+		_spec.SetField(product.FieldSku, field.TypeString, value)
+	}
 	if value, ok := puo.mutation.Description(); ok {
 		_spec.SetField(product.FieldDescription, field.TypeString, value)
 	}
@@ -439,18 +740,21 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	if value, ok := puo.mutation.AddedPrice(); ok {
 		_spec.AddField(product.FieldPrice, field.TypeFloat64, value)
 	}
-	if value, ok := puo.mutation.Quantity(); ok {
-		_spec.SetField(product.FieldQuantity, field.TypeInt, value)
+	if value, ok := puo.mutation.StockCount(); ok {
+		_spec.SetField(product.FieldStockCount, field.TypeInt, value)
 	}
-	if value, ok := puo.mutation.AddedQuantity(); ok {
-		_spec.AddField(product.FieldQuantity, field.TypeInt, value)
+	if value, ok := puo.mutation.AddedStockCount(); ok {
+		_spec.AddField(product.FieldStockCount, field.TypeInt, value)
+	}
+	if value, ok := puo.mutation.ImageURL(); ok {
+		_spec.SetField(product.FieldImageURL, field.TypeString, value)
 	}
 	if puo.mutation.CartItemsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   product.CartItemsTable,
-			Columns: []string{product.CartItemsColumn},
+			Columns: product.CartItemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
@@ -460,10 +764,10 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	}
 	if nodes := puo.mutation.RemovedCartItemsIDs(); len(nodes) > 0 && !puo.mutation.CartItemsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   product.CartItemsTable,
-			Columns: []string{product.CartItemsColumn},
+			Columns: product.CartItemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
@@ -476,13 +780,103 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	}
 	if nodes := puo.mutation.CartItemsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   product.CartItemsTable,
-			Columns: []string{product.CartItemsColumn},
+			Columns: product.CartItemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.OrderItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   product.OrderItemsTable,
+			Columns: product.OrderItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderitem.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedOrderItemsIDs(); len(nodes) > 0 && !puo.mutation.OrderItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   product.OrderItemsTable,
+			Columns: product.OrderItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.OrderItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   product.OrderItemsTable,
+			Columns: product.OrderItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.CategoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   product.CategoryTable,
+			Columns: product.CategoryPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productcategory.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedCategoryIDs(); len(nodes) > 0 && !puo.mutation.CategoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   product.CategoryTable,
+			Columns: product.CategoryPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productcategory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   product.CategoryTable,
+			Columns: product.CategoryPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productcategory.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

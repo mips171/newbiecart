@@ -16,15 +16,16 @@ func (Product) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
 			NotEmpty(),
+		field.String("sku").
+			NotEmpty().Unique(),
 		field.Text("description"),
 		field.Float("price").
 			Positive(),
 		field.Int("stock_count").
 			Default(0).
 			NonNegative(),
-		field.String("image_url"),
+		field.String("image_url").Default("https://via.placeholder.com/150"),
 	}
-
 }
 
 // Edges of the Product.

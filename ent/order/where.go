@@ -65,6 +65,11 @@ func PlacedAt(v time.Time) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldPlacedAt, v))
 }
 
+// BalanceDue applies equality check predicate on the "balance_due" field. It's identical to BalanceDueEQ.
+func BalanceDue(v float64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldBalanceDue, v))
+}
+
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldStatus, v))
@@ -170,21 +175,61 @@ func PlacedAtLTE(v time.Time) predicate.Order {
 	return predicate.Order(sql.FieldLTE(FieldPlacedAt, v))
 }
 
-// HasUser applies the HasEdge predicate on the "user" edge.
-func HasUser() predicate.Order {
+// BalanceDueEQ applies the EQ predicate on the "balance_due" field.
+func BalanceDueEQ(v float64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldBalanceDue, v))
+}
+
+// BalanceDueNEQ applies the NEQ predicate on the "balance_due" field.
+func BalanceDueNEQ(v float64) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldBalanceDue, v))
+}
+
+// BalanceDueIn applies the In predicate on the "balance_due" field.
+func BalanceDueIn(vs ...float64) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldBalanceDue, vs...))
+}
+
+// BalanceDueNotIn applies the NotIn predicate on the "balance_due" field.
+func BalanceDueNotIn(vs ...float64) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldBalanceDue, vs...))
+}
+
+// BalanceDueGT applies the GT predicate on the "balance_due" field.
+func BalanceDueGT(v float64) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldBalanceDue, v))
+}
+
+// BalanceDueGTE applies the GTE predicate on the "balance_due" field.
+func BalanceDueGTE(v float64) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldBalanceDue, v))
+}
+
+// BalanceDueLT applies the LT predicate on the "balance_due" field.
+func BalanceDueLT(v float64) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldBalanceDue, v))
+}
+
+// BalanceDueLTE applies the LTE predicate on the "balance_due" field.
+func BalanceDueLTE(v float64) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldBalanceDue, v))
+}
+
+// HasCustomer applies the HasEdge predicate on the "customer" edge.
+func HasCustomer() predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, CustomerTable, CustomerPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
-func HasUserWith(preds ...predicate.User) predicate.Order {
+// HasCustomerWith applies the HasEdge predicate on the "customer" edge with a given conditions (other predicates).
+func HasCustomerWith(preds ...predicate.Customer) predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
-		step := newUserStep()
+		step := newCustomerStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -193,21 +238,67 @@ func HasUserWith(preds ...predicate.User) predicate.Order {
 	})
 }
 
-// HasCartItems applies the HasEdge predicate on the "cart_items" edge.
-func HasCartItems() predicate.Order {
+// HasOrderItems applies the HasEdge predicate on the "order_items" edge.
+func HasOrderItems() predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, CartItemsTable, CartItemsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, false, OrderItemsTable, OrderItemsPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasCartItemsWith applies the HasEdge predicate on the "cart_items" edge with a given conditions (other predicates).
-func HasCartItemsWith(preds ...predicate.CartItem) predicate.Order {
+// HasOrderItemsWith applies the HasEdge predicate on the "order_items" edge with a given conditions (other predicates).
+func HasOrderItemsWith(preds ...predicate.OrderItem) predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
-		step := newCartItemsStep()
+		step := newOrderItemsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPayments applies the HasEdge predicate on the "payments" edge.
+func HasPayments() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, PaymentsTable, PaymentsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPaymentsWith applies the HasEdge predicate on the "payments" edge with a given conditions (other predicates).
+func HasPaymentsWith(preds ...predicate.Payment) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newPaymentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasProcessedBy applies the HasEdge predicate on the "processed_by" edge.
+func HasProcessedBy() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, ProcessedByTable, ProcessedByPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProcessedByWith applies the HasEdge predicate on the "processed_by" edge with a given conditions (other predicates).
+func HasProcessedByWith(preds ...predicate.StaffMember) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newProcessedByStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

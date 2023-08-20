@@ -12,14 +12,29 @@ type Cart func(*sql.Selector)
 // CartItem is the predicate function for cartitem builders.
 type CartItem func(*sql.Selector)
 
+// Customer is the predicate function for customer builders.
+type Customer func(*sql.Selector)
+
 // Order is the predicate function for order builders.
 type Order func(*sql.Selector)
+
+// OrderItem is the predicate function for orderitem builders.
+type OrderItem func(*sql.Selector)
 
 // PasswordToken is the predicate function for passwordtoken builders.
 type PasswordToken func(*sql.Selector)
 
+// Payment is the predicate function for payment builders.
+type Payment func(*sql.Selector)
+
 // Product is the predicate function for product builders.
 type Product func(*sql.Selector)
+
+// ProductCategory is the predicate function for productcategory builders.
+type ProductCategory func(*sql.Selector)
+
+// StaffMember is the predicate function for staffmember builders.
+type StaffMember func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

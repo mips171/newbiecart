@@ -11,6 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mikestefanello/pagoda/ent/cart"
+	"github.com/mikestefanello/pagoda/ent/cartitem"
+	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/predicate"
 )
 
@@ -27,9 +29,70 @@ func (cu *CartUpdate) Where(ps ...predicate.Cart) *CartUpdate {
 	return cu
 }
 
+// AddCartItemIDs adds the "cart_items" edge to the CartItem entity by IDs.
+func (cu *CartUpdate) AddCartItemIDs(ids ...int) *CartUpdate {
+	cu.mutation.AddCartItemIDs(ids...)
+	return cu
+}
+
+// AddCartItems adds the "cart_items" edges to the CartItem entity.
+func (cu *CartUpdate) AddCartItems(c ...*CartItem) *CartUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.AddCartItemIDs(ids...)
+}
+
+// SetCustomerID sets the "customer" edge to the Customer entity by ID.
+func (cu *CartUpdate) SetCustomerID(id int) *CartUpdate {
+	cu.mutation.SetCustomerID(id)
+	return cu
+}
+
+// SetNillableCustomerID sets the "customer" edge to the Customer entity by ID if the given value is not nil.
+func (cu *CartUpdate) SetNillableCustomerID(id *int) *CartUpdate {
+	if id != nil {
+		cu = cu.SetCustomerID(*id)
+	}
+	return cu
+}
+
+// SetCustomer sets the "customer" edge to the Customer entity.
+func (cu *CartUpdate) SetCustomer(c *Customer) *CartUpdate {
+	return cu.SetCustomerID(c.ID)
+}
+
 // Mutation returns the CartMutation object of the builder.
 func (cu *CartUpdate) Mutation() *CartMutation {
 	return cu.mutation
+}
+
+// ClearCartItems clears all "cart_items" edges to the CartItem entity.
+func (cu *CartUpdate) ClearCartItems() *CartUpdate {
+	cu.mutation.ClearCartItems()
+	return cu
+}
+
+// RemoveCartItemIDs removes the "cart_items" edge to CartItem entities by IDs.
+func (cu *CartUpdate) RemoveCartItemIDs(ids ...int) *CartUpdate {
+	cu.mutation.RemoveCartItemIDs(ids...)
+	return cu
+}
+
+// RemoveCartItems removes "cart_items" edges to CartItem entities.
+func (cu *CartUpdate) RemoveCartItems(c ...*CartItem) *CartUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.RemoveCartItemIDs(ids...)
+}
+
+// ClearCustomer clears the "customer" edge to the Customer entity.
+func (cu *CartUpdate) ClearCustomer() *CartUpdate {
+	cu.mutation.ClearCustomer()
+	return cu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -68,6 +131,80 @@ func (cu *CartUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if cu.mutation.CartItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   cart.CartItemsTable,
+			Columns: cart.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedCartItemsIDs(); len(nodes) > 0 && !cu.mutation.CartItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   cart.CartItemsTable,
+			Columns: cart.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.CartItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   cart.CartItemsTable,
+			Columns: cart.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.CustomerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   cart.CustomerTable,
+			Columns: []string{cart.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(customer.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.CustomerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   cart.CustomerTable,
+			Columns: []string{cart.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(customer.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{cart.Label}
@@ -88,9 +225,70 @@ type CartUpdateOne struct {
 	mutation *CartMutation
 }
 
+// AddCartItemIDs adds the "cart_items" edge to the CartItem entity by IDs.
+func (cuo *CartUpdateOne) AddCartItemIDs(ids ...int) *CartUpdateOne {
+	cuo.mutation.AddCartItemIDs(ids...)
+	return cuo
+}
+
+// AddCartItems adds the "cart_items" edges to the CartItem entity.
+func (cuo *CartUpdateOne) AddCartItems(c ...*CartItem) *CartUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.AddCartItemIDs(ids...)
+}
+
+// SetCustomerID sets the "customer" edge to the Customer entity by ID.
+func (cuo *CartUpdateOne) SetCustomerID(id int) *CartUpdateOne {
+	cuo.mutation.SetCustomerID(id)
+	return cuo
+}
+
+// SetNillableCustomerID sets the "customer" edge to the Customer entity by ID if the given value is not nil.
+func (cuo *CartUpdateOne) SetNillableCustomerID(id *int) *CartUpdateOne {
+	if id != nil {
+		cuo = cuo.SetCustomerID(*id)
+	}
+	return cuo
+}
+
+// SetCustomer sets the "customer" edge to the Customer entity.
+func (cuo *CartUpdateOne) SetCustomer(c *Customer) *CartUpdateOne {
+	return cuo.SetCustomerID(c.ID)
+}
+
 // Mutation returns the CartMutation object of the builder.
 func (cuo *CartUpdateOne) Mutation() *CartMutation {
 	return cuo.mutation
+}
+
+// ClearCartItems clears all "cart_items" edges to the CartItem entity.
+func (cuo *CartUpdateOne) ClearCartItems() *CartUpdateOne {
+	cuo.mutation.ClearCartItems()
+	return cuo
+}
+
+// RemoveCartItemIDs removes the "cart_items" edge to CartItem entities by IDs.
+func (cuo *CartUpdateOne) RemoveCartItemIDs(ids ...int) *CartUpdateOne {
+	cuo.mutation.RemoveCartItemIDs(ids...)
+	return cuo
+}
+
+// RemoveCartItems removes "cart_items" edges to CartItem entities.
+func (cuo *CartUpdateOne) RemoveCartItems(c ...*CartItem) *CartUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.RemoveCartItemIDs(ids...)
+}
+
+// ClearCustomer clears the "customer" edge to the Customer entity.
+func (cuo *CartUpdateOne) ClearCustomer() *CartUpdateOne {
+	cuo.mutation.ClearCustomer()
+	return cuo
 }
 
 // Where appends a list predicates to the CartUpdate builder.
@@ -158,6 +356,80 @@ func (cuo *CartUpdateOne) sqlSave(ctx context.Context) (_node *Cart, err error) 
 				ps[i](selector)
 			}
 		}
+	}
+	if cuo.mutation.CartItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   cart.CartItemsTable,
+			Columns: cart.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedCartItemsIDs(); len(nodes) > 0 && !cuo.mutation.CartItemsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   cart.CartItemsTable,
+			Columns: cart.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.CartItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   cart.CartItemsTable,
+			Columns: cart.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.CustomerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   cart.CustomerTable,
+			Columns: []string{cart.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(customer.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.CustomerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   cart.CustomerTable,
+			Columns: []string{cart.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(customer.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Cart{config: cuo.config}
 	_spec.Assign = _node.assignValues

@@ -14,9 +14,14 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/mikestefanello/pagoda/ent/cart"
 	"github.com/mikestefanello/pagoda/ent/cartitem"
+	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/order"
+	"github.com/mikestefanello/pagoda/ent/orderitem"
 	"github.com/mikestefanello/pagoda/ent/passwordtoken"
+	"github.com/mikestefanello/pagoda/ent/payment"
 	"github.com/mikestefanello/pagoda/ent/product"
+	"github.com/mikestefanello/pagoda/ent/productcategory"
+	"github.com/mikestefanello/pagoda/ent/staffmember"
 	"github.com/mikestefanello/pagoda/ent/user"
 )
 
@@ -78,12 +83,17 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			cart.Table:          cart.ValidColumn,
-			cartitem.Table:      cartitem.ValidColumn,
-			order.Table:         order.ValidColumn,
-			passwordtoken.Table: passwordtoken.ValidColumn,
-			product.Table:       product.ValidColumn,
-			user.Table:          user.ValidColumn,
+			cart.Table:            cart.ValidColumn,
+			cartitem.Table:        cartitem.ValidColumn,
+			customer.Table:        customer.ValidColumn,
+			order.Table:           order.ValidColumn,
+			orderitem.Table:       orderitem.ValidColumn,
+			passwordtoken.Table:   passwordtoken.ValidColumn,
+			payment.Table:         payment.ValidColumn,
+			product.Table:         product.ValidColumn,
+			productcategory.Table: productcategory.ValidColumn,
+			staffmember.Table:     staffmember.ValidColumn,
+			user.Table:            user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

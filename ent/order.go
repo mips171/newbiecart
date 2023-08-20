@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/mikestefanello/pagoda/ent/order"
-	"github.com/mikestefanello/pagoda/ent/user"
 )
 
 // Order is the model entity for the Order schema.
@@ -22,6 +21,8 @@ type Order struct {
 	Status string `json:"status,omitempty"`
 	// PlacedAt holds the value of the "placed_at" field.
 	PlacedAt time.Time `json:"placed_at,omitempty"`
+	// BalanceDue holds the value of the "balance_due" field.
+	BalanceDue float64 `json:"balance_due,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderQuery when eager-loading is set.
 	Edges        OrderEdges `json:"edges"`
@@ -31,35 +32,53 @@ type Order struct {
 
 // OrderEdges holds the relations/edges for other nodes in the graph.
 type OrderEdges struct {
-	// User holds the value of the user edge.
-	User *User `json:"user,omitempty"`
-	// CartItems holds the value of the cart_items edge.
-	CartItems []*CartItem `json:"cart_items,omitempty"`
+	// Customer holds the value of the customer edge.
+	Customer []*Customer `json:"customer,omitempty"`
+	// OrderItems holds the value of the order_items edge.
+	OrderItems []*OrderItem `json:"order_items,omitempty"`
+	// Payments holds the value of the payments edge.
+	Payments []*Payment `json:"payments,omitempty"`
+	// ProcessedBy holds the value of the processed_by edge.
+	ProcessedBy []*StaffMember `json:"processed_by,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
-// UserOrErr returns the User value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e OrderEdges) UserOrErr() (*User, error) {
-	if e.loadedTypes[0] {
-		if e.User == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: user.Label}
-		}
-		return e.User, nil
-	}
-	return nil, &NotLoadedError{edge: "user"}
-}
-
-// CartItemsOrErr returns the CartItems value or an error if the edge
+// CustomerOrErr returns the Customer value or an error if the edge
 // was not loaded in eager-loading.
-func (e OrderEdges) CartItemsOrErr() ([]*CartItem, error) {
-	if e.loadedTypes[1] {
-		return e.CartItems, nil
+func (e OrderEdges) CustomerOrErr() ([]*Customer, error) {
+	if e.loadedTypes[0] {
+		return e.Customer, nil
 	}
-	return nil, &NotLoadedError{edge: "cart_items"}
+	return nil, &NotLoadedError{edge: "customer"}
+}
+
+// OrderItemsOrErr returns the OrderItems value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) OrderItemsOrErr() ([]*OrderItem, error) {
+	if e.loadedTypes[1] {
+		return e.OrderItems, nil
+	}
+	return nil, &NotLoadedError{edge: "order_items"}
+}
+
+// PaymentsOrErr returns the Payments value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) PaymentsOrErr() ([]*Payment, error) {
+	if e.loadedTypes[2] {
+		return e.Payments, nil
+	}
+	return nil, &NotLoadedError{edge: "payments"}
+}
+
+// ProcessedByOrErr returns the ProcessedBy value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) ProcessedByOrErr() ([]*StaffMember, error) {
+	if e.loadedTypes[3] {
+		return e.ProcessedBy, nil
+	}
+	return nil, &NotLoadedError{edge: "processed_by"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -67,6 +86,8 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case order.FieldBalanceDue:
+			values[i] = new(sql.NullFloat64)
 		case order.FieldID:
 			values[i] = new(sql.NullInt64)
 		case order.FieldStatus:
@@ -108,6 +129,12 @@ func (o *Order) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				o.PlacedAt = value.Time
 			}
+		case order.FieldBalanceDue:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field balance_due", values[i])
+			} else if value.Valid {
+				o.BalanceDue = value.Float64
+			}
 		case order.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_orders", value)
@@ -128,14 +155,24 @@ func (o *Order) Value(name string) (ent.Value, error) {
 	return o.selectValues.Get(name)
 }
 
-// QueryUser queries the "user" edge of the Order entity.
-func (o *Order) QueryUser() *UserQuery {
-	return NewOrderClient(o.config).QueryUser(o)
+// QueryCustomer queries the "customer" edge of the Order entity.
+func (o *Order) QueryCustomer() *CustomerQuery {
+	return NewOrderClient(o.config).QueryCustomer(o)
 }
 
-// QueryCartItems queries the "cart_items" edge of the Order entity.
-func (o *Order) QueryCartItems() *CartItemQuery {
-	return NewOrderClient(o.config).QueryCartItems(o)
+// QueryOrderItems queries the "order_items" edge of the Order entity.
+func (o *Order) QueryOrderItems() *OrderItemQuery {
+	return NewOrderClient(o.config).QueryOrderItems(o)
+}
+
+// QueryPayments queries the "payments" edge of the Order entity.
+func (o *Order) QueryPayments() *PaymentQuery {
+	return NewOrderClient(o.config).QueryPayments(o)
+}
+
+// QueryProcessedBy queries the "processed_by" edge of the Order entity.
+func (o *Order) QueryProcessedBy() *StaffMemberQuery {
+	return NewOrderClient(o.config).QueryProcessedBy(o)
 }
 
 // Update returns a builder for updating this Order.
@@ -166,6 +203,9 @@ func (o *Order) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("placed_at=")
 	builder.WriteString(o.PlacedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("balance_due=")
+	builder.WriteString(fmt.Sprintf("%v", o.BalanceDue))
 	builder.WriteByte(')')
 	return builder.String()
 }

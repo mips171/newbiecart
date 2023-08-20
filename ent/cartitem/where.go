@@ -98,12 +98,35 @@ func QuantityLTE(v int) predicate.CartItem {
 	return predicate.CartItem(sql.FieldLTE(FieldQuantity, v))
 }
 
+// HasCart applies the HasEdge predicate on the "cart" edge.
+func HasCart() predicate.CartItem {
+	return predicate.CartItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, CartTable, CartPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCartWith applies the HasEdge predicate on the "cart" edge with a given conditions (other predicates).
+func HasCartWith(preds ...predicate.Cart) predicate.CartItem {
+	return predicate.CartItem(func(s *sql.Selector) {
+		step := newCartStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasProduct applies the HasEdge predicate on the "product" edge.
 func HasProduct() predicate.CartItem {
 	return predicate.CartItem(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ProductTable, ProductColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, ProductTable, ProductPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -113,29 +136,6 @@ func HasProduct() predicate.CartItem {
 func HasProductWith(preds ...predicate.Product) predicate.CartItem {
 	return predicate.CartItem(func(s *sql.Selector) {
 		step := newProductStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasOrder applies the HasEdge predicate on the "order" edge.
-func HasOrder() predicate.CartItem {
-	return predicate.CartItem(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, OrderTable, OrderPrimaryKey...),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasOrderWith applies the HasEdge predicate on the "order" edge with a given conditions (other predicates).
-func HasOrderWith(preds ...predicate.Order) predicate.CartItem {
-	return predicate.CartItem(func(s *sql.Selector) {
-		step := newOrderStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

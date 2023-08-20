@@ -4,6 +4,7 @@ package cart
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -11,8 +12,24 @@ const (
 	Label = "cart"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// EdgeCartItems holds the string denoting the cart_items edge name in mutations.
+	EdgeCartItems = "cart_items"
+	// EdgeCustomer holds the string denoting the customer edge name in mutations.
+	EdgeCustomer = "customer"
 	// Table holds the table name of the cart in the database.
 	Table = "carts"
+	// CartItemsTable is the table that holds the cart_items relation/edge. The primary key declared below.
+	CartItemsTable = "cart_cart_items"
+	// CartItemsInverseTable is the table name for the CartItem entity.
+	// It exists in this package in order to avoid circular dependency with the "cartitem" package.
+	CartItemsInverseTable = "cart_items"
+	// CustomerTable is the table that holds the customer relation/edge.
+	CustomerTable = "carts"
+	// CustomerInverseTable is the table name for the Customer entity.
+	// It exists in this package in order to avoid circular dependency with the "customer" package.
+	CustomerInverseTable = "customers"
+	// CustomerColumn is the table column denoting the customer relation/edge.
+	CustomerColumn = "customer_cart"
 )
 
 // Columns holds all SQL columns for cart fields.
@@ -20,10 +37,27 @@ var Columns = []string{
 	FieldID,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "carts"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"customer_cart",
+}
+
+var (
+	// CartItemsPrimaryKey and CartItemsColumn2 are the table columns denoting the
+	// primary key for the cart_items relation (M2M).
+	CartItemsPrimaryKey = []string{"cart_id", "cart_item_id"}
+)
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -36,4 +70,39 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCartItemsCount orders the results by cart_items count.
+func ByCartItemsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCartItemsStep(), opts...)
+	}
+}
+
+// ByCartItems orders the results by cart_items terms.
+func ByCartItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCartItemsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCustomerField orders the results by customer field.
+func ByCustomerField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCustomerStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newCartItemsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CartItemsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, CartItemsTable, CartItemsPrimaryKey...),
+	)
+}
+func newCustomerStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CustomerInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, CustomerTable, CustomerColumn),
+	)
 }

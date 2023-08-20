@@ -18,24 +18,38 @@ const (
 	FieldStatus = "status"
 	// FieldPlacedAt holds the string denoting the placed_at field in the database.
 	FieldPlacedAt = "placed_at"
-	// EdgeUser holds the string denoting the user edge name in mutations.
-	EdgeUser = "user"
-	// EdgeCartItems holds the string denoting the cart_items edge name in mutations.
-	EdgeCartItems = "cart_items"
+	// FieldBalanceDue holds the string denoting the balance_due field in the database.
+	FieldBalanceDue = "balance_due"
+	// EdgeCustomer holds the string denoting the customer edge name in mutations.
+	EdgeCustomer = "customer"
+	// EdgeOrderItems holds the string denoting the order_items edge name in mutations.
+	EdgeOrderItems = "order_items"
+	// EdgePayments holds the string denoting the payments edge name in mutations.
+	EdgePayments = "payments"
+	// EdgeProcessedBy holds the string denoting the processed_by edge name in mutations.
+	EdgeProcessedBy = "processed_by"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
-	// UserTable is the table that holds the user relation/edge.
-	UserTable = "orders"
-	// UserInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	UserInverseTable = "users"
-	// UserColumn is the table column denoting the user relation/edge.
-	UserColumn = "user_orders"
-	// CartItemsTable is the table that holds the cart_items relation/edge. The primary key declared below.
-	CartItemsTable = "order_cart_items"
-	// CartItemsInverseTable is the table name for the CartItem entity.
-	// It exists in this package in order to avoid circular dependency with the "cartitem" package.
-	CartItemsInverseTable = "cart_items"
+	// CustomerTable is the table that holds the customer relation/edge. The primary key declared below.
+	CustomerTable = "customer_orders"
+	// CustomerInverseTable is the table name for the Customer entity.
+	// It exists in this package in order to avoid circular dependency with the "customer" package.
+	CustomerInverseTable = "customers"
+	// OrderItemsTable is the table that holds the order_items relation/edge. The primary key declared below.
+	OrderItemsTable = "order_order_items"
+	// OrderItemsInverseTable is the table name for the OrderItem entity.
+	// It exists in this package in order to avoid circular dependency with the "orderitem" package.
+	OrderItemsInverseTable = "order_items"
+	// PaymentsTable is the table that holds the payments relation/edge. The primary key declared below.
+	PaymentsTable = "order_payments"
+	// PaymentsInverseTable is the table name for the Payment entity.
+	// It exists in this package in order to avoid circular dependency with the "payment" package.
+	PaymentsInverseTable = "payments"
+	// ProcessedByTable is the table that holds the processed_by relation/edge. The primary key declared below.
+	ProcessedByTable = "staff_member_processed_orders"
+	// ProcessedByInverseTable is the table name for the StaffMember entity.
+	// It exists in this package in order to avoid circular dependency with the "staffmember" package.
+	ProcessedByInverseTable = "staff_members"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -43,6 +57,7 @@ var Columns = []string{
 	FieldID,
 	FieldStatus,
 	FieldPlacedAt,
+	FieldBalanceDue,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "orders"
@@ -52,9 +67,18 @@ var ForeignKeys = []string{
 }
 
 var (
-	// CartItemsPrimaryKey and CartItemsColumn2 are the table columns denoting the
-	// primary key for the cart_items relation (M2M).
-	CartItemsPrimaryKey = []string{"order_id", "cart_item_id"}
+	// CustomerPrimaryKey and CustomerColumn2 are the table columns denoting the
+	// primary key for the customer relation (M2M).
+	CustomerPrimaryKey = []string{"customer_id", "order_id"}
+	// OrderItemsPrimaryKey and OrderItemsColumn2 are the table columns denoting the
+	// primary key for the order_items relation (M2M).
+	OrderItemsPrimaryKey = []string{"order_id", "order_item_id"}
+	// PaymentsPrimaryKey and PaymentsColumn2 are the table columns denoting the
+	// primary key for the payments relation (M2M).
+	PaymentsPrimaryKey = []string{"order_id", "payment_id"}
+	// ProcessedByPrimaryKey and ProcessedByColumn2 are the table columns denoting the
+	// primary key for the processed_by relation (M2M).
+	ProcessedByPrimaryKey = []string{"staff_member_id", "order_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -79,6 +103,10 @@ var (
 	StatusValidator func(string) error
 	// DefaultPlacedAt holds the default value on creation for the "placed_at" field.
 	DefaultPlacedAt func() time.Time
+	// DefaultBalanceDue holds the default value on creation for the "balance_due" field.
+	DefaultBalanceDue float64
+	// BalanceDueValidator is a validator for the "balance_due" field. It is called by the builders before save.
+	BalanceDueValidator func(float64) error
 )
 
 // OrderOption defines the ordering options for the Order queries.
@@ -99,37 +127,91 @@ func ByPlacedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPlacedAt, opts...).ToFunc()
 }
 
-// ByUserField orders the results by user field.
-func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByBalanceDue orders the results by the balance_due field.
+func ByBalanceDue(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBalanceDue, opts...).ToFunc()
+}
+
+// ByCustomerCount orders the results by customer count.
+func ByCustomerCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newCustomerStep(), opts...)
 	}
 }
 
-// ByCartItemsCount orders the results by cart_items count.
-func ByCartItemsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByCustomer orders the results by customer terms.
+func ByCustomer(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newCartItemsStep(), opts...)
+		sqlgraph.OrderByNeighborTerms(s, newCustomerStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
-// ByCartItems orders the results by cart_items terms.
-func ByCartItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByOrderItemsCount orders the results by order_items count.
+func ByOrderItemsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newCartItemsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborsCount(s, newOrderItemsStep(), opts...)
 	}
 }
-func newUserStep() *sqlgraph.Step {
+
+// ByOrderItems orders the results by order_items terms.
+func ByOrderItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderItemsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPaymentsCount orders the results by payments count.
+func ByPaymentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPaymentsStep(), opts...)
+	}
+}
+
+// ByPayments orders the results by payments terms.
+func ByPayments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPaymentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByProcessedByCount orders the results by processed_by count.
+func ByProcessedByCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newProcessedByStep(), opts...)
+	}
+}
+
+// ByProcessedBy orders the results by processed_by terms.
+func ByProcessedBy(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProcessedByStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newCustomerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UserInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+		sqlgraph.To(CustomerInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, CustomerTable, CustomerPrimaryKey...),
 	)
 }
-func newCartItemsStep() *sqlgraph.Step {
+func newOrderItemsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(CartItemsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, CartItemsTable, CartItemsPrimaryKey...),
+		sqlgraph.To(OrderItemsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, OrderItemsTable, OrderItemsPrimaryKey...),
+	)
+}
+func newPaymentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PaymentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, PaymentsTable, PaymentsPrimaryKey...),
+	)
+}
+func newProcessedByStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProcessedByInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, ProcessedByTable, ProcessedByPrimaryKey...),
 	)
 }

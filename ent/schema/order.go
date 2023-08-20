@@ -34,8 +34,7 @@ func (Order) Edges() []ent.Edge {
 		edge.From("customer", Customer.Type).
 			Ref("orders"),
 		edge.To("order_items", OrderItem.Type),
-		edge.To("payments", Payment.Type).
-			From("order"),
+		edge.To("payments", Payment.Type),
 		edge.From("processed_by", StaffMember.Type).
 			Ref("processed_orders"),
 	}

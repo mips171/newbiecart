@@ -24,8 +24,10 @@ type Product struct {
 	Description string `json:"description,omitempty"`
 	// Price holds the value of the "price" field.
 	Price float64 `json:"price,omitempty"`
-	// Quantity holds the value of the "quantity" field.
-	Quantity int `json:"quantity,omitempty"`
+	// StockCount holds the value of the "stock_count" field.
+	StockCount int `json:"stock_count,omitempty"`
+	// ImageURL holds the value of the "image_url" field.
+	ImageURL string `json:"image_url,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProductQuery when eager-loading is set.
 	Edges        ProductEdges `json:"edges"`
@@ -36,9 +38,13 @@ type Product struct {
 type ProductEdges struct {
 	// CartItems holds the value of the cart_items edge.
 	CartItems []*CartItem `json:"cart_items,omitempty"`
+	// OrderItems holds the value of the order_items edge.
+	OrderItems []*OrderItem `json:"order_items,omitempty"`
+	// Category holds the value of the category edge.
+	Category []*ProductCategory `json:"category,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 }
 
 // CartItemsOrErr returns the CartItems value or an error if the edge
@@ -50,6 +56,24 @@ func (e ProductEdges) CartItemsOrErr() ([]*CartItem, error) {
 	return nil, &NotLoadedError{edge: "cart_items"}
 }
 
+// OrderItemsOrErr returns the OrderItems value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProductEdges) OrderItemsOrErr() ([]*OrderItem, error) {
+	if e.loadedTypes[1] {
+		return e.OrderItems, nil
+	}
+	return nil, &NotLoadedError{edge: "order_items"}
+}
+
+// CategoryOrErr returns the Category value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProductEdges) CategoryOrErr() ([]*ProductCategory, error) {
+	if e.loadedTypes[2] {
+		return e.Category, nil
+	}
+	return nil, &NotLoadedError{edge: "category"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Product) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -57,9 +81,9 @@ func (*Product) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case product.FieldPrice:
 			values[i] = new(sql.NullFloat64)
-		case product.FieldID, product.FieldQuantity:
+		case product.FieldID, product.FieldStockCount:
 			values[i] = new(sql.NullInt64)
-		case product.FieldName, product.FieldSku, product.FieldDescription:
+		case product.FieldName, product.FieldSku, product.FieldDescription, product.FieldImageURL:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -106,11 +130,17 @@ func (pr *Product) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pr.Price = value.Float64
 			}
-		case product.FieldQuantity:
+		case product.FieldStockCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field quantity", values[i])
+				return fmt.Errorf("unexpected type %T for field stock_count", values[i])
 			} else if value.Valid {
-				pr.Quantity = int(value.Int64)
+				pr.StockCount = int(value.Int64)
+			}
+		case product.FieldImageURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field image_url", values[i])
+			} else if value.Valid {
+				pr.ImageURL = value.String
 			}
 		default:
 			pr.selectValues.Set(columns[i], values[i])
@@ -128,6 +158,16 @@ func (pr *Product) Value(name string) (ent.Value, error) {
 // QueryCartItems queries the "cart_items" edge of the Product entity.
 func (pr *Product) QueryCartItems() *CartItemQuery {
 	return NewProductClient(pr.config).QueryCartItems(pr)
+}
+
+// QueryOrderItems queries the "order_items" edge of the Product entity.
+func (pr *Product) QueryOrderItems() *OrderItemQuery {
+	return NewProductClient(pr.config).QueryOrderItems(pr)
+}
+
+// QueryCategory queries the "category" edge of the Product entity.
+func (pr *Product) QueryCategory() *ProductCategoryQuery {
+	return NewProductClient(pr.config).QueryCategory(pr)
 }
 
 // Update returns a builder for updating this Product.
@@ -165,8 +205,11 @@ func (pr *Product) String() string {
 	builder.WriteString("price=")
 	builder.WriteString(fmt.Sprintf("%v", pr.Price))
 	builder.WriteString(", ")
-	builder.WriteString("quantity=")
-	builder.WriteString(fmt.Sprintf("%v", pr.Quantity))
+	builder.WriteString("stock_count=")
+	builder.WriteString(fmt.Sprintf("%v", pr.StockCount))
+	builder.WriteString(", ")
+	builder.WriteString("image_url=")
+	builder.WriteString(pr.ImageURL)
 	builder.WriteByte(')')
 	return builder.String()
 }

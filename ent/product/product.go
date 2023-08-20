@@ -20,19 +20,33 @@ const (
 	FieldDescription = "description"
 	// FieldPrice holds the string denoting the price field in the database.
 	FieldPrice = "price"
-	// FieldQuantity holds the string denoting the quantity field in the database.
-	FieldQuantity = "quantity"
+	// FieldStockCount holds the string denoting the stock_count field in the database.
+	FieldStockCount = "stock_count"
+	// FieldImageURL holds the string denoting the image_url field in the database.
+	FieldImageURL = "image_url"
 	// EdgeCartItems holds the string denoting the cart_items edge name in mutations.
 	EdgeCartItems = "cart_items"
+	// EdgeOrderItems holds the string denoting the order_items edge name in mutations.
+	EdgeOrderItems = "order_items"
+	// EdgeCategory holds the string denoting the category edge name in mutations.
+	EdgeCategory = "category"
 	// Table holds the table name of the product in the database.
 	Table = "products"
-	// CartItemsTable is the table that holds the cart_items relation/edge.
-	CartItemsTable = "cart_items"
+	// CartItemsTable is the table that holds the cart_items relation/edge. The primary key declared below.
+	CartItemsTable = "product_cart_items"
 	// CartItemsInverseTable is the table name for the CartItem entity.
 	// It exists in this package in order to avoid circular dependency with the "cartitem" package.
 	CartItemsInverseTable = "cart_items"
-	// CartItemsColumn is the table column denoting the cart_items relation/edge.
-	CartItemsColumn = "product_cart_items"
+	// OrderItemsTable is the table that holds the order_items relation/edge. The primary key declared below.
+	OrderItemsTable = "product_order_items"
+	// OrderItemsInverseTable is the table name for the OrderItem entity.
+	// It exists in this package in order to avoid circular dependency with the "orderitem" package.
+	OrderItemsInverseTable = "order_items"
+	// CategoryTable is the table that holds the category relation/edge. The primary key declared below.
+	CategoryTable = "product_category_products"
+	// CategoryInverseTable is the table name for the ProductCategory entity.
+	// It exists in this package in order to avoid circular dependency with the "productcategory" package.
+	CategoryInverseTable = "product_categories"
 )
 
 // Columns holds all SQL columns for product fields.
@@ -42,8 +56,21 @@ var Columns = []string{
 	FieldSku,
 	FieldDescription,
 	FieldPrice,
-	FieldQuantity,
+	FieldStockCount,
+	FieldImageURL,
 }
+
+var (
+	// CartItemsPrimaryKey and CartItemsColumn2 are the table columns denoting the
+	// primary key for the cart_items relation (M2M).
+	CartItemsPrimaryKey = []string{"product_id", "cart_item_id"}
+	// OrderItemsPrimaryKey and OrderItemsColumn2 are the table columns denoting the
+	// primary key for the order_items relation (M2M).
+	OrderItemsPrimaryKey = []string{"product_id", "order_item_id"}
+	// CategoryPrimaryKey and CategoryColumn2 are the table columns denoting the
+	// primary key for the category relation (M2M).
+	CategoryPrimaryKey = []string{"product_category_id", "product_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -60,12 +87,14 @@ var (
 	NameValidator func(string) error
 	// SkuValidator is a validator for the "sku" field. It is called by the builders before save.
 	SkuValidator func(string) error
-	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
-	DescriptionValidator func(string) error
 	// PriceValidator is a validator for the "price" field. It is called by the builders before save.
 	PriceValidator func(float64) error
-	// QuantityValidator is a validator for the "quantity" field. It is called by the builders before save.
-	QuantityValidator func(int) error
+	// DefaultStockCount holds the default value on creation for the "stock_count" field.
+	DefaultStockCount int
+	// StockCountValidator is a validator for the "stock_count" field. It is called by the builders before save.
+	StockCountValidator func(int) error
+	// DefaultImageURL holds the default value on creation for the "image_url" field.
+	DefaultImageURL string
 )
 
 // OrderOption defines the ordering options for the Product queries.
@@ -96,9 +125,14 @@ func ByPrice(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPrice, opts...).ToFunc()
 }
 
-// ByQuantity orders the results by the quantity field.
-func ByQuantity(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldQuantity, opts...).ToFunc()
+// ByStockCount orders the results by the stock_count field.
+func ByStockCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStockCount, opts...).ToFunc()
+}
+
+// ByImageURL orders the results by the image_url field.
+func ByImageURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldImageURL, opts...).ToFunc()
 }
 
 // ByCartItemsCount orders the results by cart_items count.
@@ -114,10 +148,52 @@ func ByCartItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCartItemsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByOrderItemsCount orders the results by order_items count.
+func ByOrderItemsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderItemsStep(), opts...)
+	}
+}
+
+// ByOrderItems orders the results by order_items terms.
+func ByOrderItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderItemsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCategoryCount orders the results by category count.
+func ByCategoryCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCategoryStep(), opts...)
+	}
+}
+
+// ByCategory orders the results by category terms.
+func ByCategory(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCategoryStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCartItemsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CartItemsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, CartItemsTable, CartItemsColumn),
+		sqlgraph.Edge(sqlgraph.M2M, false, CartItemsTable, CartItemsPrimaryKey...),
+	)
+}
+func newOrderItemsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderItemsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, OrderItemsTable, OrderItemsPrimaryKey...),
+	)
+}
+func newCategoryStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CategoryInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, CategoryTable, CategoryPrimaryKey...),
 	)
 }

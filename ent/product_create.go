@@ -10,7 +10,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mikestefanello/pagoda/ent/cartitem"
+	"github.com/mikestefanello/pagoda/ent/orderitem"
 	"github.com/mikestefanello/pagoda/ent/product"
+	"github.com/mikestefanello/pagoda/ent/productcategory"
 )
 
 // ProductCreate is the builder for creating a Product entity.
@@ -44,9 +46,31 @@ func (pc *ProductCreate) SetPrice(f float64) *ProductCreate {
 	return pc
 }
 
-// SetQuantity sets the "quantity" field.
-func (pc *ProductCreate) SetQuantity(i int) *ProductCreate {
-	pc.mutation.SetQuantity(i)
+// SetStockCount sets the "stock_count" field.
+func (pc *ProductCreate) SetStockCount(i int) *ProductCreate {
+	pc.mutation.SetStockCount(i)
+	return pc
+}
+
+// SetNillableStockCount sets the "stock_count" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableStockCount(i *int) *ProductCreate {
+	if i != nil {
+		pc.SetStockCount(*i)
+	}
+	return pc
+}
+
+// SetImageURL sets the "image_url" field.
+func (pc *ProductCreate) SetImageURL(s string) *ProductCreate {
+	pc.mutation.SetImageURL(s)
+	return pc
+}
+
+// SetNillableImageURL sets the "image_url" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableImageURL(s *string) *ProductCreate {
+	if s != nil {
+		pc.SetImageURL(*s)
+	}
 	return pc
 }
 
@@ -65,6 +89,36 @@ func (pc *ProductCreate) AddCartItems(c ...*CartItem) *ProductCreate {
 	return pc.AddCartItemIDs(ids...)
 }
 
+// AddOrderItemIDs adds the "order_items" edge to the OrderItem entity by IDs.
+func (pc *ProductCreate) AddOrderItemIDs(ids ...int) *ProductCreate {
+	pc.mutation.AddOrderItemIDs(ids...)
+	return pc
+}
+
+// AddOrderItems adds the "order_items" edges to the OrderItem entity.
+func (pc *ProductCreate) AddOrderItems(o ...*OrderItem) *ProductCreate {
+	ids := make([]int, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return pc.AddOrderItemIDs(ids...)
+}
+
+// AddCategoryIDs adds the "category" edge to the ProductCategory entity by IDs.
+func (pc *ProductCreate) AddCategoryIDs(ids ...int) *ProductCreate {
+	pc.mutation.AddCategoryIDs(ids...)
+	return pc
+}
+
+// AddCategory adds the "category" edges to the ProductCategory entity.
+func (pc *ProductCreate) AddCategory(p ...*ProductCategory) *ProductCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return pc.AddCategoryIDs(ids...)
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (pc *ProductCreate) Mutation() *ProductMutation {
 	return pc.mutation
@@ -72,6 +126,7 @@ func (pc *ProductCreate) Mutation() *ProductMutation {
 
 // Save creates the Product in the database.
 func (pc *ProductCreate) Save(ctx context.Context) (*Product, error) {
+	pc.defaults()
 	return withHooks(ctx, pc.sqlSave, pc.mutation, pc.hooks)
 }
 
@@ -97,6 +152,18 @@ func (pc *ProductCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (pc *ProductCreate) defaults() {
+	if _, ok := pc.mutation.StockCount(); !ok {
+		v := product.DefaultStockCount
+		pc.mutation.SetStockCount(v)
+	}
+	if _, ok := pc.mutation.ImageURL(); !ok {
+		v := product.DefaultImageURL
+		pc.mutation.SetImageURL(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (pc *ProductCreate) check() error {
 	if _, ok := pc.mutation.Name(); !ok {
@@ -118,11 +185,6 @@ func (pc *ProductCreate) check() error {
 	if _, ok := pc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Product.description"`)}
 	}
-	if v, ok := pc.mutation.Description(); ok {
-		if err := product.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Product.description": %w`, err)}
-		}
-	}
 	if _, ok := pc.mutation.Price(); !ok {
 		return &ValidationError{Name: "price", err: errors.New(`ent: missing required field "Product.price"`)}
 	}
@@ -131,13 +193,16 @@ func (pc *ProductCreate) check() error {
 			return &ValidationError{Name: "price", err: fmt.Errorf(`ent: validator failed for field "Product.price": %w`, err)}
 		}
 	}
-	if _, ok := pc.mutation.Quantity(); !ok {
-		return &ValidationError{Name: "quantity", err: errors.New(`ent: missing required field "Product.quantity"`)}
+	if _, ok := pc.mutation.StockCount(); !ok {
+		return &ValidationError{Name: "stock_count", err: errors.New(`ent: missing required field "Product.stock_count"`)}
 	}
-	if v, ok := pc.mutation.Quantity(); ok {
-		if err := product.QuantityValidator(v); err != nil {
-			return &ValidationError{Name: "quantity", err: fmt.Errorf(`ent: validator failed for field "Product.quantity": %w`, err)}
+	if v, ok := pc.mutation.StockCount(); ok {
+		if err := product.StockCountValidator(v); err != nil {
+			return &ValidationError{Name: "stock_count", err: fmt.Errorf(`ent: validator failed for field "Product.stock_count": %w`, err)}
 		}
+	}
+	if _, ok := pc.mutation.ImageURL(); !ok {
+		return &ValidationError{Name: "image_url", err: errors.New(`ent: missing required field "Product.image_url"`)}
 	}
 	return nil
 }
@@ -181,19 +246,55 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		_spec.SetField(product.FieldPrice, field.TypeFloat64, value)
 		_node.Price = value
 	}
-	if value, ok := pc.mutation.Quantity(); ok {
-		_spec.SetField(product.FieldQuantity, field.TypeInt, value)
-		_node.Quantity = value
+	if value, ok := pc.mutation.StockCount(); ok {
+		_spec.SetField(product.FieldStockCount, field.TypeInt, value)
+		_node.StockCount = value
+	}
+	if value, ok := pc.mutation.ImageURL(); ok {
+		_spec.SetField(product.FieldImageURL, field.TypeString, value)
+		_node.ImageURL = value
 	}
 	if nodes := pc.mutation.CartItemsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   product.CartItemsTable,
-			Columns: []string{product.CartItemsColumn},
+			Columns: product.CartItemsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.OrderItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   product.OrderItemsTable,
+			Columns: product.OrderItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   product.CategoryTable,
+			Columns: product.CategoryPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productcategory.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -218,6 +319,7 @@ func (pcb *ProductCreateBulk) Save(ctx context.Context) ([]*Product, error) {
 	for i := range pcb.builders {
 		func(i int, root context.Context) {
 			builder := pcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ProductMutation)
 				if !ok {

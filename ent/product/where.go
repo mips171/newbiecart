@@ -73,9 +73,14 @@ func Price(v float64) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldPrice, v))
 }
 
-// Quantity applies equality check predicate on the "quantity" field. It's identical to QuantityEQ.
-func Quantity(v int) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldQuantity, v))
+// StockCount applies equality check predicate on the "stock_count" field. It's identical to StockCountEQ.
+func StockCount(v int) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldStockCount, v))
+}
+
+// ImageURL applies equality check predicate on the "image_url" field. It's identical to ImageURLEQ.
+func ImageURL(v string) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldImageURL, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -313,44 +318,109 @@ func PriceLTE(v float64) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldPrice, v))
 }
 
-// QuantityEQ applies the EQ predicate on the "quantity" field.
-func QuantityEQ(v int) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldQuantity, v))
+// StockCountEQ applies the EQ predicate on the "stock_count" field.
+func StockCountEQ(v int) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldStockCount, v))
 }
 
-// QuantityNEQ applies the NEQ predicate on the "quantity" field.
-func QuantityNEQ(v int) predicate.Product {
-	return predicate.Product(sql.FieldNEQ(FieldQuantity, v))
+// StockCountNEQ applies the NEQ predicate on the "stock_count" field.
+func StockCountNEQ(v int) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldStockCount, v))
 }
 
-// QuantityIn applies the In predicate on the "quantity" field.
-func QuantityIn(vs ...int) predicate.Product {
-	return predicate.Product(sql.FieldIn(FieldQuantity, vs...))
+// StockCountIn applies the In predicate on the "stock_count" field.
+func StockCountIn(vs ...int) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldStockCount, vs...))
 }
 
-// QuantityNotIn applies the NotIn predicate on the "quantity" field.
-func QuantityNotIn(vs ...int) predicate.Product {
-	return predicate.Product(sql.FieldNotIn(FieldQuantity, vs...))
+// StockCountNotIn applies the NotIn predicate on the "stock_count" field.
+func StockCountNotIn(vs ...int) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldStockCount, vs...))
 }
 
-// QuantityGT applies the GT predicate on the "quantity" field.
-func QuantityGT(v int) predicate.Product {
-	return predicate.Product(sql.FieldGT(FieldQuantity, v))
+// StockCountGT applies the GT predicate on the "stock_count" field.
+func StockCountGT(v int) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldStockCount, v))
 }
 
-// QuantityGTE applies the GTE predicate on the "quantity" field.
-func QuantityGTE(v int) predicate.Product {
-	return predicate.Product(sql.FieldGTE(FieldQuantity, v))
+// StockCountGTE applies the GTE predicate on the "stock_count" field.
+func StockCountGTE(v int) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldStockCount, v))
 }
 
-// QuantityLT applies the LT predicate on the "quantity" field.
-func QuantityLT(v int) predicate.Product {
-	return predicate.Product(sql.FieldLT(FieldQuantity, v))
+// StockCountLT applies the LT predicate on the "stock_count" field.
+func StockCountLT(v int) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldStockCount, v))
 }
 
-// QuantityLTE applies the LTE predicate on the "quantity" field.
-func QuantityLTE(v int) predicate.Product {
-	return predicate.Product(sql.FieldLTE(FieldQuantity, v))
+// StockCountLTE applies the LTE predicate on the "stock_count" field.
+func StockCountLTE(v int) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldStockCount, v))
+}
+
+// ImageURLEQ applies the EQ predicate on the "image_url" field.
+func ImageURLEQ(v string) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldImageURL, v))
+}
+
+// ImageURLNEQ applies the NEQ predicate on the "image_url" field.
+func ImageURLNEQ(v string) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldImageURL, v))
+}
+
+// ImageURLIn applies the In predicate on the "image_url" field.
+func ImageURLIn(vs ...string) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldImageURL, vs...))
+}
+
+// ImageURLNotIn applies the NotIn predicate on the "image_url" field.
+func ImageURLNotIn(vs ...string) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldImageURL, vs...))
+}
+
+// ImageURLGT applies the GT predicate on the "image_url" field.
+func ImageURLGT(v string) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldImageURL, v))
+}
+
+// ImageURLGTE applies the GTE predicate on the "image_url" field.
+func ImageURLGTE(v string) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldImageURL, v))
+}
+
+// ImageURLLT applies the LT predicate on the "image_url" field.
+func ImageURLLT(v string) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldImageURL, v))
+}
+
+// ImageURLLTE applies the LTE predicate on the "image_url" field.
+func ImageURLLTE(v string) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldImageURL, v))
+}
+
+// ImageURLContains applies the Contains predicate on the "image_url" field.
+func ImageURLContains(v string) predicate.Product {
+	return predicate.Product(sql.FieldContains(FieldImageURL, v))
+}
+
+// ImageURLHasPrefix applies the HasPrefix predicate on the "image_url" field.
+func ImageURLHasPrefix(v string) predicate.Product {
+	return predicate.Product(sql.FieldHasPrefix(FieldImageURL, v))
+}
+
+// ImageURLHasSuffix applies the HasSuffix predicate on the "image_url" field.
+func ImageURLHasSuffix(v string) predicate.Product {
+	return predicate.Product(sql.FieldHasSuffix(FieldImageURL, v))
+}
+
+// ImageURLEqualFold applies the EqualFold predicate on the "image_url" field.
+func ImageURLEqualFold(v string) predicate.Product {
+	return predicate.Product(sql.FieldEqualFold(FieldImageURL, v))
+}
+
+// ImageURLContainsFold applies the ContainsFold predicate on the "image_url" field.
+func ImageURLContainsFold(v string) predicate.Product {
+	return predicate.Product(sql.FieldContainsFold(FieldImageURL, v))
 }
 
 // HasCartItems applies the HasEdge predicate on the "cart_items" edge.
@@ -358,7 +428,7 @@ func HasCartItems() predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, CartItemsTable, CartItemsColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, CartItemsTable, CartItemsPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -368,6 +438,52 @@ func HasCartItems() predicate.Product {
 func HasCartItemsWith(preds ...predicate.CartItem) predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
 		step := newCartItemsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOrderItems applies the HasEdge predicate on the "order_items" edge.
+func HasOrderItems() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, OrderItemsTable, OrderItemsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderItemsWith applies the HasEdge predicate on the "order_items" edge with a given conditions (other predicates).
+func HasOrderItemsWith(preds ...predicate.OrderItem) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := newOrderItemsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCategory applies the HasEdge predicate on the "category" edge.
+func HasCategory() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, CategoryTable, CategoryPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCategoryWith applies the HasEdge predicate on the "category" edge with a given conditions (other predicates).
+func HasCategoryWith(preds ...predicate.ProductCategory) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := newCategoryStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

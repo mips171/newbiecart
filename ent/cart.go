@@ -9,14 +9,52 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/mikestefanello/pagoda/ent/cart"
+	"github.com/mikestefanello/pagoda/ent/customer"
 )
 
 // Cart is the model entity for the Cart schema.
 type Cart struct {
 	config
 	// ID of the ent.
-	ID           int `json:"id,omitempty"`
-	selectValues sql.SelectValues
+	ID int `json:"id,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CartQuery when eager-loading is set.
+	Edges         CartEdges `json:"edges"`
+	customer_cart *int
+	selectValues  sql.SelectValues
+}
+
+// CartEdges holds the relations/edges for other nodes in the graph.
+type CartEdges struct {
+	// CartItems holds the value of the cart_items edge.
+	CartItems []*CartItem `json:"cart_items,omitempty"`
+	// Customer holds the value of the customer edge.
+	Customer *Customer `json:"customer,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// CartItemsOrErr returns the CartItems value or an error if the edge
+// was not loaded in eager-loading.
+func (e CartEdges) CartItemsOrErr() ([]*CartItem, error) {
+	if e.loadedTypes[0] {
+		return e.CartItems, nil
+	}
+	return nil, &NotLoadedError{edge: "cart_items"}
+}
+
+// CustomerOrErr returns the Customer value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CartEdges) CustomerOrErr() (*Customer, error) {
+	if e.loadedTypes[1] {
+		if e.Customer == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: customer.Label}
+		}
+		return e.Customer, nil
+	}
+	return nil, &NotLoadedError{edge: "customer"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -25,6 +63,8 @@ func (*Cart) scanValues(columns []string) ([]any, error) {
 	for i := range columns {
 		switch columns[i] {
 		case cart.FieldID:
+			values[i] = new(sql.NullInt64)
+		case cart.ForeignKeys[0]: // customer_cart
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -47,6 +87,13 @@ func (c *Cart) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			c.ID = int(value.Int64)
+		case cart.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field customer_cart", value)
+			} else if value.Valid {
+				c.customer_cart = new(int)
+				*c.customer_cart = int(value.Int64)
+			}
 		default:
 			c.selectValues.Set(columns[i], values[i])
 		}
@@ -58,6 +105,16 @@ func (c *Cart) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (c *Cart) Value(name string) (ent.Value, error) {
 	return c.selectValues.Get(name)
+}
+
+// QueryCartItems queries the "cart_items" edge of the Cart entity.
+func (c *Cart) QueryCartItems() *CartItemQuery {
+	return NewCartClient(c.config).QueryCartItems(c)
+}
+
+// QueryCustomer queries the "customer" edge of the Cart entity.
+func (c *Cart) QueryCustomer() *CustomerQuery {
+	return NewCartClient(c.config).QueryCustomer(c)
 }
 
 // Update returns a builder for updating this Cart.

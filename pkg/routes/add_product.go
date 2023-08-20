@@ -17,7 +17,7 @@ type (
 
 	productForm struct {
 		Name        string  `form:"name" validate:"required"`
-		Sku         string  `form:"sku" validate:"required,unique"`
+		Sku         string  `form:"sku" validate:"required"`
 		Description string  `form:"description" validate:"required"`
 		Price       float64 `form:"price" validate:"required,gte=0"`
 		Quantity    int     `form:"quantity" validate:"required,gte=0"`
@@ -60,10 +60,10 @@ func (c *AddProductController) Post(ctx echo.Context) error {
 	p, err := c.Container.ORM.Product.
 		Create().
 		SetName(form.Name).
+		SetSku(form.Sku).
 		SetDescription(form.Description).
 		SetPrice(form.Price).
-		SetQuantity(form.Quantity).
-		SetSku(form.Sku).
+		SetStockCount(form.Quantity).
 		Save(ctx.Request().Context())
 
 	if err != nil {

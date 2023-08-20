@@ -9,6 +9,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mikestefanello/pagoda/ent/cart"
+	"github.com/mikestefanello/pagoda/ent/cartitem"
+	"github.com/mikestefanello/pagoda/ent/customer"
 )
 
 // CartCreate is the builder for creating a Cart entity.
@@ -16,6 +18,40 @@ type CartCreate struct {
 	config
 	mutation *CartMutation
 	hooks    []Hook
+}
+
+// AddCartItemIDs adds the "cart_items" edge to the CartItem entity by IDs.
+func (cc *CartCreate) AddCartItemIDs(ids ...int) *CartCreate {
+	cc.mutation.AddCartItemIDs(ids...)
+	return cc
+}
+
+// AddCartItems adds the "cart_items" edges to the CartItem entity.
+func (cc *CartCreate) AddCartItems(c ...*CartItem) *CartCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cc.AddCartItemIDs(ids...)
+}
+
+// SetCustomerID sets the "customer" edge to the Customer entity by ID.
+func (cc *CartCreate) SetCustomerID(id int) *CartCreate {
+	cc.mutation.SetCustomerID(id)
+	return cc
+}
+
+// SetNillableCustomerID sets the "customer" edge to the Customer entity by ID if the given value is not nil.
+func (cc *CartCreate) SetNillableCustomerID(id *int) *CartCreate {
+	if id != nil {
+		cc = cc.SetCustomerID(*id)
+	}
+	return cc
+}
+
+// SetCustomer sets the "customer" edge to the Customer entity.
+func (cc *CartCreate) SetCustomer(c *Customer) *CartCreate {
+	return cc.SetCustomerID(c.ID)
 }
 
 // Mutation returns the CartMutation object of the builder.
@@ -78,6 +114,39 @@ func (cc *CartCreate) createSpec() (*Cart, *sqlgraph.CreateSpec) {
 		_node = &Cart{config: cc.config}
 		_spec = sqlgraph.NewCreateSpec(cart.Table, sqlgraph.NewFieldSpec(cart.FieldID, field.TypeInt))
 	)
+	if nodes := cc.mutation.CartItemsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   cart.CartItemsTable,
+			Columns: cart.CartItemsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.CustomerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   cart.CustomerTable,
+			Columns: []string{cart.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(customer.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.customer_cart = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 

@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/mikestefanello/pagoda/ent/cart"
 	"github.com/mikestefanello/pagoda/ent/cartitem"
-	"github.com/mikestefanello/pagoda/ent/order"
 	"github.com/mikestefanello/pagoda/ent/product"
 )
 
@@ -27,38 +27,42 @@ func (cic *CartItemCreate) SetQuantity(i int) *CartItemCreate {
 	return cic
 }
 
-// SetProductID sets the "product" edge to the Product entity by ID.
-func (cic *CartItemCreate) SetProductID(id int) *CartItemCreate {
-	cic.mutation.SetProductID(id)
-	return cic
-}
-
-// SetNillableProductID sets the "product" edge to the Product entity by ID if the given value is not nil.
-func (cic *CartItemCreate) SetNillableProductID(id *int) *CartItemCreate {
-	if id != nil {
-		cic = cic.SetProductID(*id)
+// SetNillableQuantity sets the "quantity" field if the given value is not nil.
+func (cic *CartItemCreate) SetNillableQuantity(i *int) *CartItemCreate {
+	if i != nil {
+		cic.SetQuantity(*i)
 	}
 	return cic
 }
 
-// SetProduct sets the "product" edge to the Product entity.
-func (cic *CartItemCreate) SetProduct(p *Product) *CartItemCreate {
-	return cic.SetProductID(p.ID)
-}
-
-// AddOrderIDs adds the "order" edge to the Order entity by IDs.
-func (cic *CartItemCreate) AddOrderIDs(ids ...int) *CartItemCreate {
-	cic.mutation.AddOrderIDs(ids...)
+// AddCartIDs adds the "cart" edge to the Cart entity by IDs.
+func (cic *CartItemCreate) AddCartIDs(ids ...int) *CartItemCreate {
+	cic.mutation.AddCartIDs(ids...)
 	return cic
 }
 
-// AddOrder adds the "order" edges to the Order entity.
-func (cic *CartItemCreate) AddOrder(o ...*Order) *CartItemCreate {
-	ids := make([]int, len(o))
-	for i := range o {
-		ids[i] = o[i].ID
+// AddCart adds the "cart" edges to the Cart entity.
+func (cic *CartItemCreate) AddCart(c ...*Cart) *CartItemCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
-	return cic.AddOrderIDs(ids...)
+	return cic.AddCartIDs(ids...)
+}
+
+// AddProductIDs adds the "product" edge to the Product entity by IDs.
+func (cic *CartItemCreate) AddProductIDs(ids ...int) *CartItemCreate {
+	cic.mutation.AddProductIDs(ids...)
+	return cic
+}
+
+// AddProduct adds the "product" edges to the Product entity.
+func (cic *CartItemCreate) AddProduct(p ...*Product) *CartItemCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return cic.AddProductIDs(ids...)
 }
 
 // Mutation returns the CartItemMutation object of the builder.
@@ -68,6 +72,7 @@ func (cic *CartItemCreate) Mutation() *CartItemMutation {
 
 // Save creates the CartItem in the database.
 func (cic *CartItemCreate) Save(ctx context.Context) (*CartItem, error) {
+	cic.defaults()
 	return withHooks(ctx, cic.sqlSave, cic.mutation, cic.hooks)
 }
 
@@ -90,6 +95,14 @@ func (cic *CartItemCreate) Exec(ctx context.Context) error {
 func (cic *CartItemCreate) ExecX(ctx context.Context) {
 	if err := cic.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (cic *CartItemCreate) defaults() {
+	if _, ok := cic.mutation.Quantity(); !ok {
+		v := cartitem.DefaultQuantity
+		cic.mutation.SetQuantity(v)
 	}
 }
 
@@ -133,32 +146,31 @@ func (cic *CartItemCreate) createSpec() (*CartItem, *sqlgraph.CreateSpec) {
 		_spec.SetField(cartitem.FieldQuantity, field.TypeInt, value)
 		_node.Quantity = value
 	}
-	if nodes := cic.mutation.ProductIDs(); len(nodes) > 0 {
+	if nodes := cic.mutation.CartIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   cartitem.ProductTable,
-			Columns: []string{cartitem.ProductColumn},
+			Table:   cartitem.CartTable,
+			Columns: cartitem.CartPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(product.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(cart.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.product_cart_items = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := cic.mutation.OrderIDs(); len(nodes) > 0 {
+	if nodes := cic.mutation.ProductIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   cartitem.OrderTable,
-			Columns: cartitem.OrderPrimaryKey,
+			Table:   cartitem.ProductTable,
+			Columns: cartitem.ProductPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(product.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -183,6 +195,7 @@ func (cicb *CartItemCreateBulk) Save(ctx context.Context) ([]*CartItem, error) {
 	for i := range cicb.builders {
 		func(i int, root context.Context) {
 			builder := cicb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*CartItemMutation)
 				if !ok {

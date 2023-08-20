@@ -11,38 +11,53 @@ var (
 	// CartsColumns holds the columns for the "carts" table.
 	CartsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "customer_cart", Type: field.TypeInt, Unique: true, Nullable: true},
 	}
 	// CartsTable holds the schema information for the "carts" table.
 	CartsTable = &schema.Table{
 		Name:       "carts",
 		Columns:    CartsColumns,
 		PrimaryKey: []*schema.Column{CartsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "carts_customers_cart",
+				Columns:    []*schema.Column{CartsColumns[1]},
+				RefColumns: []*schema.Column{CustomersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// CartItemsColumns holds the columns for the "cart_items" table.
 	CartItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "quantity", Type: field.TypeInt},
-		{Name: "product_cart_items", Type: field.TypeInt, Nullable: true},
+		{Name: "quantity", Type: field.TypeInt, Default: 1},
 	}
 	// CartItemsTable holds the schema information for the "cart_items" table.
 	CartItemsTable = &schema.Table{
 		Name:       "cart_items",
 		Columns:    CartItemsColumns,
 		PrimaryKey: []*schema.Column{CartItemsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "cart_items_products_cart_items",
-				Columns:    []*schema.Column{CartItemsColumns[2]},
-				RefColumns: []*schema.Column{ProductsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
+	}
+	// CustomersColumns holds the columns for the "customers" table.
+	CustomersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "email", Type: field.TypeString, Unique: true},
+		{Name: "password", Type: field.TypeString},
+		{Name: "address", Type: field.TypeString},
+	}
+	// CustomersTable holds the schema information for the "customers" table.
+	CustomersTable = &schema.Table{
+		Name:       "customers",
+		Columns:    CustomersColumns,
+		PrimaryKey: []*schema.Column{CustomersColumns[0]},
 	}
 	// OrdersColumns holds the columns for the "orders" table.
 	OrdersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "status", Type: field.TypeString, Default: "pending"},
 		{Name: "placed_at", Type: field.TypeTime},
+		{Name: "balance_due", Type: field.TypeFloat64, Default: 0},
 		{Name: "user_orders", Type: field.TypeInt, Nullable: true},
 	}
 	// OrdersTable holds the schema information for the "orders" table.
@@ -53,11 +68,23 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "orders_users_orders",
-				Columns:    []*schema.Column{OrdersColumns[3]},
+				Columns:    []*schema.Column{OrdersColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// OrderItemsColumns holds the columns for the "order_items" table.
+	OrderItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "quantity", Type: field.TypeInt, Default: 1},
+		{Name: "unit_price", Type: field.TypeFloat64},
+	}
+	// OrderItemsTable holds the schema information for the "order_items" table.
+	OrderItemsTable = &schema.Table{
+		Name:       "order_items",
+		Columns:    OrderItemsColumns,
+		PrimaryKey: []*schema.Column{OrderItemsColumns[0]},
 	}
 	// PasswordTokensColumns holds the columns for the "password_tokens" table.
 	PasswordTokensColumns = []*schema.Column{
@@ -80,20 +107,61 @@ var (
 			},
 		},
 	}
+	// PaymentsColumns holds the columns for the "payments" table.
+	PaymentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "amount", Type: field.TypeFloat64},
+		{Name: "payment_method", Type: field.TypeString},
+		{Name: "transaction_id", Type: field.TypeString, Unique: true},
+		{Name: "status", Type: field.TypeString, Default: "pending"},
+		{Name: "processed_at", Type: field.TypeTime},
+	}
+	// PaymentsTable holds the schema information for the "payments" table.
+	PaymentsTable = &schema.Table{
+		Name:       "payments",
+		Columns:    PaymentsColumns,
+		PrimaryKey: []*schema.Column{PaymentsColumns[0]},
+	}
 	// ProductsColumns holds the columns for the "products" table.
 	ProductsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "sku", Type: field.TypeString, Unique: true},
-		{Name: "description", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Size: 2147483647},
 		{Name: "price", Type: field.TypeFloat64},
-		{Name: "quantity", Type: field.TypeInt},
+		{Name: "stock_count", Type: field.TypeInt, Default: 0},
+		{Name: "image_url", Type: field.TypeString, Default: "https://via.placeholder.com/150"},
 	}
 	// ProductsTable holds the schema information for the "products" table.
 	ProductsTable = &schema.Table{
 		Name:       "products",
 		Columns:    ProductsColumns,
 		PrimaryKey: []*schema.Column{ProductsColumns[0]},
+	}
+	// ProductCategoriesColumns holds the columns for the "product_categories" table.
+	ProductCategoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+	}
+	// ProductCategoriesTable holds the schema information for the "product_categories" table.
+	ProductCategoriesTable = &schema.Table{
+		Name:       "product_categories",
+		Columns:    ProductCategoriesColumns,
+		PrimaryKey: []*schema.Column{ProductCategoriesColumns[0]},
+	}
+	// StaffMembersColumns holds the columns for the "staff_members" table.
+	StaffMembersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "email", Type: field.TypeString, Unique: true},
+		{Name: "password", Type: field.TypeString},
+		{Name: "role", Type: field.TypeString},
+	}
+	// StaffMembersTable holds the schema information for the "staff_members" table.
+	StaffMembersTable = &schema.Table{
+		Name:       "staff_members",
+		Columns:    StaffMembersColumns,
+		PrimaryKey: []*schema.Column{StaffMembersColumns[0]},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -110,27 +178,202 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
-	// OrderCartItemsColumns holds the columns for the "order_cart_items" table.
-	OrderCartItemsColumns = []*schema.Column{
-		{Name: "order_id", Type: field.TypeInt},
+	// CartCartItemsColumns holds the columns for the "cart_cart_items" table.
+	CartCartItemsColumns = []*schema.Column{
+		{Name: "cart_id", Type: field.TypeInt},
 		{Name: "cart_item_id", Type: field.TypeInt},
 	}
-	// OrderCartItemsTable holds the schema information for the "order_cart_items" table.
-	OrderCartItemsTable = &schema.Table{
-		Name:       "order_cart_items",
-		Columns:    OrderCartItemsColumns,
-		PrimaryKey: []*schema.Column{OrderCartItemsColumns[0], OrderCartItemsColumns[1]},
+	// CartCartItemsTable holds the schema information for the "cart_cart_items" table.
+	CartCartItemsTable = &schema.Table{
+		Name:       "cart_cart_items",
+		Columns:    CartCartItemsColumns,
+		PrimaryKey: []*schema.Column{CartCartItemsColumns[0], CartCartItemsColumns[1]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "order_cart_items_order_id",
-				Columns:    []*schema.Column{OrderCartItemsColumns[0]},
+				Symbol:     "cart_cart_items_cart_id",
+				Columns:    []*schema.Column{CartCartItemsColumns[0]},
+				RefColumns: []*schema.Column{CartsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "cart_cart_items_cart_item_id",
+				Columns:    []*schema.Column{CartCartItemsColumns[1]},
+				RefColumns: []*schema.Column{CartItemsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// CustomerOrdersColumns holds the columns for the "customer_orders" table.
+	CustomerOrdersColumns = []*schema.Column{
+		{Name: "customer_id", Type: field.TypeInt},
+		{Name: "order_id", Type: field.TypeInt},
+	}
+	// CustomerOrdersTable holds the schema information for the "customer_orders" table.
+	CustomerOrdersTable = &schema.Table{
+		Name:       "customer_orders",
+		Columns:    CustomerOrdersColumns,
+		PrimaryKey: []*schema.Column{CustomerOrdersColumns[0], CustomerOrdersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "customer_orders_customer_id",
+				Columns:    []*schema.Column{CustomerOrdersColumns[0]},
+				RefColumns: []*schema.Column{CustomersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "customer_orders_order_id",
+				Columns:    []*schema.Column{CustomerOrdersColumns[1]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// OrderOrderItemsColumns holds the columns for the "order_order_items" table.
+	OrderOrderItemsColumns = []*schema.Column{
+		{Name: "order_id", Type: field.TypeInt},
+		{Name: "order_item_id", Type: field.TypeInt},
+	}
+	// OrderOrderItemsTable holds the schema information for the "order_order_items" table.
+	OrderOrderItemsTable = &schema.Table{
+		Name:       "order_order_items",
+		Columns:    OrderOrderItemsColumns,
+		PrimaryKey: []*schema.Column{OrderOrderItemsColumns[0], OrderOrderItemsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_order_items_order_id",
+				Columns:    []*schema.Column{OrderOrderItemsColumns[0]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:     "order_cart_items_cart_item_id",
-				Columns:    []*schema.Column{OrderCartItemsColumns[1]},
+				Symbol:     "order_order_items_order_item_id",
+				Columns:    []*schema.Column{OrderOrderItemsColumns[1]},
+				RefColumns: []*schema.Column{OrderItemsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// OrderPaymentsColumns holds the columns for the "order_payments" table.
+	OrderPaymentsColumns = []*schema.Column{
+		{Name: "order_id", Type: field.TypeInt},
+		{Name: "payment_id", Type: field.TypeInt},
+	}
+	// OrderPaymentsTable holds the schema information for the "order_payments" table.
+	OrderPaymentsTable = &schema.Table{
+		Name:       "order_payments",
+		Columns:    OrderPaymentsColumns,
+		PrimaryKey: []*schema.Column{OrderPaymentsColumns[0], OrderPaymentsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_payments_order_id",
+				Columns:    []*schema.Column{OrderPaymentsColumns[0]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "order_payments_payment_id",
+				Columns:    []*schema.Column{OrderPaymentsColumns[1]},
+				RefColumns: []*schema.Column{PaymentsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// ProductCartItemsColumns holds the columns for the "product_cart_items" table.
+	ProductCartItemsColumns = []*schema.Column{
+		{Name: "product_id", Type: field.TypeInt},
+		{Name: "cart_item_id", Type: field.TypeInt},
+	}
+	// ProductCartItemsTable holds the schema information for the "product_cart_items" table.
+	ProductCartItemsTable = &schema.Table{
+		Name:       "product_cart_items",
+		Columns:    ProductCartItemsColumns,
+		PrimaryKey: []*schema.Column{ProductCartItemsColumns[0], ProductCartItemsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "product_cart_items_product_id",
+				Columns:    []*schema.Column{ProductCartItemsColumns[0]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "product_cart_items_cart_item_id",
+				Columns:    []*schema.Column{ProductCartItemsColumns[1]},
 				RefColumns: []*schema.Column{CartItemsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// ProductOrderItemsColumns holds the columns for the "product_order_items" table.
+	ProductOrderItemsColumns = []*schema.Column{
+		{Name: "product_id", Type: field.TypeInt},
+		{Name: "order_item_id", Type: field.TypeInt},
+	}
+	// ProductOrderItemsTable holds the schema information for the "product_order_items" table.
+	ProductOrderItemsTable = &schema.Table{
+		Name:       "product_order_items",
+		Columns:    ProductOrderItemsColumns,
+		PrimaryKey: []*schema.Column{ProductOrderItemsColumns[0], ProductOrderItemsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "product_order_items_product_id",
+				Columns:    []*schema.Column{ProductOrderItemsColumns[0]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "product_order_items_order_item_id",
+				Columns:    []*schema.Column{ProductOrderItemsColumns[1]},
+				RefColumns: []*schema.Column{OrderItemsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// ProductCategoryProductsColumns holds the columns for the "product_category_products" table.
+	ProductCategoryProductsColumns = []*schema.Column{
+		{Name: "product_category_id", Type: field.TypeInt},
+		{Name: "product_id", Type: field.TypeInt},
+	}
+	// ProductCategoryProductsTable holds the schema information for the "product_category_products" table.
+	ProductCategoryProductsTable = &schema.Table{
+		Name:       "product_category_products",
+		Columns:    ProductCategoryProductsColumns,
+		PrimaryKey: []*schema.Column{ProductCategoryProductsColumns[0], ProductCategoryProductsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "product_category_products_product_category_id",
+				Columns:    []*schema.Column{ProductCategoryProductsColumns[0]},
+				RefColumns: []*schema.Column{ProductCategoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "product_category_products_product_id",
+				Columns:    []*schema.Column{ProductCategoryProductsColumns[1]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// StaffMemberProcessedOrdersColumns holds the columns for the "staff_member_processed_orders" table.
+	StaffMemberProcessedOrdersColumns = []*schema.Column{
+		{Name: "staff_member_id", Type: field.TypeInt},
+		{Name: "order_id", Type: field.TypeInt},
+	}
+	// StaffMemberProcessedOrdersTable holds the schema information for the "staff_member_processed_orders" table.
+	StaffMemberProcessedOrdersTable = &schema.Table{
+		Name:       "staff_member_processed_orders",
+		Columns:    StaffMemberProcessedOrdersColumns,
+		PrimaryKey: []*schema.Column{StaffMemberProcessedOrdersColumns[0], StaffMemberProcessedOrdersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "staff_member_processed_orders_staff_member_id",
+				Columns:    []*schema.Column{StaffMemberProcessedOrdersColumns[0]},
+				RefColumns: []*schema.Column{StaffMembersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "staff_member_processed_orders_order_id",
+				Columns:    []*schema.Column{StaffMemberProcessedOrdersColumns[1]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 		},
@@ -139,18 +382,44 @@ var (
 	Tables = []*schema.Table{
 		CartsTable,
 		CartItemsTable,
+		CustomersTable,
 		OrdersTable,
+		OrderItemsTable,
 		PasswordTokensTable,
+		PaymentsTable,
 		ProductsTable,
+		ProductCategoriesTable,
+		StaffMembersTable,
 		UsersTable,
-		OrderCartItemsTable,
+		CartCartItemsTable,
+		CustomerOrdersTable,
+		OrderOrderItemsTable,
+		OrderPaymentsTable,
+		ProductCartItemsTable,
+		ProductOrderItemsTable,
+		ProductCategoryProductsTable,
+		StaffMemberProcessedOrdersTable,
 	}
 )
 
 func init() {
-	CartItemsTable.ForeignKeys[0].RefTable = ProductsTable
+	CartsTable.ForeignKeys[0].RefTable = CustomersTable
 	OrdersTable.ForeignKeys[0].RefTable = UsersTable
 	PasswordTokensTable.ForeignKeys[0].RefTable = UsersTable
-	OrderCartItemsTable.ForeignKeys[0].RefTable = OrdersTable
-	OrderCartItemsTable.ForeignKeys[1].RefTable = CartItemsTable
+	CartCartItemsTable.ForeignKeys[0].RefTable = CartsTable
+	CartCartItemsTable.ForeignKeys[1].RefTable = CartItemsTable
+	CustomerOrdersTable.ForeignKeys[0].RefTable = CustomersTable
+	CustomerOrdersTable.ForeignKeys[1].RefTable = OrdersTable
+	OrderOrderItemsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderOrderItemsTable.ForeignKeys[1].RefTable = OrderItemsTable
+	OrderPaymentsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderPaymentsTable.ForeignKeys[1].RefTable = PaymentsTable
+	ProductCartItemsTable.ForeignKeys[0].RefTable = ProductsTable
+	ProductCartItemsTable.ForeignKeys[1].RefTable = CartItemsTable
+	ProductOrderItemsTable.ForeignKeys[0].RefTable = ProductsTable
+	ProductOrderItemsTable.ForeignKeys[1].RefTable = OrderItemsTable
+	ProductCategoryProductsTable.ForeignKeys[0].RefTable = ProductCategoriesTable
+	ProductCategoryProductsTable.ForeignKeys[1].RefTable = ProductsTable
+	StaffMemberProcessedOrdersTable.ForeignKeys[0].RefTable = StaffMembersTable
+	StaffMemberProcessedOrdersTable.ForeignKeys[1].RefTable = OrdersTable
 }

@@ -11,22 +11,26 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/cartitem"
+	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/order"
+	"github.com/mikestefanello/pagoda/ent/orderitem"
+	"github.com/mikestefanello/pagoda/ent/payment"
 	"github.com/mikestefanello/pagoda/ent/predicate"
-	"github.com/mikestefanello/pagoda/ent/user"
+	"github.com/mikestefanello/pagoda/ent/staffmember"
 )
 
 // OrderQuery is the builder for querying Order entities.
 type OrderQuery struct {
 	config
-	ctx           *QueryContext
-	order         []order.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.Order
-	withUser      *UserQuery
-	withCartItems *CartItemQuery
-	withFKs       bool
+	ctx             *QueryContext
+	order           []order.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.Order
+	withCustomer    *CustomerQuery
+	withOrderItems  *OrderItemQuery
+	withPayments    *PaymentQuery
+	withProcessedBy *StaffMemberQuery
+	withFKs         bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -63,9 +67,9 @@ func (oq *OrderQuery) Order(o ...order.OrderOption) *OrderQuery {
 	return oq
 }
 
-// QueryUser chains the current query on the "user" edge.
-func (oq *OrderQuery) QueryUser() *UserQuery {
-	query := (&UserClient{config: oq.config}).Query()
+// QueryCustomer chains the current query on the "customer" edge.
+func (oq *OrderQuery) QueryCustomer() *CustomerQuery {
+	query := (&CustomerClient{config: oq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := oq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -76,8 +80,8 @@ func (oq *OrderQuery) QueryUser() *UserQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(order.Table, order.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, order.UserTable, order.UserColumn),
+			sqlgraph.To(customer.Table, customer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, order.CustomerTable, order.CustomerPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(oq.driver.Dialect(), step)
 		return fromU, nil
@@ -85,9 +89,9 @@ func (oq *OrderQuery) QueryUser() *UserQuery {
 	return query
 }
 
-// QueryCartItems chains the current query on the "cart_items" edge.
-func (oq *OrderQuery) QueryCartItems() *CartItemQuery {
-	query := (&CartItemClient{config: oq.config}).Query()
+// QueryOrderItems chains the current query on the "order_items" edge.
+func (oq *OrderQuery) QueryOrderItems() *OrderItemQuery {
+	query := (&OrderItemClient{config: oq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := oq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -98,8 +102,52 @@ func (oq *OrderQuery) QueryCartItems() *CartItemQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(order.Table, order.FieldID, selector),
-			sqlgraph.To(cartitem.Table, cartitem.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, order.CartItemsTable, order.CartItemsPrimaryKey...),
+			sqlgraph.To(orderitem.Table, orderitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, order.OrderItemsTable, order.OrderItemsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(oq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPayments chains the current query on the "payments" edge.
+func (oq *OrderQuery) QueryPayments() *PaymentQuery {
+	query := (&PaymentClient{config: oq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := oq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := oq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, selector),
+			sqlgraph.To(payment.Table, payment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, order.PaymentsTable, order.PaymentsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(oq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryProcessedBy chains the current query on the "processed_by" edge.
+func (oq *OrderQuery) QueryProcessedBy() *StaffMemberQuery {
+	query := (&StaffMemberClient{config: oq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := oq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := oq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, selector),
+			sqlgraph.To(staffmember.Table, staffmember.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, order.ProcessedByTable, order.ProcessedByPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(oq.driver.Dialect(), step)
 		return fromU, nil
@@ -294,38 +342,62 @@ func (oq *OrderQuery) Clone() *OrderQuery {
 		return nil
 	}
 	return &OrderQuery{
-		config:        oq.config,
-		ctx:           oq.ctx.Clone(),
-		order:         append([]order.OrderOption{}, oq.order...),
-		inters:        append([]Interceptor{}, oq.inters...),
-		predicates:    append([]predicate.Order{}, oq.predicates...),
-		withUser:      oq.withUser.Clone(),
-		withCartItems: oq.withCartItems.Clone(),
+		config:          oq.config,
+		ctx:             oq.ctx.Clone(),
+		order:           append([]order.OrderOption{}, oq.order...),
+		inters:          append([]Interceptor{}, oq.inters...),
+		predicates:      append([]predicate.Order{}, oq.predicates...),
+		withCustomer:    oq.withCustomer.Clone(),
+		withOrderItems:  oq.withOrderItems.Clone(),
+		withPayments:    oq.withPayments.Clone(),
+		withProcessedBy: oq.withProcessedBy.Clone(),
 		// clone intermediate query.
 		sql:  oq.sql.Clone(),
 		path: oq.path,
 	}
 }
 
-// WithUser tells the query-builder to eager-load the nodes that are connected to
-// the "user" edge. The optional arguments are used to configure the query builder of the edge.
-func (oq *OrderQuery) WithUser(opts ...func(*UserQuery)) *OrderQuery {
-	query := (&UserClient{config: oq.config}).Query()
+// WithCustomer tells the query-builder to eager-load the nodes that are connected to
+// the "customer" edge. The optional arguments are used to configure the query builder of the edge.
+func (oq *OrderQuery) WithCustomer(opts ...func(*CustomerQuery)) *OrderQuery {
+	query := (&CustomerClient{config: oq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	oq.withUser = query
+	oq.withCustomer = query
 	return oq
 }
 
-// WithCartItems tells the query-builder to eager-load the nodes that are connected to
-// the "cart_items" edge. The optional arguments are used to configure the query builder of the edge.
-func (oq *OrderQuery) WithCartItems(opts ...func(*CartItemQuery)) *OrderQuery {
-	query := (&CartItemClient{config: oq.config}).Query()
+// WithOrderItems tells the query-builder to eager-load the nodes that are connected to
+// the "order_items" edge. The optional arguments are used to configure the query builder of the edge.
+func (oq *OrderQuery) WithOrderItems(opts ...func(*OrderItemQuery)) *OrderQuery {
+	query := (&OrderItemClient{config: oq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	oq.withCartItems = query
+	oq.withOrderItems = query
+	return oq
+}
+
+// WithPayments tells the query-builder to eager-load the nodes that are connected to
+// the "payments" edge. The optional arguments are used to configure the query builder of the edge.
+func (oq *OrderQuery) WithPayments(opts ...func(*PaymentQuery)) *OrderQuery {
+	query := (&PaymentClient{config: oq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	oq.withPayments = query
+	return oq
+}
+
+// WithProcessedBy tells the query-builder to eager-load the nodes that are connected to
+// the "processed_by" edge. The optional arguments are used to configure the query builder of the edge.
+func (oq *OrderQuery) WithProcessedBy(opts ...func(*StaffMemberQuery)) *OrderQuery {
+	query := (&StaffMemberClient{config: oq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	oq.withProcessedBy = query
 	return oq
 }
 
@@ -408,14 +480,13 @@ func (oq *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 		nodes       = []*Order{}
 		withFKs     = oq.withFKs
 		_spec       = oq.querySpec()
-		loadedTypes = [2]bool{
-			oq.withUser != nil,
-			oq.withCartItems != nil,
+		loadedTypes = [4]bool{
+			oq.withCustomer != nil,
+			oq.withOrderItems != nil,
+			oq.withPayments != nil,
+			oq.withProcessedBy != nil,
 		}
 	)
-	if oq.withUser != nil {
-		withFKs = true
-	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, order.ForeignKeys...)
 	}
@@ -437,55 +508,38 @@ func (oq *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := oq.withUser; query != nil {
-		if err := oq.loadUser(ctx, query, nodes, nil,
-			func(n *Order, e *User) { n.Edges.User = e }); err != nil {
+	if query := oq.withCustomer; query != nil {
+		if err := oq.loadCustomer(ctx, query, nodes,
+			func(n *Order) { n.Edges.Customer = []*Customer{} },
+			func(n *Order, e *Customer) { n.Edges.Customer = append(n.Edges.Customer, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := oq.withCartItems; query != nil {
-		if err := oq.loadCartItems(ctx, query, nodes,
-			func(n *Order) { n.Edges.CartItems = []*CartItem{} },
-			func(n *Order, e *CartItem) { n.Edges.CartItems = append(n.Edges.CartItems, e) }); err != nil {
+	if query := oq.withOrderItems; query != nil {
+		if err := oq.loadOrderItems(ctx, query, nodes,
+			func(n *Order) { n.Edges.OrderItems = []*OrderItem{} },
+			func(n *Order, e *OrderItem) { n.Edges.OrderItems = append(n.Edges.OrderItems, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := oq.withPayments; query != nil {
+		if err := oq.loadPayments(ctx, query, nodes,
+			func(n *Order) { n.Edges.Payments = []*Payment{} },
+			func(n *Order, e *Payment) { n.Edges.Payments = append(n.Edges.Payments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := oq.withProcessedBy; query != nil {
+		if err := oq.loadProcessedBy(ctx, query, nodes,
+			func(n *Order) { n.Edges.ProcessedBy = []*StaffMember{} },
+			func(n *Order, e *StaffMember) { n.Edges.ProcessedBy = append(n.Edges.ProcessedBy, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (oq *OrderQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Order, init func(*Order), assign func(*Order, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Order)
-	for i := range nodes {
-		if nodes[i].user_orders == nil {
-			continue
-		}
-		fk := *nodes[i].user_orders
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_orders" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (oq *OrderQuery) loadCartItems(ctx context.Context, query *CartItemQuery, nodes []*Order, init func(*Order), assign func(*Order, *CartItem)) error {
+func (oq *OrderQuery) loadCustomer(ctx context.Context, query *CustomerQuery, nodes []*Order, init func(*Order), assign func(*Order, *Customer)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[int]*Order)
 	nids := make(map[int]map[*Order]struct{})
@@ -497,11 +551,11 @@ func (oq *OrderQuery) loadCartItems(ctx context.Context, query *CartItemQuery, n
 		}
 	}
 	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(order.CartItemsTable)
-		s.Join(joinT).On(s.C(cartitem.FieldID), joinT.C(order.CartItemsPrimaryKey[1]))
-		s.Where(sql.InValues(joinT.C(order.CartItemsPrimaryKey[0]), edgeIDs...))
+		joinT := sql.Table(order.CustomerTable)
+		s.Join(joinT).On(s.C(customer.FieldID), joinT.C(order.CustomerPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(order.CustomerPrimaryKey[1]), edgeIDs...))
 		columns := s.SelectedColumns()
-		s.Select(joinT.C(order.CartItemsPrimaryKey[0]))
+		s.Select(joinT.C(order.CustomerPrimaryKey[1]))
 		s.AppendSelect(columns...)
 		s.SetDistinct(false)
 	})
@@ -531,14 +585,197 @@ func (oq *OrderQuery) loadCartItems(ctx context.Context, query *CartItemQuery, n
 			}
 		})
 	})
-	neighbors, err := withInterceptors[[]*CartItem](ctx, query, qr, query.inters)
+	neighbors, err := withInterceptors[[]*Customer](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
 		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "cart_items" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected "customer" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (oq *OrderQuery) loadOrderItems(ctx context.Context, query *OrderItemQuery, nodes []*Order, init func(*Order), assign func(*Order, *OrderItem)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Order)
+	nids := make(map[int]map[*Order]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(order.OrderItemsTable)
+		s.Join(joinT).On(s.C(orderitem.FieldID), joinT.C(order.OrderItemsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(order.OrderItemsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(order.OrderItemsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Order]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*OrderItem](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "order_items" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (oq *OrderQuery) loadPayments(ctx context.Context, query *PaymentQuery, nodes []*Order, init func(*Order), assign func(*Order, *Payment)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Order)
+	nids := make(map[int]map[*Order]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(order.PaymentsTable)
+		s.Join(joinT).On(s.C(payment.FieldID), joinT.C(order.PaymentsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(order.PaymentsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(order.PaymentsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Order]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Payment](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "payments" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (oq *OrderQuery) loadProcessedBy(ctx context.Context, query *StaffMemberQuery, nodes []*Order, init func(*Order), assign func(*Order, *StaffMember)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Order)
+	nids := make(map[int]map[*Order]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(order.ProcessedByTable)
+		s.Join(joinT).On(s.C(staffmember.FieldID), joinT.C(order.ProcessedByPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(order.ProcessedByPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(order.ProcessedByPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Order]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*StaffMember](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "processed_by" node returned %v`, n.ID)
 		}
 		for kn := range nodes {
 			assign(kn, n)
