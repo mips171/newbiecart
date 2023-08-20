@@ -62,6 +62,7 @@ func BuildRouter(c *services.Container) {
 	// Example routes
 	navRoutes(c, g, ctr)
 	userRoutes(c, g, ctr)
+	staffMemberRoutes(c, g, ctr)
 }
 
 func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
@@ -84,6 +85,10 @@ func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 	addProduct := AddProductController{Controller: ctr}
 	g.GET("/products/add", addProduct.Get).Name = "add_product"
 	g.POST("/products/add", addProduct.Post).Name = "add_product.post"
+
+	editProduct := EditProductController{Controller: ctr}
+	g.GET("/products/:id/edit", editProduct.Get).Name = "edit_product"
+	g.POST("/products/:id/edit", editProduct.Post).Name = "edit_product.post"
 
 	productDetail := productDetail{Controller: ctr}
 	g.GET("/products/:id", productDetail.Get)
@@ -117,4 +122,17 @@ func userRoutes(c *services.Container, g *echo.Group, ctr controller.Controller)
 	reset := resetPassword{Controller: ctr}
 	resetGroup.GET("/token/:user/:password_token/:token", reset.Get).Name = "reset_password"
 	resetGroup.POST("/token/:user/:password_token/:token", reset.Post).Name = "reset_password.post"
+}
+
+func staffMemberRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
+	logout := logout{Controller: ctr}
+	g.GET("/logout", logout.Get, middleware.RequireAuthentication()).Name = "logout"
+
+	verifyEmail := verifyEmail{Controller: ctr}
+	g.GET("/email/verify/:token", verifyEmail.Get).Name = "verify_email"
+
+	noAuth := g.Group("/admin", middleware.RequireNoAuthentication())
+	stafflogin := stafflogin{Controller: ctr}
+	noAuth.GET("/admin", stafflogin.Get).Name = "stafflogin"
+	noAuth.POST("/admin", stafflogin.Post).Name = "stafflogin.post"
 }

@@ -14,15 +14,6 @@ type (
 		controller.Controller
 		Client *ent.Client
 	}
-
-	productForm struct {
-		Name        string  `form:"name" validate:"required"`
-		Sku         string  `form:"sku" validate:"required"`
-		Description string  `form:"description" validate:"required"`
-		Price       float64 `form:"price" validate:"required,gte=0"`
-		Quantity    int     `form:"quantity" validate:"required,gte=0"`
-		Submission  controller.FormSubmission
-	}
 )
 
 func (c *AddProductController) Get(ctx echo.Context) error {

@@ -1,14 +1,40 @@
 {{define "content"}}
-    <h1>{{.Data.Name}}</h1>
-	<p>SKU: <pre>{{.Data.Sku}}</pre></p>
-    <p>{{.Data.Description}}</p>
-    <div class="product-price">
-        Price: ${{printf "%.2f" .Data.Price}}
+<div class="product-container">
+    <!-- Product Header with Name and SKU -->
+    <div class="product-header">
+        <h1 class="title">{{.Data.Name}}</h1>
+        <span class="subtitle">SKU: {{.Data.Sku}}</span>
     </div>
-    <div class="product-quantity">
-        Quantity: {{.Data.StockCount}}
+
+	<!-- Product Image -->
+    <div class="product-image">
+        <figure class="image is-128x128">
+            <img src="{{.Data.ImageURL}}" alt="{{.Data.Name}}">
+        </figure>
     </div>
-    <div class="product-actions">
-        <button class="button">Add to Cart</button>
+
+    <!-- Product Description -->
+    <div class="product-description mt-4">
+        <p>{{.Data.Description}}</p>
     </div>
+
+    <!-- Product Details: Price and Quantity -->
+    <div class="product-details mt-4">
+        <div class="field is-grouped">
+            <!-- Price -->
+            <div class="control">
+                <div class="tags has-addons">
+                    <span class="tag is-dark">Price</span>
+                    <span class="tag is-info">${{printf "%.2f" .Data.Price}}</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Product Actions: Add to Cart -->
+    <div class="product-actions mt-4">
+        <button class="button is-link">Add to Cart</button>
+    </div>
+</div>
 {{end}}
