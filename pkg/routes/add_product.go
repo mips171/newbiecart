@@ -14,6 +14,15 @@ type (
 		controller.Controller
 		Client *ent.Client
 	}
+
+	addProductForm struct {
+		Name        string  `form:"name" validate:"required"`
+		Sku         string  `form:"sku" validate:"required"`
+		Description string  `form:"description" validate:"required"`
+		Price       float64 `form:"price" validate:"required,gte=0"`
+		Quantity    int     `form:"quantity" validate:"required,gte=0"`
+		Submission  controller.FormSubmission
+	}
 )
 
 func (c *AddProductController) Get(ctx echo.Context) error {
@@ -21,17 +30,17 @@ func (c *AddProductController) Get(ctx echo.Context) error {
 	page.Layout = "main"
 	page.Name = "add_product"
 	page.Title = "Add New Product"
-	page.Form = productForm{}
+	page.Form = addProductForm{}
 
 	if form := ctx.Get(context.FormKey); form != nil {
-		page.Form = form.(*productForm)
+		page.Form = form.(*addProductForm)
 	}
 
 	return c.RenderPage(ctx, page)
 }
 
 func (c *AddProductController) Post(ctx echo.Context) error {
-	var form productForm
+	var form addProductForm
 	ctx.Set(context.FormKey, &form)
 
 	// Parse the form values

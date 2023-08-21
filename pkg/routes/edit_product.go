@@ -10,10 +10,21 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/msg"
 )
 
-type EditProductController struct {
-	controller.Controller
-	Client *ent.Client
-}
+type (
+	EditProductController struct {
+		controller.Controller
+		Client *ent.Client
+	}
+	editProductForm struct {
+		ID          int     `form:"id" validate:"required"`
+		Name        string  `form:"name" validate:"required"`
+		Sku         string  `form:"sku" validate:"required"`
+		Description string  `form:"description" validate:"required"`
+		Price       float64 `form:"price" validate:"required,gte=0"`
+		Quantity    int     `form:"quantity" validate:"required,gte=0"`
+		Submission  controller.FormSubmission
+	}
+)
 
 func (c *EditProductController) Get(ctx echo.Context) error {
 	productID, err := strconv.Atoi(ctx.Param("id"))
@@ -30,7 +41,7 @@ func (c *EditProductController) Get(ctx echo.Context) error {
 	page.Layout = "main"
 	page.Name = "edit_product"
 	page.Title = "Edit Product"
-	page.Form = productForm{
+	page.Form = editProductForm{
 		ID:          product.ID,
 		Name:        product.Name,
 		Sku:         product.Sku,
@@ -45,7 +56,7 @@ func (c *EditProductController) Get(ctx echo.Context) error {
 }
 
 func (c *EditProductController) Post(ctx echo.Context) error {
-	var form productForm
+	var form editProductForm
 	ctx.Set(context.FormKey, &form)
 
 	// Parse the form values
