@@ -9,6 +9,14 @@
         </div>
     </div>
     <div class="field">
+        <label for="sku" class="label">Product SKU</label>
+        <div class="control">
+            <input type="text" id="sku" name="sku" class="input {{.Form.Submission.GetFieldStatusClass " Sku"}}"
+                value="{{.Form.Sku}}">
+            {{template "field-errors" (.Form.Submission.GetFieldErrors "Sku")}}
+        </div>
+    </div>
+    <div class="field">
         <label for="description" class="label">Description</label>
         <div class="control">
             <textarea id="description" name="description" class="textarea {{.Form.Submission.GetFieldStatusClass "Description"}}">{{.Form.Description}}</textarea>

@@ -1,0 +1,49 @@
+{{define "content"}}
+<div class="order-container">
+    <!-- Order Header with Order ID -->
+    <div class="order-header">
+        <h1 class="title">Order #{{.Data.OrderID}}</h1>
+        <span class="subtitle">Placed on: {{.Data.OrderDate}}</span>
+    </div>
+
+    <!-- Order Status -->
+    <div class="order-status mt-4">
+        <p>Status: <strong>{{.Data.Status}}</strong></p>
+    </div>
+
+    <!-- Buyer Details -->
+    <div class="buyer-details mt-4">
+        <h2 class="subtitle">Buyer Details</h2>
+        <p>{{.Data.BuyerName}}</p>
+        <p>{{.Data.BuyerEmail}}</p>
+        <p>{{.Data.BuyerPhone}}</p>
+    </div>
+
+    <!-- Shipping Details -->
+    <div class="shipping-details mt-4">
+        <h2 class="subtitle">Shipping Address</h2>
+        <address>
+            {{.Data.ShippingAddress.Line1}}<br>
+            {{if .Data.ShippingAddress.Line2}}{{.Data.ShippingAddress.Line2}}<br>{{end}}
+            {{.Data.ShippingAddress.City}}, {{.Data.ShippingAddress.State}} {{.Data.ShippingAddress.Zip}}
+        </address>
+    </div>
+
+    <!-- Ordered Products -->
+    <div class="ordered-products mt-4">
+        <h2 class="subtitle">Products</h2>
+        {{range .Data.Products}}
+        <div class="product">
+            <h3>{{.Name}} (SKU: {{.Sku}})</h3>
+            <p>Quantity: {{.Quantity}}</p>
+            <p>Price: ${{printf "%.2f" .Price}}</p>
+        </div>
+        {{end}}
+    </div>
+
+    <!-- Order Actions: Edit Order -->
+    <div class="order-actions mt-4">
+        <button class="button is-link">Edit Order</button>
+    </div>
+</div>
+{{end}}

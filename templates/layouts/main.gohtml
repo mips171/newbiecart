@@ -26,6 +26,8 @@
                         <p class="menu-label">General</p>
                         <ul class="menu-list">
                             <li>{{link (call .ToURL "products") "Products" .Path}}</li>
+                            <li>{{link (call .ToURL "orders") "Orders" .Path}}</li>
+
                             <li>{{link (call .ToURL "home") "Dashboard" .Path}}</li>
                             <li>{{link (call .ToURL "about") "About" .Path}}</li>
                             <li>{{link (call .ToURL "contact") "Contact" .Path}}</li>
@@ -35,6 +37,7 @@
                         <ul class="menu-list">
                             {{- if .IsAuth}}
                                 <li>{{link (call .ToURL "add_product") "Add Product" .Path}}</li>
+
                                 <li>{{link (call .ToURL "logout") "Logout" .Path}}</li>
                             {{- else}}
                                 <li>{{link (call .ToURL "login") "Customer Login" .Path}}</li>

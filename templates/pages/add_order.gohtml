@@ -1,0 +1,51 @@
+{{define "content"}}
+<form method="post" hx-boost="true" action="{{call .ToURL "order.post"}}">
+    <div class="field">
+        <label for="status" class="label">Order Status</label>
+        <div class="control">
+            <select id="status" name="status" class="input {{.Form.Submission.GetFieldStatusClass "Status"}}">
+                <option value="pending" {{if eq .Form.Status "pending"}}selected{{end}}>Pending</option>
+				<option value="complete" {{if eq .Form.Status "complete"}}selected{{end}}>Complete</option>
+				<option value="cancelled" {{if eq .Form.Status "cancelled"}}selected{{end}}>Cancelled</option>
+                <!-- ... Other statuses ... -->
+            </select>
+            {{template "field-errors" (.Form.Submission.GetFieldErrors "Status")}}
+        </div>
+    </div>
+    <div class="field">
+        <label for="balanceDue" class="label">Balance Due</label>
+        <div class="control">
+            <input type="number" id="balanceDue" name="balanceDue" step="0.01" class="input {{.Form.Submission.GetFieldStatusClass "BalanceDue"}}"
+                value="{{.Form.BalanceDue}}">
+            {{template "field-errors" (.Form.Submission.GetFieldErrors "BalanceDue")}}
+        </div>
+    </div>
+    <div class="field">
+        <label for="customer" class="label">Customer</label>
+        <div class="control">
+            <!-- This is a placeholder; you may need a dropdown or an auto-complete based on your design -->
+            <input type="text" id="customer" name="customer" class="input {{.Form.Submission.GetFieldStatusClass "Customer"}}"
+                value="{{.Form.Customer}}">
+            {{template "field-errors" (.Form.Submission.GetFieldErrors "Customer")}}
+        </div>
+    </div>
+    <div class="field">
+        <label for="processedBy" class="label">Processed By</label>
+        <div class="control">
+            <!-- This is a placeholder; you may need a dropdown or an auto-complete based on your design -->
+            <input type="text" id="processedBy" name="processedBy" class="input {{.Form.Submission.GetFieldStatusClass "ProcessedBy"}}"
+                value="{{.Form.ProcessedBy}}">
+            {{template "field-errors" (.Form.Submission.GetFieldErrors "ProcessedBy")}}
+        </div>
+    </div>
+    <div class="field is-grouped">
+        <p class="control">
+            <button class="button is-primary">Add Order</button>
+        </p>
+        <p class="control">
+            <a href="{{call .ToURL "home"}}" class="button is-light">Cancel</a>
+        </p>
+    </div>
+    {{template "csrf" .}}
+</form>
+{{end}}

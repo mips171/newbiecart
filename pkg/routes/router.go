@@ -93,6 +93,13 @@ func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 	productDetail := productDetail{Controller: ctr}
 	g.GET("/products/:id", productDetail.Get)
 
+	addOrder := AddOrderController{Controller: ctr}
+	g.GET("/orders/add", addOrder.Get).Name = "add_order"
+	g.POST("/orders/add", addOrder.Post).Name = "add_order.post"
+
+	editOrder := ordersController{Controller: ctr}
+	g.GET("/orders", editOrder.Get).Name = "orders"
+	g.GET("/orders/:id", editOrder.Get).Name = "order"
 }
 
 func userRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
@@ -131,8 +138,4 @@ func staffMemberRoutes(c *services.Container, g *echo.Group, ctr controller.Cont
 	verifyEmail := verifyEmail{Controller: ctr}
 	g.GET("/email/verify/:token", verifyEmail.Get).Name = "verify_email"
 
-	noAuth := g.Group("/admin", middleware.RequireNoAuthentication())
-	stafflogin := stafflogin{Controller: ctr}
-	noAuth.GET("/admin", stafflogin.Get).Name = "stafflogin"
-	noAuth.POST("/admin", stafflogin.Post).Name = "stafflogin.post"
 }

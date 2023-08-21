@@ -1,0 +1,41 @@
+{{ define "content" }}
+
+<h1>All Orders</h1>
+    <div id="orders">
+        {{- range .Data}}
+            <article class="media">
+                <figure class="media-left">
+                    <p class="image is-64x64">
+                        <img src="{{file "gopher.png"}}" alt="Order Image"/>
+                    </p>
+                </figure>
+                <div class="media-content">
+                    <div class="content">
+                        <p>
+                            <strong><a href="/orders/{{.ID}}">Order #{{.ID}}</a></strong><br>
+                            Status: <span class="{{if eq .Status "pending"}}has-text-warning{{else}}has-text-success{{end}}">{{.Status}}</span><br>
+                            Placed On: {{.PlacedAt}}<br>
+                            Balance Due: ${{printf "%.2f" .BalanceDue}}<br>
+                            Customer: {{.Customer.Name}}<br>
+                            Processed By: {{.ProcessedBy.Name}}
+                        </p>
+                    </div>
+                </div>
+            </article>
+        {{- end}}
+
+        <div class="field is-grouped is-grouped-centered">
+            {{- if not $.Pager.IsBeginning}}
+                <p class="control">
+                    <button class="button is-primary" hx-swap="outerHTML" hx-get="/?page={{sub $.Pager.Page 1}}" hx-target="#orders">Previous page</button>
+                </p>
+            {{- end}}
+            {{- if not $.Pager.IsEnd}}
+                <p class="control">
+                    <button class="button is-primary" hx-swap="outerHTML" hx-get="/?page={{add $.Pager.Page 1}}" hx-target="#orders">Next page</button>
+                </p>
+            {{- end}}
+        </div>
+    </div>
+
+{{end}}

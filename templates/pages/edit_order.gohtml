@@ -1,0 +1,53 @@
+{{define "content"}}
+<div class="edit-order-container">
+    <!-- Edit Order Header with Order ID -->
+    <div class="edit-order-header">
+        <h1 class="title">Edit Order #{{.Data.OrderID}}</h1>
+    </div>
+
+    <form action="/orders/update" method="POST">
+
+        <!-- Order Status -->
+        <div class="field">
+            <label for="status">Order Status:</label>
+            <select id="status" name="status">
+                <option value="pending" {{if eq .Data.Status "pending"}}selected{{end}}>Pending</option>
+                <option value="shipped" {{if eq .Data.Status "shipped"}}selected{{end}}>Shipped</option>
+                <option value="delivered" {{if eq .Data.Status "delivered"}}selected{{end}}>Delivered</option>
+                <!-- Add other statuses as needed -->
+            </select>
+        </div>
+
+        <!-- Buyer Details -->
+        <div class="field">
+            <label for="buyerName">Buyer Name:</label>
+            <input type="text" id="buyerName" name="buyerName" value="{{.Data.BuyerName}}">
+        </div>
+
+        <!-- And so on for other buyer details... -->
+
+        <!-- Shipping Details -->
+        <div class="field">
+            <label for="addressLine1">Address Line 1:</label>
+            <input type="text" id="addressLine1" name="addressLine1" value="{{.Data.ShippingAddress.Line1}}">
+        </div>
+
+        <!-- And so on for other shipping details... -->
+
+        <!-- Ordered Products -->
+        <div class="ordered-products">
+            {{range .Data.Products}}
+            <div class="product">
+                <h3>Edit Product</h3>
+                <!-- Input fields for editing the product -->
+            </div>
+            {{end}}
+        </div>
+
+        <!-- Submit Changes -->
+        <div class="order-actions mt-4">
+            <button type="submit" class="button is-link">Save Changes</button>
+        </div>
+    </form>
+</div>
+{{end}}
