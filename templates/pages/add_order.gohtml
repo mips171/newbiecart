@@ -13,9 +13,9 @@
         </div>
     </div>
     <div class="field">
-        <label for="balanceDue" class="label">Balance Due</label>
+        <label for="balance_due" class="label">Balance Due</label>
         <div class="control">
-            <input type="number" id="balanceDue" name="balanceDue" step="0.01" class="input {{.Form.Submission.GetFieldStatusClass "BalanceDue"}}"
+            <input type="number" id="balance_due" name="balance_due" step="0.01" class="input {{.Form.Submission.GetFieldStatusClass "BalanceDue"}}"
                 value="{{.Form.BalanceDue}}">
             {{template "field-errors" (.Form.Submission.GetFieldErrors "BalanceDue")}}
         </div>
@@ -30,14 +30,21 @@
         </div>
     </div>
     <div class="field">
-        <label for="processedBy" class="label">Processed By</label>
+        <label for="processed_by" class="label">Processed By</label>
         <div class="control">
             <!-- This is a placeholder; you may need a dropdown or an auto-complete based on your design -->
-            <input type="text" id="processedBy" name="processedBy" class="input {{.Form.Submission.GetFieldStatusClass "ProcessedBy"}}"
+            <input type="number" id="processed_by" name="processed_by" class="input {{.Form.Submission.GetFieldStatusClass "ProcessedBy"}}"
                 value="{{.Form.ProcessedBy}}">
             {{template "field-errors" (.Form.Submission.GetFieldErrors "ProcessedBy")}}
         </div>
     </div>
+	<div class="field">
+		<label for="placed_at" class="label">Placed At</label>
+		<div class="control">
+			<input type="date" id="placed_at" name="placed_at" class="input {{.Form.Submission.GetFieldStatusClass "PlacedAt"}}" value="{{.Form.PlacedAt}}">
+			{{template "field-errors" (.Form.Submission.GetFieldErrors "PlacedAt")}}
+		</div>
+	</div>
     <div class="field is-grouped">
         <p class="control">
             <button class="button is-primary">Add Order</button>

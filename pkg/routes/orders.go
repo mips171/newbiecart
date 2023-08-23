@@ -12,25 +12,6 @@ type (
 		controller.Controller
 		Client *ent.Client
 	}
-
-	Order struct {
-		Status      string
-		PlacedAt    string // Use time.Time if you want to work with time objects directly
-		BalanceDue  float64
-		Customer    ent.Customer
-		ProcessedBy ent.StaffMember // Placeholder if you need to display the staff member's name
-		ID          int
-	}
-
-	orderForm struct {
-		ID          int     `form:"id" validate:"required"`
-		Status      string  `form:"status" validate:"required"`
-		PlacedAt    string  `form:"placed_at" validate:"required"`
-		BalanceDue  float64 `form:"balance_due" validate:"required"`
-		Customer    string  `form:"customer" validate:"required"`
-		ProcessedBy float64 `form:"processed_by" validate:"required,gte=0"`
-		Submission  controller.FormSubmission
-	}
 )
 
 func NewOrdersController(client *ent.Client) *ordersController {

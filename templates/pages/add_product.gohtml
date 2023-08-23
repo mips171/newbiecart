@@ -11,7 +11,7 @@
     <div class="field">
         <label for="sku" class="label">Product SKU</label>
         <div class="control">
-            <input type="text" id="sku" name="sku" class="input {{.Form.Submission.GetFieldStatusClass " Sku"}}"
+            <input type="text" id="sku" name="sku" class="input {{.Form.Submission.GetFieldStatusClass "Sku"}}"
                 value="{{.Form.Sku}}">
             {{template "field-errors" (.Form.Submission.GetFieldErrors "Sku")}}
         </div>
