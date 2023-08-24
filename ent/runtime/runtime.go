@@ -128,24 +128,32 @@ func init() {
 	user.Hooks[0] = userHooks[0]
 	userFields := schema.User{}.Fields()
 	_ = userFields
-	// userDescName is the schema descriptor for name field.
-	userDescName := userFields[0].Descriptor()
-	// user.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	user.NameValidator = userDescName.Validators[0].(func(string) error)
+	// userDescNameFirst is the schema descriptor for name_first field.
+	userDescNameFirst := userFields[0].Descriptor()
+	// user.NameFirstValidator is a validator for the "name_first" field. It is called by the builders before save.
+	user.NameFirstValidator = userDescNameFirst.Validators[0].(func(string) error)
+	// userDescNameSurname is the schema descriptor for name_surname field.
+	userDescNameSurname := userFields[1].Descriptor()
+	// user.NameSurnameValidator is a validator for the "name_surname" field. It is called by the builders before save.
+	user.NameSurnameValidator = userDescNameSurname.Validators[0].(func(string) error)
 	// userDescEmail is the schema descriptor for email field.
-	userDescEmail := userFields[1].Descriptor()
+	userDescEmail := userFields[2].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
+	// userDescPhone is the schema descriptor for phone field.
+	userDescPhone := userFields[3].Descriptor()
+	// user.PhoneValidator is a validator for the "phone" field. It is called by the builders before save.
+	user.PhoneValidator = userDescPhone.Validators[0].(func(string) error)
 	// userDescPassword is the schema descriptor for password field.
-	userDescPassword := userFields[2].Descriptor()
+	userDescPassword := userFields[4].Descriptor()
 	// user.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
 	user.PasswordValidator = userDescPassword.Validators[0].(func(string) error)
 	// userDescVerified is the schema descriptor for verified field.
-	userDescVerified := userFields[3].Descriptor()
+	userDescVerified := userFields[5].Descriptor()
 	// user.DefaultVerified holds the default value on creation for the verified field.
 	user.DefaultVerified = userDescVerified.Default.(bool)
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[4].Descriptor()
+	userDescCreatedAt := userFields[6].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 }

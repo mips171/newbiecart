@@ -89,6 +89,6 @@ func (c *login) Post(ctx echo.Context) error {
 		return c.Fail(err, "unable to log in user")
 	}
 
-	msg.Success(ctx, fmt.Sprintf("Welcome back, <strong>%s</strong>. You are now logged in.", u.Name))
+	msg.Success(ctx, fmt.Sprintf("Welcome back, <strong>%s</strong>. You are now logged in.", fmt.Sprintf("%s %s", u.NameFirst, u.NameSurname)))
 	return c.Redirect(ctx, "home")
 }

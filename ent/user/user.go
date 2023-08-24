@@ -16,10 +16,14 @@ const (
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
+	// FieldNameFirst holds the string denoting the name_first field in the database.
+	FieldNameFirst = "name_first"
+	// FieldNameSurname holds the string denoting the name_surname field in the database.
+	FieldNameSurname = "name_surname"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
+	// FieldPhone holds the string denoting the phone field in the database.
+	FieldPhone = "phone"
 	// FieldPassword holds the string denoting the password field in the database.
 	FieldPassword = "password"
 	// FieldVerified holds the string denoting the verified field in the database.
@@ -53,8 +57,10 @@ const (
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
-	FieldName,
+	FieldNameFirst,
+	FieldNameSurname,
 	FieldEmail,
+	FieldPhone,
 	FieldPassword,
 	FieldVerified,
 	FieldCreatedAt,
@@ -78,10 +84,14 @@ func ValidColumn(column string) bool {
 //	import _ "github.com/mikestefanello/pagoda/ent/runtime"
 var (
 	Hooks [1]ent.Hook
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
+	// NameFirstValidator is a validator for the "name_first" field. It is called by the builders before save.
+	NameFirstValidator func(string) error
+	// NameSurnameValidator is a validator for the "name_surname" field. It is called by the builders before save.
+	NameSurnameValidator func(string) error
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
+	// PhoneValidator is a validator for the "phone" field. It is called by the builders before save.
+	PhoneValidator func(string) error
 	// PasswordValidator is a validator for the "password" field. It is called by the builders before save.
 	PasswordValidator func(string) error
 	// DefaultVerified holds the default value on creation for the "verified" field.
@@ -124,14 +134,24 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByName orders the results by the name field.
-func ByName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldName, opts...).ToFunc()
+// ByNameFirst orders the results by the name_first field.
+func ByNameFirst(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNameFirst, opts...).ToFunc()
+}
+
+// ByNameSurname orders the results by the name_surname field.
+func ByNameSurname(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNameSurname, opts...).ToFunc()
 }
 
 // ByEmail orders the results by the email field.
 func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmail, opts...).ToFunc()
+}
+
+// ByPhone orders the results by the phone field.
+func ByPhone(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPhone, opts...).ToFunc()
 }
 
 // ByPassword orders the results by the password field.

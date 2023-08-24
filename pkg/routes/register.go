@@ -65,14 +65,15 @@ func (c *register) Post(ctx echo.Context) error {
 	// Attempt creating the user
 	u, err := c.Container.ORM.User.
 		Create().
-		SetName(form.Name).
+		SetNameFirst(form.Name).
+		SetNameSurname(form.Name).
 		SetEmail(form.Email).
 		SetPassword(pwHash).
 		Save(ctx.Request().Context())
 
 	switch err.(type) {
 	case nil:
-		ctx.Logger().Infof("user created: %s", u.Name)
+		ctx.Logger().Infof("user created: %s", fmt.Sprintf("%s %s", u.NameFirst, u.NameSurname))
 	case *ent.ConstraintError:
 		msg.Warning(ctx, "A user with this email address already exists. Please log in.")
 		return c.Redirect(ctx, "login")

@@ -29,15 +29,27 @@ func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 	return uu
 }
 
-// SetName sets the "name" field.
-func (uu *UserUpdate) SetName(s string) *UserUpdate {
-	uu.mutation.SetName(s)
+// SetNameFirst sets the "name_first" field.
+func (uu *UserUpdate) SetNameFirst(s string) *UserUpdate {
+	uu.mutation.SetNameFirst(s)
+	return uu
+}
+
+// SetNameSurname sets the "name_surname" field.
+func (uu *UserUpdate) SetNameSurname(s string) *UserUpdate {
+	uu.mutation.SetNameSurname(s)
 	return uu
 }
 
 // SetEmail sets the "email" field.
 func (uu *UserUpdate) SetEmail(s string) *UserUpdate {
 	uu.mutation.SetEmail(s)
+	return uu
+}
+
+// SetPhone sets the "phone" field.
+func (uu *UserUpdate) SetPhone(s string) *UserUpdate {
+	uu.mutation.SetPhone(s)
 	return uu
 }
 
@@ -181,14 +193,24 @@ func (uu *UserUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (uu *UserUpdate) check() error {
-	if v, ok := uu.mutation.Name(); ok {
-		if err := user.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "User.name": %w`, err)}
+	if v, ok := uu.mutation.NameFirst(); ok {
+		if err := user.NameFirstValidator(v); err != nil {
+			return &ValidationError{Name: "name_first", err: fmt.Errorf(`ent: validator failed for field "User.name_first": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.NameSurname(); ok {
+		if err := user.NameSurnameValidator(v); err != nil {
+			return &ValidationError{Name: "name_surname", err: fmt.Errorf(`ent: validator failed for field "User.name_surname": %w`, err)}
 		}
 	}
 	if v, ok := uu.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.Phone(); ok {
+		if err := user.PhoneValidator(v); err != nil {
+			return &ValidationError{Name: "phone", err: fmt.Errorf(`ent: validator failed for field "User.phone": %w`, err)}
 		}
 	}
 	if v, ok := uu.mutation.Password(); ok {
@@ -216,11 +238,17 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := uu.mutation.Name(); ok {
-		_spec.SetField(user.FieldName, field.TypeString, value)
+	if value, ok := uu.mutation.NameFirst(); ok {
+		_spec.SetField(user.FieldNameFirst, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.NameSurname(); ok {
+		_spec.SetField(user.FieldNameSurname, field.TypeString, value)
 	}
 	if value, ok := uu.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.Phone(); ok {
+		_spec.SetField(user.FieldPhone, field.TypeString, value)
 	}
 	if value, ok := uu.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
@@ -341,15 +369,27 @@ type UserUpdateOne struct {
 	mutation *UserMutation
 }
 
-// SetName sets the "name" field.
-func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
-	uuo.mutation.SetName(s)
+// SetNameFirst sets the "name_first" field.
+func (uuo *UserUpdateOne) SetNameFirst(s string) *UserUpdateOne {
+	uuo.mutation.SetNameFirst(s)
+	return uuo
+}
+
+// SetNameSurname sets the "name_surname" field.
+func (uuo *UserUpdateOne) SetNameSurname(s string) *UserUpdateOne {
+	uuo.mutation.SetNameSurname(s)
 	return uuo
 }
 
 // SetEmail sets the "email" field.
 func (uuo *UserUpdateOne) SetEmail(s string) *UserUpdateOne {
 	uuo.mutation.SetEmail(s)
+	return uuo
+}
+
+// SetPhone sets the "phone" field.
+func (uuo *UserUpdateOne) SetPhone(s string) *UserUpdateOne {
+	uuo.mutation.SetPhone(s)
 	return uuo
 }
 
@@ -506,14 +546,24 @@ func (uuo *UserUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (uuo *UserUpdateOne) check() error {
-	if v, ok := uuo.mutation.Name(); ok {
-		if err := user.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "User.name": %w`, err)}
+	if v, ok := uuo.mutation.NameFirst(); ok {
+		if err := user.NameFirstValidator(v); err != nil {
+			return &ValidationError{Name: "name_first", err: fmt.Errorf(`ent: validator failed for field "User.name_first": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.NameSurname(); ok {
+		if err := user.NameSurnameValidator(v); err != nil {
+			return &ValidationError{Name: "name_surname", err: fmt.Errorf(`ent: validator failed for field "User.name_surname": %w`, err)}
 		}
 	}
 	if v, ok := uuo.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.Phone(); ok {
+		if err := user.PhoneValidator(v); err != nil {
+			return &ValidationError{Name: "phone", err: fmt.Errorf(`ent: validator failed for field "User.phone": %w`, err)}
 		}
 	}
 	if v, ok := uuo.mutation.Password(); ok {
@@ -558,11 +608,17 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			}
 		}
 	}
-	if value, ok := uuo.mutation.Name(); ok {
-		_spec.SetField(user.FieldName, field.TypeString, value)
+	if value, ok := uuo.mutation.NameFirst(); ok {
+		_spec.SetField(user.FieldNameFirst, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.NameSurname(); ok {
+		_spec.SetField(user.FieldNameSurname, field.TypeString, value)
 	}
 	if value, ok := uuo.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.Phone(); ok {
+		_spec.SetField(user.FieldPhone, field.TypeString, value)
 	}
 	if value, ok := uuo.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
