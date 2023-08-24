@@ -42,6 +42,10 @@ var (
 	CompaniesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
+		{Name: "billing_contact", Type: field.TypeString},
+		{Name: "billing_email", Type: field.TypeString},
+		{Name: "billing_phone", Type: field.TypeString},
+		{Name: "billing_address", Type: field.TypeString},
 	}
 	// CompaniesTable holds the schema information for the "companies" table.
 	CompaniesTable = &schema.Table{

@@ -58,6 +58,26 @@ func Name(v string) predicate.Company {
 	return predicate.Company(sql.FieldEQ(FieldName, v))
 }
 
+// BillingContact applies equality check predicate on the "billing_contact" field. It's identical to BillingContactEQ.
+func BillingContact(v string) predicate.Company {
+	return predicate.Company(sql.FieldEQ(FieldBillingContact, v))
+}
+
+// BillingEmail applies equality check predicate on the "billing_email" field. It's identical to BillingEmailEQ.
+func BillingEmail(v string) predicate.Company {
+	return predicate.Company(sql.FieldEQ(FieldBillingEmail, v))
+}
+
+// BillingPhone applies equality check predicate on the "billing_phone" field. It's identical to BillingPhoneEQ.
+func BillingPhone(v string) predicate.Company {
+	return predicate.Company(sql.FieldEQ(FieldBillingPhone, v))
+}
+
+// BillingAddress applies equality check predicate on the "billing_address" field. It's identical to BillingAddressEQ.
+func BillingAddress(v string) predicate.Company {
+	return predicate.Company(sql.FieldEQ(FieldBillingAddress, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Company {
 	return predicate.Company(sql.FieldEQ(FieldName, v))
@@ -121,6 +141,266 @@ func NameEqualFold(v string) predicate.Company {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.Company {
 	return predicate.Company(sql.FieldContainsFold(FieldName, v))
+}
+
+// BillingContactEQ applies the EQ predicate on the "billing_contact" field.
+func BillingContactEQ(v string) predicate.Company {
+	return predicate.Company(sql.FieldEQ(FieldBillingContact, v))
+}
+
+// BillingContactNEQ applies the NEQ predicate on the "billing_contact" field.
+func BillingContactNEQ(v string) predicate.Company {
+	return predicate.Company(sql.FieldNEQ(FieldBillingContact, v))
+}
+
+// BillingContactIn applies the In predicate on the "billing_contact" field.
+func BillingContactIn(vs ...string) predicate.Company {
+	return predicate.Company(sql.FieldIn(FieldBillingContact, vs...))
+}
+
+// BillingContactNotIn applies the NotIn predicate on the "billing_contact" field.
+func BillingContactNotIn(vs ...string) predicate.Company {
+	return predicate.Company(sql.FieldNotIn(FieldBillingContact, vs...))
+}
+
+// BillingContactGT applies the GT predicate on the "billing_contact" field.
+func BillingContactGT(v string) predicate.Company {
+	return predicate.Company(sql.FieldGT(FieldBillingContact, v))
+}
+
+// BillingContactGTE applies the GTE predicate on the "billing_contact" field.
+func BillingContactGTE(v string) predicate.Company {
+	return predicate.Company(sql.FieldGTE(FieldBillingContact, v))
+}
+
+// BillingContactLT applies the LT predicate on the "billing_contact" field.
+func BillingContactLT(v string) predicate.Company {
+	return predicate.Company(sql.FieldLT(FieldBillingContact, v))
+}
+
+// BillingContactLTE applies the LTE predicate on the "billing_contact" field.
+func BillingContactLTE(v string) predicate.Company {
+	return predicate.Company(sql.FieldLTE(FieldBillingContact, v))
+}
+
+// BillingContactContains applies the Contains predicate on the "billing_contact" field.
+func BillingContactContains(v string) predicate.Company {
+	return predicate.Company(sql.FieldContains(FieldBillingContact, v))
+}
+
+// BillingContactHasPrefix applies the HasPrefix predicate on the "billing_contact" field.
+func BillingContactHasPrefix(v string) predicate.Company {
+	return predicate.Company(sql.FieldHasPrefix(FieldBillingContact, v))
+}
+
+// BillingContactHasSuffix applies the HasSuffix predicate on the "billing_contact" field.
+func BillingContactHasSuffix(v string) predicate.Company {
+	return predicate.Company(sql.FieldHasSuffix(FieldBillingContact, v))
+}
+
+// BillingContactEqualFold applies the EqualFold predicate on the "billing_contact" field.
+func BillingContactEqualFold(v string) predicate.Company {
+	return predicate.Company(sql.FieldEqualFold(FieldBillingContact, v))
+}
+
+// BillingContactContainsFold applies the ContainsFold predicate on the "billing_contact" field.
+func BillingContactContainsFold(v string) predicate.Company {
+	return predicate.Company(sql.FieldContainsFold(FieldBillingContact, v))
+}
+
+// BillingEmailEQ applies the EQ predicate on the "billing_email" field.
+func BillingEmailEQ(v string) predicate.Company {
+	return predicate.Company(sql.FieldEQ(FieldBillingEmail, v))
+}
+
+// BillingEmailNEQ applies the NEQ predicate on the "billing_email" field.
+func BillingEmailNEQ(v string) predicate.Company {
+	return predicate.Company(sql.FieldNEQ(FieldBillingEmail, v))
+}
+
+// BillingEmailIn applies the In predicate on the "billing_email" field.
+func BillingEmailIn(vs ...string) predicate.Company {
+	return predicate.Company(sql.FieldIn(FieldBillingEmail, vs...))
+}
+
+// BillingEmailNotIn applies the NotIn predicate on the "billing_email" field.
+func BillingEmailNotIn(vs ...string) predicate.Company {
+	return predicate.Company(sql.FieldNotIn(FieldBillingEmail, vs...))
+}
+
+// BillingEmailGT applies the GT predicate on the "billing_email" field.
+func BillingEmailGT(v string) predicate.Company {
+	return predicate.Company(sql.FieldGT(FieldBillingEmail, v))
+}
+
+// BillingEmailGTE applies the GTE predicate on the "billing_email" field.
+func BillingEmailGTE(v string) predicate.Company {
+	return predicate.Company(sql.FieldGTE(FieldBillingEmail, v))
+}
+
+// BillingEmailLT applies the LT predicate on the "billing_email" field.
+func BillingEmailLT(v string) predicate.Company {
+	return predicate.Company(sql.FieldLT(FieldBillingEmail, v))
+}
+
+// BillingEmailLTE applies the LTE predicate on the "billing_email" field.
+func BillingEmailLTE(v string) predicate.Company {
+	return predicate.Company(sql.FieldLTE(FieldBillingEmail, v))
+}
+
+// BillingEmailContains applies the Contains predicate on the "billing_email" field.
+func BillingEmailContains(v string) predicate.Company {
+	return predicate.Company(sql.FieldContains(FieldBillingEmail, v))
+}
+
+// BillingEmailHasPrefix applies the HasPrefix predicate on the "billing_email" field.
+func BillingEmailHasPrefix(v string) predicate.Company {
+	return predicate.Company(sql.FieldHasPrefix(FieldBillingEmail, v))
+}
+
+// BillingEmailHasSuffix applies the HasSuffix predicate on the "billing_email" field.
+func BillingEmailHasSuffix(v string) predicate.Company {
+	return predicate.Company(sql.FieldHasSuffix(FieldBillingEmail, v))
+}
+
+// BillingEmailEqualFold applies the EqualFold predicate on the "billing_email" field.
+func BillingEmailEqualFold(v string) predicate.Company {
+	return predicate.Company(sql.FieldEqualFold(FieldBillingEmail, v))
+}
+
+// BillingEmailContainsFold applies the ContainsFold predicate on the "billing_email" field.
+func BillingEmailContainsFold(v string) predicate.Company {
+	return predicate.Company(sql.FieldContainsFold(FieldBillingEmail, v))
+}
+
+// BillingPhoneEQ applies the EQ predicate on the "billing_phone" field.
+func BillingPhoneEQ(v string) predicate.Company {
+	return predicate.Company(sql.FieldEQ(FieldBillingPhone, v))
+}
+
+// BillingPhoneNEQ applies the NEQ predicate on the "billing_phone" field.
+func BillingPhoneNEQ(v string) predicate.Company {
+	return predicate.Company(sql.FieldNEQ(FieldBillingPhone, v))
+}
+
+// BillingPhoneIn applies the In predicate on the "billing_phone" field.
+func BillingPhoneIn(vs ...string) predicate.Company {
+	return predicate.Company(sql.FieldIn(FieldBillingPhone, vs...))
+}
+
+// BillingPhoneNotIn applies the NotIn predicate on the "billing_phone" field.
+func BillingPhoneNotIn(vs ...string) predicate.Company {
+	return predicate.Company(sql.FieldNotIn(FieldBillingPhone, vs...))
+}
+
+// BillingPhoneGT applies the GT predicate on the "billing_phone" field.
+func BillingPhoneGT(v string) predicate.Company {
+	return predicate.Company(sql.FieldGT(FieldBillingPhone, v))
+}
+
+// BillingPhoneGTE applies the GTE predicate on the "billing_phone" field.
+func BillingPhoneGTE(v string) predicate.Company {
+	return predicate.Company(sql.FieldGTE(FieldBillingPhone, v))
+}
+
+// BillingPhoneLT applies the LT predicate on the "billing_phone" field.
+func BillingPhoneLT(v string) predicate.Company {
+	return predicate.Company(sql.FieldLT(FieldBillingPhone, v))
+}
+
+// BillingPhoneLTE applies the LTE predicate on the "billing_phone" field.
+func BillingPhoneLTE(v string) predicate.Company {
+	return predicate.Company(sql.FieldLTE(FieldBillingPhone, v))
+}
+
+// BillingPhoneContains applies the Contains predicate on the "billing_phone" field.
+func BillingPhoneContains(v string) predicate.Company {
+	return predicate.Company(sql.FieldContains(FieldBillingPhone, v))
+}
+
+// BillingPhoneHasPrefix applies the HasPrefix predicate on the "billing_phone" field.
+func BillingPhoneHasPrefix(v string) predicate.Company {
+	return predicate.Company(sql.FieldHasPrefix(FieldBillingPhone, v))
+}
+
+// BillingPhoneHasSuffix applies the HasSuffix predicate on the "billing_phone" field.
+func BillingPhoneHasSuffix(v string) predicate.Company {
+	return predicate.Company(sql.FieldHasSuffix(FieldBillingPhone, v))
+}
+
+// BillingPhoneEqualFold applies the EqualFold predicate on the "billing_phone" field.
+func BillingPhoneEqualFold(v string) predicate.Company {
+	return predicate.Company(sql.FieldEqualFold(FieldBillingPhone, v))
+}
+
+// BillingPhoneContainsFold applies the ContainsFold predicate on the "billing_phone" field.
+func BillingPhoneContainsFold(v string) predicate.Company {
+	return predicate.Company(sql.FieldContainsFold(FieldBillingPhone, v))
+}
+
+// BillingAddressEQ applies the EQ predicate on the "billing_address" field.
+func BillingAddressEQ(v string) predicate.Company {
+	return predicate.Company(sql.FieldEQ(FieldBillingAddress, v))
+}
+
+// BillingAddressNEQ applies the NEQ predicate on the "billing_address" field.
+func BillingAddressNEQ(v string) predicate.Company {
+	return predicate.Company(sql.FieldNEQ(FieldBillingAddress, v))
+}
+
+// BillingAddressIn applies the In predicate on the "billing_address" field.
+func BillingAddressIn(vs ...string) predicate.Company {
+	return predicate.Company(sql.FieldIn(FieldBillingAddress, vs...))
+}
+
+// BillingAddressNotIn applies the NotIn predicate on the "billing_address" field.
+func BillingAddressNotIn(vs ...string) predicate.Company {
+	return predicate.Company(sql.FieldNotIn(FieldBillingAddress, vs...))
+}
+
+// BillingAddressGT applies the GT predicate on the "billing_address" field.
+func BillingAddressGT(v string) predicate.Company {
+	return predicate.Company(sql.FieldGT(FieldBillingAddress, v))
+}
+
+// BillingAddressGTE applies the GTE predicate on the "billing_address" field.
+func BillingAddressGTE(v string) predicate.Company {
+	return predicate.Company(sql.FieldGTE(FieldBillingAddress, v))
+}
+
+// BillingAddressLT applies the LT predicate on the "billing_address" field.
+func BillingAddressLT(v string) predicate.Company {
+	return predicate.Company(sql.FieldLT(FieldBillingAddress, v))
+}
+
+// BillingAddressLTE applies the LTE predicate on the "billing_address" field.
+func BillingAddressLTE(v string) predicate.Company {
+	return predicate.Company(sql.FieldLTE(FieldBillingAddress, v))
+}
+
+// BillingAddressContains applies the Contains predicate on the "billing_address" field.
+func BillingAddressContains(v string) predicate.Company {
+	return predicate.Company(sql.FieldContains(FieldBillingAddress, v))
+}
+
+// BillingAddressHasPrefix applies the HasPrefix predicate on the "billing_address" field.
+func BillingAddressHasPrefix(v string) predicate.Company {
+	return predicate.Company(sql.FieldHasPrefix(FieldBillingAddress, v))
+}
+
+// BillingAddressHasSuffix applies the HasSuffix predicate on the "billing_address" field.
+func BillingAddressHasSuffix(v string) predicate.Company {
+	return predicate.Company(sql.FieldHasSuffix(FieldBillingAddress, v))
+}
+
+// BillingAddressEqualFold applies the EqualFold predicate on the "billing_address" field.
+func BillingAddressEqualFold(v string) predicate.Company {
+	return predicate.Company(sql.FieldEqualFold(FieldBillingAddress, v))
+}
+
+// BillingAddressContainsFold applies the ContainsFold predicate on the "billing_address" field.
+func BillingAddressContainsFold(v string) predicate.Company {
+	return predicate.Company(sql.FieldContainsFold(FieldBillingAddress, v))
 }
 
 // HasCustomers applies the HasEdge predicate on the "customers" edge.

@@ -37,6 +37,22 @@ func init() {
 	companyDescName := companyFields[0].Descriptor()
 	// company.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	company.NameValidator = companyDescName.Validators[0].(func(string) error)
+	// companyDescBillingContact is the schema descriptor for billing_contact field.
+	companyDescBillingContact := companyFields[1].Descriptor()
+	// company.BillingContactValidator is a validator for the "billing_contact" field. It is called by the builders before save.
+	company.BillingContactValidator = companyDescBillingContact.Validators[0].(func(string) error)
+	// companyDescBillingEmail is the schema descriptor for billing_email field.
+	companyDescBillingEmail := companyFields[2].Descriptor()
+	// company.BillingEmailValidator is a validator for the "billing_email" field. It is called by the builders before save.
+	company.BillingEmailValidator = companyDescBillingEmail.Validators[0].(func(string) error)
+	// companyDescBillingPhone is the schema descriptor for billing_phone field.
+	companyDescBillingPhone := companyFields[3].Descriptor()
+	// company.BillingPhoneValidator is a validator for the "billing_phone" field. It is called by the builders before save.
+	company.BillingPhoneValidator = companyDescBillingPhone.Validators[0].(func(string) error)
+	// companyDescBillingAddress is the schema descriptor for billing_address field.
+	companyDescBillingAddress := companyFields[4].Descriptor()
+	// company.BillingAddressValidator is a validator for the "billing_address" field. It is called by the builders before save.
+	company.BillingAddressValidator = companyDescBillingAddress.Validators[0].(func(string) error)
 	customerFields := schema.Customer{}.Fields()
 	_ = customerFields
 	// customerDescName is the schema descriptor for name field.

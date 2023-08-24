@@ -1010,6 +1010,10 @@ type CompanyMutation struct {
 	typ              string
 	id               *int
 	name             *string
+	billing_contact  *string
+	billing_email    *string
+	billing_phone    *string
+	billing_address  *string
 	clearedFields    map[string]struct{}
 	customers        map[int]struct{}
 	removedcustomers map[int]struct{}
@@ -1156,6 +1160,150 @@ func (m *CompanyMutation) ResetName() {
 	m.name = nil
 }
 
+// SetBillingContact sets the "billing_contact" field.
+func (m *CompanyMutation) SetBillingContact(s string) {
+	m.billing_contact = &s
+}
+
+// BillingContact returns the value of the "billing_contact" field in the mutation.
+func (m *CompanyMutation) BillingContact() (r string, exists bool) {
+	v := m.billing_contact
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillingContact returns the old "billing_contact" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldBillingContact(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillingContact is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillingContact requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillingContact: %w", err)
+	}
+	return oldValue.BillingContact, nil
+}
+
+// ResetBillingContact resets all changes to the "billing_contact" field.
+func (m *CompanyMutation) ResetBillingContact() {
+	m.billing_contact = nil
+}
+
+// SetBillingEmail sets the "billing_email" field.
+func (m *CompanyMutation) SetBillingEmail(s string) {
+	m.billing_email = &s
+}
+
+// BillingEmail returns the value of the "billing_email" field in the mutation.
+func (m *CompanyMutation) BillingEmail() (r string, exists bool) {
+	v := m.billing_email
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillingEmail returns the old "billing_email" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldBillingEmail(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillingEmail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillingEmail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillingEmail: %w", err)
+	}
+	return oldValue.BillingEmail, nil
+}
+
+// ResetBillingEmail resets all changes to the "billing_email" field.
+func (m *CompanyMutation) ResetBillingEmail() {
+	m.billing_email = nil
+}
+
+// SetBillingPhone sets the "billing_phone" field.
+func (m *CompanyMutation) SetBillingPhone(s string) {
+	m.billing_phone = &s
+}
+
+// BillingPhone returns the value of the "billing_phone" field in the mutation.
+func (m *CompanyMutation) BillingPhone() (r string, exists bool) {
+	v := m.billing_phone
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillingPhone returns the old "billing_phone" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldBillingPhone(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillingPhone is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillingPhone requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillingPhone: %w", err)
+	}
+	return oldValue.BillingPhone, nil
+}
+
+// ResetBillingPhone resets all changes to the "billing_phone" field.
+func (m *CompanyMutation) ResetBillingPhone() {
+	m.billing_phone = nil
+}
+
+// SetBillingAddress sets the "billing_address" field.
+func (m *CompanyMutation) SetBillingAddress(s string) {
+	m.billing_address = &s
+}
+
+// BillingAddress returns the value of the "billing_address" field in the mutation.
+func (m *CompanyMutation) BillingAddress() (r string, exists bool) {
+	v := m.billing_address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillingAddress returns the old "billing_address" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldBillingAddress(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillingAddress is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillingAddress requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillingAddress: %w", err)
+	}
+	return oldValue.BillingAddress, nil
+}
+
+// ResetBillingAddress resets all changes to the "billing_address" field.
+func (m *CompanyMutation) ResetBillingAddress() {
+	m.billing_address = nil
+}
+
 // AddCustomerIDs adds the "customers" edge to the Customer entity by ids.
 func (m *CompanyMutation) AddCustomerIDs(ids ...int) {
 	if m.customers == nil {
@@ -1298,9 +1446,21 @@ func (m *CompanyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CompanyMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, company.FieldName)
+	}
+	if m.billing_contact != nil {
+		fields = append(fields, company.FieldBillingContact)
+	}
+	if m.billing_email != nil {
+		fields = append(fields, company.FieldBillingEmail)
+	}
+	if m.billing_phone != nil {
+		fields = append(fields, company.FieldBillingPhone)
+	}
+	if m.billing_address != nil {
+		fields = append(fields, company.FieldBillingAddress)
 	}
 	return fields
 }
@@ -1312,6 +1472,14 @@ func (m *CompanyMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case company.FieldName:
 		return m.Name()
+	case company.FieldBillingContact:
+		return m.BillingContact()
+	case company.FieldBillingEmail:
+		return m.BillingEmail()
+	case company.FieldBillingPhone:
+		return m.BillingPhone()
+	case company.FieldBillingAddress:
+		return m.BillingAddress()
 	}
 	return nil, false
 }
@@ -1323,6 +1491,14 @@ func (m *CompanyMutation) OldField(ctx context.Context, name string) (ent.Value,
 	switch name {
 	case company.FieldName:
 		return m.OldName(ctx)
+	case company.FieldBillingContact:
+		return m.OldBillingContact(ctx)
+	case company.FieldBillingEmail:
+		return m.OldBillingEmail(ctx)
+	case company.FieldBillingPhone:
+		return m.OldBillingPhone(ctx)
+	case company.FieldBillingAddress:
+		return m.OldBillingAddress(ctx)
 	}
 	return nil, fmt.Errorf("unknown Company field %s", name)
 }
@@ -1338,6 +1514,34 @@ func (m *CompanyMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case company.FieldBillingContact:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillingContact(v)
+		return nil
+	case company.FieldBillingEmail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillingEmail(v)
+		return nil
+	case company.FieldBillingPhone:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillingPhone(v)
+		return nil
+	case company.FieldBillingAddress:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillingAddress(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Company field %s", name)
@@ -1390,6 +1594,18 @@ func (m *CompanyMutation) ResetField(name string) error {
 	switch name {
 	case company.FieldName:
 		m.ResetName()
+		return nil
+	case company.FieldBillingContact:
+		m.ResetBillingContact()
+		return nil
+	case company.FieldBillingEmail:
+		m.ResetBillingEmail()
+		return nil
+	case company.FieldBillingPhone:
+		m.ResetBillingPhone()
+		return nil
+	case company.FieldBillingAddress:
+		m.ResetBillingAddress()
 		return nil
 	}
 	return fmt.Errorf("unknown Company field %s", name)

@@ -35,6 +35,30 @@ func (cu *CompanyUpdate) SetName(s string) *CompanyUpdate {
 	return cu
 }
 
+// SetBillingContact sets the "billing_contact" field.
+func (cu *CompanyUpdate) SetBillingContact(s string) *CompanyUpdate {
+	cu.mutation.SetBillingContact(s)
+	return cu
+}
+
+// SetBillingEmail sets the "billing_email" field.
+func (cu *CompanyUpdate) SetBillingEmail(s string) *CompanyUpdate {
+	cu.mutation.SetBillingEmail(s)
+	return cu
+}
+
+// SetBillingPhone sets the "billing_phone" field.
+func (cu *CompanyUpdate) SetBillingPhone(s string) *CompanyUpdate {
+	cu.mutation.SetBillingPhone(s)
+	return cu
+}
+
+// SetBillingAddress sets the "billing_address" field.
+func (cu *CompanyUpdate) SetBillingAddress(s string) *CompanyUpdate {
+	cu.mutation.SetBillingAddress(s)
+	return cu
+}
+
 // AddCustomerIDs adds the "customers" edge to the Customer entity by IDs.
 func (cu *CompanyUpdate) AddCustomerIDs(ids ...int) *CompanyUpdate {
 	cu.mutation.AddCustomerIDs(ids...)
@@ -146,6 +170,26 @@ func (cu *CompanyUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Company.name": %w`, err)}
 		}
 	}
+	if v, ok := cu.mutation.BillingContact(); ok {
+		if err := company.BillingContactValidator(v); err != nil {
+			return &ValidationError{Name: "billing_contact", err: fmt.Errorf(`ent: validator failed for field "Company.billing_contact": %w`, err)}
+		}
+	}
+	if v, ok := cu.mutation.BillingEmail(); ok {
+		if err := company.BillingEmailValidator(v); err != nil {
+			return &ValidationError{Name: "billing_email", err: fmt.Errorf(`ent: validator failed for field "Company.billing_email": %w`, err)}
+		}
+	}
+	if v, ok := cu.mutation.BillingPhone(); ok {
+		if err := company.BillingPhoneValidator(v); err != nil {
+			return &ValidationError{Name: "billing_phone", err: fmt.Errorf(`ent: validator failed for field "Company.billing_phone": %w`, err)}
+		}
+	}
+	if v, ok := cu.mutation.BillingAddress(); ok {
+		if err := company.BillingAddressValidator(v); err != nil {
+			return &ValidationError{Name: "billing_address", err: fmt.Errorf(`ent: validator failed for field "Company.billing_address": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -163,6 +207,18 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := cu.mutation.Name(); ok {
 		_spec.SetField(company.FieldName, field.TypeString, value)
+	}
+	if value, ok := cu.mutation.BillingContact(); ok {
+		_spec.SetField(company.FieldBillingContact, field.TypeString, value)
+	}
+	if value, ok := cu.mutation.BillingEmail(); ok {
+		_spec.SetField(company.FieldBillingEmail, field.TypeString, value)
+	}
+	if value, ok := cu.mutation.BillingPhone(); ok {
+		_spec.SetField(company.FieldBillingPhone, field.TypeString, value)
+	}
+	if value, ok := cu.mutation.BillingAddress(); ok {
+		_spec.SetField(company.FieldBillingAddress, field.TypeString, value)
 	}
 	if cu.mutation.CustomersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -277,6 +333,30 @@ type CompanyUpdateOne struct {
 // SetName sets the "name" field.
 func (cuo *CompanyUpdateOne) SetName(s string) *CompanyUpdateOne {
 	cuo.mutation.SetName(s)
+	return cuo
+}
+
+// SetBillingContact sets the "billing_contact" field.
+func (cuo *CompanyUpdateOne) SetBillingContact(s string) *CompanyUpdateOne {
+	cuo.mutation.SetBillingContact(s)
+	return cuo
+}
+
+// SetBillingEmail sets the "billing_email" field.
+func (cuo *CompanyUpdateOne) SetBillingEmail(s string) *CompanyUpdateOne {
+	cuo.mutation.SetBillingEmail(s)
+	return cuo
+}
+
+// SetBillingPhone sets the "billing_phone" field.
+func (cuo *CompanyUpdateOne) SetBillingPhone(s string) *CompanyUpdateOne {
+	cuo.mutation.SetBillingPhone(s)
+	return cuo
+}
+
+// SetBillingAddress sets the "billing_address" field.
+func (cuo *CompanyUpdateOne) SetBillingAddress(s string) *CompanyUpdateOne {
+	cuo.mutation.SetBillingAddress(s)
 	return cuo
 }
 
@@ -404,6 +484,26 @@ func (cuo *CompanyUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Company.name": %w`, err)}
 		}
 	}
+	if v, ok := cuo.mutation.BillingContact(); ok {
+		if err := company.BillingContactValidator(v); err != nil {
+			return &ValidationError{Name: "billing_contact", err: fmt.Errorf(`ent: validator failed for field "Company.billing_contact": %w`, err)}
+		}
+	}
+	if v, ok := cuo.mutation.BillingEmail(); ok {
+		if err := company.BillingEmailValidator(v); err != nil {
+			return &ValidationError{Name: "billing_email", err: fmt.Errorf(`ent: validator failed for field "Company.billing_email": %w`, err)}
+		}
+	}
+	if v, ok := cuo.mutation.BillingPhone(); ok {
+		if err := company.BillingPhoneValidator(v); err != nil {
+			return &ValidationError{Name: "billing_phone", err: fmt.Errorf(`ent: validator failed for field "Company.billing_phone": %w`, err)}
+		}
+	}
+	if v, ok := cuo.mutation.BillingAddress(); ok {
+		if err := company.BillingAddressValidator(v); err != nil {
+			return &ValidationError{Name: "billing_address", err: fmt.Errorf(`ent: validator failed for field "Company.billing_address": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -438,6 +538,18 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 	}
 	if value, ok := cuo.mutation.Name(); ok {
 		_spec.SetField(company.FieldName, field.TypeString, value)
+	}
+	if value, ok := cuo.mutation.BillingContact(); ok {
+		_spec.SetField(company.FieldBillingContact, field.TypeString, value)
+	}
+	if value, ok := cuo.mutation.BillingEmail(); ok {
+		_spec.SetField(company.FieldBillingEmail, field.TypeString, value)
+	}
+	if value, ok := cuo.mutation.BillingPhone(); ok {
+		_spec.SetField(company.FieldBillingPhone, field.TypeString, value)
+	}
+	if value, ok := cuo.mutation.BillingAddress(); ok {
+		_spec.SetField(company.FieldBillingAddress, field.TypeString, value)
 	}
 	if cuo.mutation.CustomersCleared() {
 		edge := &sqlgraph.EdgeSpec{

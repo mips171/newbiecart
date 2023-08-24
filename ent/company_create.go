@@ -27,6 +27,30 @@ func (cc *CompanyCreate) SetName(s string) *CompanyCreate {
 	return cc
 }
 
+// SetBillingContact sets the "billing_contact" field.
+func (cc *CompanyCreate) SetBillingContact(s string) *CompanyCreate {
+	cc.mutation.SetBillingContact(s)
+	return cc
+}
+
+// SetBillingEmail sets the "billing_email" field.
+func (cc *CompanyCreate) SetBillingEmail(s string) *CompanyCreate {
+	cc.mutation.SetBillingEmail(s)
+	return cc
+}
+
+// SetBillingPhone sets the "billing_phone" field.
+func (cc *CompanyCreate) SetBillingPhone(s string) *CompanyCreate {
+	cc.mutation.SetBillingPhone(s)
+	return cc
+}
+
+// SetBillingAddress sets the "billing_address" field.
+func (cc *CompanyCreate) SetBillingAddress(s string) *CompanyCreate {
+	cc.mutation.SetBillingAddress(s)
+	return cc
+}
+
 // AddCustomerIDs adds the "customers" edge to the Customer entity by IDs.
 func (cc *CompanyCreate) AddCustomerIDs(ids ...int) *CompanyCreate {
 	cc.mutation.AddCustomerIDs(ids...)
@@ -99,6 +123,38 @@ func (cc *CompanyCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Company.name": %w`, err)}
 		}
 	}
+	if _, ok := cc.mutation.BillingContact(); !ok {
+		return &ValidationError{Name: "billing_contact", err: errors.New(`ent: missing required field "Company.billing_contact"`)}
+	}
+	if v, ok := cc.mutation.BillingContact(); ok {
+		if err := company.BillingContactValidator(v); err != nil {
+			return &ValidationError{Name: "billing_contact", err: fmt.Errorf(`ent: validator failed for field "Company.billing_contact": %w`, err)}
+		}
+	}
+	if _, ok := cc.mutation.BillingEmail(); !ok {
+		return &ValidationError{Name: "billing_email", err: errors.New(`ent: missing required field "Company.billing_email"`)}
+	}
+	if v, ok := cc.mutation.BillingEmail(); ok {
+		if err := company.BillingEmailValidator(v); err != nil {
+			return &ValidationError{Name: "billing_email", err: fmt.Errorf(`ent: validator failed for field "Company.billing_email": %w`, err)}
+		}
+	}
+	if _, ok := cc.mutation.BillingPhone(); !ok {
+		return &ValidationError{Name: "billing_phone", err: errors.New(`ent: missing required field "Company.billing_phone"`)}
+	}
+	if v, ok := cc.mutation.BillingPhone(); ok {
+		if err := company.BillingPhoneValidator(v); err != nil {
+			return &ValidationError{Name: "billing_phone", err: fmt.Errorf(`ent: validator failed for field "Company.billing_phone": %w`, err)}
+		}
+	}
+	if _, ok := cc.mutation.BillingAddress(); !ok {
+		return &ValidationError{Name: "billing_address", err: errors.New(`ent: missing required field "Company.billing_address"`)}
+	}
+	if v, ok := cc.mutation.BillingAddress(); ok {
+		if err := company.BillingAddressValidator(v); err != nil {
+			return &ValidationError{Name: "billing_address", err: fmt.Errorf(`ent: validator failed for field "Company.billing_address": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -128,6 +184,22 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.Name(); ok {
 		_spec.SetField(company.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := cc.mutation.BillingContact(); ok {
+		_spec.SetField(company.FieldBillingContact, field.TypeString, value)
+		_node.BillingContact = value
+	}
+	if value, ok := cc.mutation.BillingEmail(); ok {
+		_spec.SetField(company.FieldBillingEmail, field.TypeString, value)
+		_node.BillingEmail = value
+	}
+	if value, ok := cc.mutation.BillingPhone(); ok {
+		_spec.SetField(company.FieldBillingPhone, field.TypeString, value)
+		_node.BillingPhone = value
+	}
+	if value, ok := cc.mutation.BillingAddress(); ok {
+		_spec.SetField(company.FieldBillingAddress, field.TypeString, value)
+		_node.BillingAddress = value
 	}
 	if nodes := cc.mutation.CustomersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -16,6 +16,15 @@ func (Company) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
 			NotEmpty(),
+		field.String("billing_contact").
+			NotEmpty().
+			Comment("Name of the person to contact for billing"),
+		field.String("billing_email").
+			NotEmpty(),
+		field.String("billing_phone").
+			NotEmpty(),
+		field.String("billing_address").
+			NotEmpty(),
 		// ... Other company-specific fields ...
 	}
 }

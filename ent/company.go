@@ -18,6 +18,14 @@ type Company struct {
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Name of the person to contact for billing
+	BillingContact string `json:"billing_contact,omitempty"`
+	// BillingEmail holds the value of the "billing_email" field.
+	BillingEmail string `json:"billing_email,omitempty"`
+	// BillingPhone holds the value of the "billing_phone" field.
+	BillingPhone string `json:"billing_phone,omitempty"`
+	// BillingAddress holds the value of the "billing_address" field.
+	BillingAddress string `json:"billing_address,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CompanyQuery when eager-loading is set.
 	Edges        CompanyEdges `json:"edges"`
@@ -60,7 +68,7 @@ func (*Company) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case company.FieldID:
 			values[i] = new(sql.NullInt64)
-		case company.FieldName:
+		case company.FieldName, company.FieldBillingContact, company.FieldBillingEmail, company.FieldBillingPhone, company.FieldBillingAddress:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -88,6 +96,30 @@ func (c *Company) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				c.Name = value.String
+			}
+		case company.FieldBillingContact:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field billing_contact", values[i])
+			} else if value.Valid {
+				c.BillingContact = value.String
+			}
+		case company.FieldBillingEmail:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field billing_email", values[i])
+			} else if value.Valid {
+				c.BillingEmail = value.String
+			}
+		case company.FieldBillingPhone:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field billing_phone", values[i])
+			} else if value.Valid {
+				c.BillingPhone = value.String
+			}
+		case company.FieldBillingAddress:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field billing_address", values[i])
+			} else if value.Valid {
+				c.BillingAddress = value.String
 			}
 		default:
 			c.selectValues.Set(columns[i], values[i])
@@ -137,6 +169,18 @@ func (c *Company) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", c.ID))
 	builder.WriteString("name=")
 	builder.WriteString(c.Name)
+	builder.WriteString(", ")
+	builder.WriteString("billing_contact=")
+	builder.WriteString(c.BillingContact)
+	builder.WriteString(", ")
+	builder.WriteString("billing_email=")
+	builder.WriteString(c.BillingEmail)
+	builder.WriteString(", ")
+	builder.WriteString("billing_phone=")
+	builder.WriteString(c.BillingPhone)
+	builder.WriteString(", ")
+	builder.WriteString("billing_address=")
+	builder.WriteString(c.BillingAddress)
 	builder.WriteByte(')')
 	return builder.String()
 }
