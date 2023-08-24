@@ -2,11 +2,11 @@ package routes
 
 import (
 	"fmt"
-	"math/rand"
-
-	"github.com/mikestefanello/pagoda/pkg/controller"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/mikestefanello/pagoda/ent/product"
+	"github.com/mikestefanello/pagoda/pkg/controller"
 )
 
 type (
@@ -25,18 +25,30 @@ func (c *search) Get(ctx echo.Context) error {
 	page.Layout = "main"
 	page.Name = "search"
 
-	// Fake search results
 	var results []searchResult
-	if search := ctx.QueryParam("query"); search != "" {
-		for i := 0; i < 5; i++ {
-			title := "Lorem ipsum example ddolor sit amet"
-			index := rand.Intn(len(title))
-			title = title[:index] + search + title[index:]
+
+	search := ctx.QueryParam("query")
+	if search != "" {
+		// Search the database using ent ORM
+		products, err := c.Container.ORM.Product.
+			Query().
+			Where(product.NameContainsFold(search)). // Using a predicate to find products containing the search query in their names
+			All(ctx.Request().Context())             // Pass context for handling request lifecycle
+
+		if err != nil {
+			// Handle error. You might want to return or log this error.
+			return ctx.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to fetch data"})
+		}
+
+		// Convert the ORM results into your search results.
+		for _, product := range products {
 			results = append(results, searchResult{
-				Title: title,
-				URL:   fmt.Sprintf("https://www.%s.com", search),
+				Title: product.Name,
+				URL:   fmt.Sprintf("/products/%d", product.ID),
 			})
 		}
+
+		// Search other entities here.
 	}
 	page.Data = results
 
