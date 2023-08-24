@@ -283,6 +283,26 @@ func RoleNotIn(vs ...Role) predicate.StaffMember {
 	return predicate.StaffMember(sql.FieldNotIn(FieldRole, vs...))
 }
 
+// StatusEQ applies the EQ predicate on the "status" field.
+func StatusEQ(v Status) predicate.StaffMember {
+	return predicate.StaffMember(sql.FieldEQ(FieldStatus, v))
+}
+
+// StatusNEQ applies the NEQ predicate on the "status" field.
+func StatusNEQ(v Status) predicate.StaffMember {
+	return predicate.StaffMember(sql.FieldNEQ(FieldStatus, v))
+}
+
+// StatusIn applies the In predicate on the "status" field.
+func StatusIn(vs ...Status) predicate.StaffMember {
+	return predicate.StaffMember(sql.FieldIn(FieldStatus, vs...))
+}
+
+// StatusNotIn applies the NotIn predicate on the "status" field.
+func StatusNotIn(vs ...Status) predicate.StaffMember {
+	return predicate.StaffMember(sql.FieldNotIn(FieldStatus, vs...))
+}
+
 // HasProcessedOrders applies the HasEdge predicate on the "processed_orders" edge.
 func HasProcessedOrders() predicate.StaffMember {
 	return predicate.StaffMember(func(s *sql.Selector) {

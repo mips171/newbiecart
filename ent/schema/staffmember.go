@@ -32,6 +32,10 @@ func (StaffMember) Fields() []ent.Field {
 				"Inventory Specialist", "INVENTORY_SPECIALIST",
 				"Other", "OTHER",
 			).Default("SALES_ASSOCIATE"),
+		field.Enum("status").
+			Values("ACTIVE",
+				"INACTIVE").
+			Default("ACTIVE"),
 	}
 }
 

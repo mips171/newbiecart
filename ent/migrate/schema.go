@@ -45,6 +45,7 @@ var (
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
 		{Name: "address", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "INACTIVE"}, Default: "ACTIVE"},
 	}
 	// CustomersTable holds the schema information for the "customers" table.
 	CustomersTable = &schema.Table{
@@ -156,6 +157,7 @@ var (
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"ADMINISTRATOR", "MANAGER", "SALES_ASSOCIATE", "SUPPORT_AGENT", "TECHNICIAN", "CASHIER", "INVENTORY_SPECIALIST", "OTHER"}, Default: "SALES_ASSOCIATE"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "INACTIVE"}, Default: "ACTIVE"},
 	}
 	// StaffMembersTable holds the schema information for the "staff_members" table.
 	StaffMembersTable = &schema.Table{
@@ -171,6 +173,7 @@ var (
 		{Name: "password", Type: field.TypeString},
 		{Name: "verified", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "INACTIVE"}, Default: "ACTIVE"},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

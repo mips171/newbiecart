@@ -22,6 +22,10 @@ func (Customer) Fields() []ent.Field {
 		field.String("password").
 			Sensitive(), // This will hide the password in logs
 		field.String("address"),
+		field.Enum("status").
+			Values("ACTIVE",
+				"INACTIVE").
+			Default("ACTIVE"),
 	}
 }
 

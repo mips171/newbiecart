@@ -1011,6 +1011,7 @@ type CustomerMutation struct {
 	email         *string
 	password      *string
 	address       *string
+	status        *customer.Status
 	clearedFields map[string]struct{}
 	orders        map[int]struct{}
 	removedorders map[int]struct{}
@@ -1264,6 +1265,42 @@ func (m *CustomerMutation) ResetAddress() {
 	m.address = nil
 }
 
+// SetStatus sets the "status" field.
+func (m *CustomerMutation) SetStatus(c customer.Status) {
+	m.status = &c
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *CustomerMutation) Status() (r customer.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Customer entity.
+// If the Customer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CustomerMutation) OldStatus(ctx context.Context) (v customer.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *CustomerMutation) ResetStatus() {
+	m.status = nil
+}
+
 // AddOrderIDs adds the "orders" edge to the Order entity by ids.
 func (m *CustomerMutation) AddOrderIDs(ids ...int) {
 	if m.orders == nil {
@@ -1391,7 +1428,7 @@ func (m *CustomerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CustomerMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, customer.FieldName)
 	}
@@ -1403,6 +1440,9 @@ func (m *CustomerMutation) Fields() []string {
 	}
 	if m.address != nil {
 		fields = append(fields, customer.FieldAddress)
+	}
+	if m.status != nil {
+		fields = append(fields, customer.FieldStatus)
 	}
 	return fields
 }
@@ -1420,6 +1460,8 @@ func (m *CustomerMutation) Field(name string) (ent.Value, bool) {
 		return m.Password()
 	case customer.FieldAddress:
 		return m.Address()
+	case customer.FieldStatus:
+		return m.Status()
 	}
 	return nil, false
 }
@@ -1437,6 +1479,8 @@ func (m *CustomerMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldPassword(ctx)
 	case customer.FieldAddress:
 		return m.OldAddress(ctx)
+	case customer.FieldStatus:
+		return m.OldStatus(ctx)
 	}
 	return nil, fmt.Errorf("unknown Customer field %s", name)
 }
@@ -1473,6 +1517,13 @@ func (m *CustomerMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAddress(v)
+		return nil
+	case customer.FieldStatus:
+		v, ok := value.(customer.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Customer field %s", name)
@@ -1534,6 +1585,9 @@ func (m *CustomerMutation) ResetField(name string) error {
 		return nil
 	case customer.FieldAddress:
 		m.ResetAddress()
+		return nil
+	case customer.FieldStatus:
+		m.ResetStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown Customer field %s", name)
@@ -5549,6 +5603,7 @@ type StaffMemberMutation struct {
 	email                   *string
 	password                *string
 	role                    *staffmember.Role
+	status                  *staffmember.Status
 	clearedFields           map[string]struct{}
 	processed_orders        map[int]struct{}
 	removedprocessed_orders map[int]struct{}
@@ -5800,6 +5855,42 @@ func (m *StaffMemberMutation) ResetRole() {
 	m.role = nil
 }
 
+// SetStatus sets the "status" field.
+func (m *StaffMemberMutation) SetStatus(s staffmember.Status) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *StaffMemberMutation) Status() (r staffmember.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the StaffMember entity.
+// If the StaffMember object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StaffMemberMutation) OldStatus(ctx context.Context) (v staffmember.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *StaffMemberMutation) ResetStatus() {
+	m.status = nil
+}
+
 // AddProcessedOrderIDs adds the "processed_orders" edge to the Order entity by ids.
 func (m *StaffMemberMutation) AddProcessedOrderIDs(ids ...int) {
 	if m.processed_orders == nil {
@@ -5888,7 +5979,7 @@ func (m *StaffMemberMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *StaffMemberMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, staffmember.FieldName)
 	}
@@ -5900,6 +5991,9 @@ func (m *StaffMemberMutation) Fields() []string {
 	}
 	if m.role != nil {
 		fields = append(fields, staffmember.FieldRole)
+	}
+	if m.status != nil {
+		fields = append(fields, staffmember.FieldStatus)
 	}
 	return fields
 }
@@ -5917,6 +6011,8 @@ func (m *StaffMemberMutation) Field(name string) (ent.Value, bool) {
 		return m.Password()
 	case staffmember.FieldRole:
 		return m.Role()
+	case staffmember.FieldStatus:
+		return m.Status()
 	}
 	return nil, false
 }
@@ -5934,6 +6030,8 @@ func (m *StaffMemberMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldPassword(ctx)
 	case staffmember.FieldRole:
 		return m.OldRole(ctx)
+	case staffmember.FieldStatus:
+		return m.OldStatus(ctx)
 	}
 	return nil, fmt.Errorf("unknown StaffMember field %s", name)
 }
@@ -5970,6 +6068,13 @@ func (m *StaffMemberMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRole(v)
+		return nil
+	case staffmember.FieldStatus:
+		v, ok := value.(staffmember.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
 		return nil
 	}
 	return fmt.Errorf("unknown StaffMember field %s", name)
@@ -6031,6 +6136,9 @@ func (m *StaffMemberMutation) ResetField(name string) error {
 		return nil
 	case staffmember.FieldRole:
 		m.ResetRole()
+		return nil
+	case staffmember.FieldStatus:
+		m.ResetStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown StaffMember field %s", name)
@@ -6131,6 +6239,7 @@ type UserMutation struct {
 	password      *string
 	verified      *bool
 	created_at    *time.Time
+	status        *user.Status
 	clearedFields map[string]struct{}
 	owner         map[int]struct{}
 	removedowner  map[int]struct{}
@@ -6421,6 +6530,42 @@ func (m *UserMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
+// SetStatus sets the "status" field.
+func (m *UserMutation) SetStatus(u user.Status) {
+	m.status = &u
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *UserMutation) Status() (r user.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldStatus(ctx context.Context) (v user.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *UserMutation) ResetStatus() {
+	m.status = nil
+}
+
 // AddOwnerIDs adds the "owner" edge to the PasswordToken entity by ids.
 func (m *UserMutation) AddOwnerIDs(ids ...int) {
 	if m.owner == nil {
@@ -6563,7 +6708,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.name != nil {
 		fields = append(fields, user.FieldName)
 	}
@@ -6578,6 +6723,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
+	}
+	if m.status != nil {
+		fields = append(fields, user.FieldStatus)
 	}
 	return fields
 }
@@ -6597,6 +6745,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Verified()
 	case user.FieldCreatedAt:
 		return m.CreatedAt()
+	case user.FieldStatus:
+		return m.Status()
 	}
 	return nil, false
 }
@@ -6616,6 +6766,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldVerified(ctx)
 	case user.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
+	case user.FieldStatus:
+		return m.OldStatus(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -6659,6 +6811,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
+		return nil
+	case user.FieldStatus:
+		v, ok := value.(user.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -6723,6 +6882,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldCreatedAt:
 		m.ResetCreatedAt()
+		return nil
+	case user.FieldStatus:
+		m.ResetStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

@@ -24,6 +24,8 @@ type StaffMember struct {
 	Password string `json:"-"`
 	// Role holds the value of the "role" field.
 	Role staffmember.Role `json:"role,omitempty"`
+	// Status holds the value of the "status" field.
+	Status staffmember.Status `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the StaffMemberQuery when eager-loading is set.
 	Edges        StaffMemberEdges `json:"edges"`
@@ -55,7 +57,7 @@ func (*StaffMember) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case staffmember.FieldID:
 			values[i] = new(sql.NullInt64)
-		case staffmember.FieldName, staffmember.FieldEmail, staffmember.FieldPassword, staffmember.FieldRole:
+		case staffmember.FieldName, staffmember.FieldEmail, staffmember.FieldPassword, staffmember.FieldRole, staffmember.FieldStatus:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -101,6 +103,12 @@ func (sm *StaffMember) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field role", values[i])
 			} else if value.Valid {
 				sm.Role = staffmember.Role(value.String)
+			}
+		case staffmember.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				sm.Status = staffmember.Status(value.String)
 			}
 		default:
 			sm.selectValues.Set(columns[i], values[i])
@@ -153,6 +161,9 @@ func (sm *StaffMember) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("role=")
 	builder.WriteString(fmt.Sprintf("%v", sm.Role))
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", sm.Status))
 	builder.WriteByte(')')
 	return builder.String()
 }

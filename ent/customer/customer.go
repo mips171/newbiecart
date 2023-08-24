@@ -3,6 +3,8 @@
 package customer
 
 import (
+	"fmt"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -20,6 +22,8 @@ const (
 	FieldPassword = "password"
 	// FieldAddress holds the string denoting the address field in the database.
 	FieldAddress = "address"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
 	// EdgeOrders holds the string denoting the orders edge name in mutations.
 	EdgeOrders = "orders"
 	// EdgeCart holds the string denoting the cart edge name in mutations.
@@ -47,6 +51,7 @@ var Columns = []string{
 	FieldEmail,
 	FieldPassword,
 	FieldAddress,
+	FieldStatus,
 }
 
 var (
@@ -71,6 +76,32 @@ var (
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
 )
+
+// Status defines the type for the "status" enum field.
+type Status string
+
+// StatusACTIVE is the default value of the Status enum.
+const DefaultStatus = StatusACTIVE
+
+// Status values.
+const (
+	StatusACTIVE   Status = "ACTIVE"
+	StatusINACTIVE Status = "INACTIVE"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusACTIVE, StatusINACTIVE:
+		return nil
+	default:
+		return fmt.Errorf("customer: invalid enum value for status field: %q", s)
+	}
+}
 
 // OrderOption defines the ordering options for the Customer queries.
 type OrderOption func(*sql.Selector)
@@ -98,6 +129,11 @@ func ByPassword(opts ...sql.OrderTermOption) OrderOption {
 // ByAddress orders the results by the address field.
 func ByAddress(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAddress, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
 // ByOrdersCount orders the results by orders count.

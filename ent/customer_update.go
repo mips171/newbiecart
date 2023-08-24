@@ -53,6 +53,20 @@ func (cu *CustomerUpdate) SetAddress(s string) *CustomerUpdate {
 	return cu
 }
 
+// SetStatus sets the "status" field.
+func (cu *CustomerUpdate) SetStatus(c customer.Status) *CustomerUpdate {
+	cu.mutation.SetStatus(c)
+	return cu
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (cu *CustomerUpdate) SetNillableStatus(c *customer.Status) *CustomerUpdate {
+	if c != nil {
+		cu.SetStatus(*c)
+	}
+	return cu
+}
+
 // AddOrderIDs adds the "orders" edge to the Order entity by IDs.
 func (cu *CustomerUpdate) AddOrderIDs(ids ...int) *CustomerUpdate {
 	cu.mutation.AddOrderIDs(ids...)
@@ -158,6 +172,11 @@ func (cu *CustomerUpdate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "Customer.email": %w`, err)}
 		}
 	}
+	if v, ok := cu.mutation.Status(); ok {
+		if err := customer.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Customer.status": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -184,6 +203,9 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := cu.mutation.Address(); ok {
 		_spec.SetField(customer.FieldAddress, field.TypeString, value)
+	}
+	if value, ok := cu.mutation.Status(); ok {
+		_spec.SetField(customer.FieldStatus, field.TypeEnum, value)
 	}
 	if cu.mutation.OrdersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -300,6 +322,20 @@ func (cuo *CustomerUpdateOne) SetPassword(s string) *CustomerUpdateOne {
 // SetAddress sets the "address" field.
 func (cuo *CustomerUpdateOne) SetAddress(s string) *CustomerUpdateOne {
 	cuo.mutation.SetAddress(s)
+	return cuo
+}
+
+// SetStatus sets the "status" field.
+func (cuo *CustomerUpdateOne) SetStatus(c customer.Status) *CustomerUpdateOne {
+	cuo.mutation.SetStatus(c)
+	return cuo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (cuo *CustomerUpdateOne) SetNillableStatus(c *customer.Status) *CustomerUpdateOne {
+	if c != nil {
+		cuo.SetStatus(*c)
+	}
 	return cuo
 }
 
@@ -421,6 +457,11 @@ func (cuo *CustomerUpdateOne) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "Customer.email": %w`, err)}
 		}
 	}
+	if v, ok := cuo.mutation.Status(); ok {
+		if err := customer.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Customer.status": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -464,6 +505,9 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (_node *Customer, err
 	}
 	if value, ok := cuo.mutation.Address(); ok {
 		_spec.SetField(customer.FieldAddress, field.TypeString, value)
+	}
+	if value, ok := cuo.mutation.Status(); ok {
+		_spec.SetField(customer.FieldStatus, field.TypeEnum, value)
 	}
 	if cuo.mutation.OrdersCleared() {
 		edge := &sqlgraph.EdgeSpec{

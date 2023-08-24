@@ -52,6 +52,20 @@ func (smc *StaffMemberCreate) SetNillableRole(s *staffmember.Role) *StaffMemberC
 	return smc
 }
 
+// SetStatus sets the "status" field.
+func (smc *StaffMemberCreate) SetStatus(s staffmember.Status) *StaffMemberCreate {
+	smc.mutation.SetStatus(s)
+	return smc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (smc *StaffMemberCreate) SetNillableStatus(s *staffmember.Status) *StaffMemberCreate {
+	if s != nil {
+		smc.SetStatus(*s)
+	}
+	return smc
+}
+
 // AddProcessedOrderIDs adds the "processed_orders" edge to the Order entity by IDs.
 func (smc *StaffMemberCreate) AddProcessedOrderIDs(ids ...int) *StaffMemberCreate {
 	smc.mutation.AddProcessedOrderIDs(ids...)
@@ -106,6 +120,10 @@ func (smc *StaffMemberCreate) defaults() {
 		v := staffmember.DefaultRole
 		smc.mutation.SetRole(v)
 	}
+	if _, ok := smc.mutation.Status(); !ok {
+		v := staffmember.DefaultStatus
+		smc.mutation.SetStatus(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -135,6 +153,14 @@ func (smc *StaffMemberCreate) check() error {
 	if v, ok := smc.mutation.Role(); ok {
 		if err := staffmember.RoleValidator(v); err != nil {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "StaffMember.role": %w`, err)}
+		}
+	}
+	if _, ok := smc.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "StaffMember.status"`)}
+	}
+	if v, ok := smc.mutation.Status(); ok {
+		if err := staffmember.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "StaffMember.status": %w`, err)}
 		}
 	}
 	return nil
@@ -178,6 +204,10 @@ func (smc *StaffMemberCreate) createSpec() (*StaffMember, *sqlgraph.CreateSpec) 
 	if value, ok := smc.mutation.Role(); ok {
 		_spec.SetField(staffmember.FieldRole, field.TypeEnum, value)
 		_node.Role = value
+	}
+	if value, ok := smc.mutation.Status(); ok {
+		_spec.SetField(staffmember.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
 	}
 	if nodes := smc.mutation.ProcessedOrdersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

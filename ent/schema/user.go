@@ -34,6 +34,10 @@ func (User) Fields() []ent.Field {
 		field.Time("created_at").
 			Default(time.Now).
 			Immutable(),
+		field.Enum("status").
+			Values("ACTIVE",
+				"INACTIVE").
+			Default("ACTIVE"),
 	}
 }
 

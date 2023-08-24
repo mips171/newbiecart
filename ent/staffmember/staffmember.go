@@ -22,6 +22,8 @@ const (
 	FieldPassword = "password"
 	// FieldRole holds the string denoting the role field in the database.
 	FieldRole = "role"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
 	// EdgeProcessedOrders holds the string denoting the processed_orders edge name in mutations.
 	EdgeProcessedOrders = "processed_orders"
 	// Table holds the table name of the staffmember in the database.
@@ -40,6 +42,7 @@ var Columns = []string{
 	FieldEmail,
 	FieldPassword,
 	FieldRole,
+	FieldStatus,
 }
 
 var (
@@ -97,6 +100,32 @@ func RoleValidator(r Role) error {
 	}
 }
 
+// Status defines the type for the "status" enum field.
+type Status string
+
+// StatusACTIVE is the default value of the Status enum.
+const DefaultStatus = StatusACTIVE
+
+// Status values.
+const (
+	StatusACTIVE   Status = "ACTIVE"
+	StatusINACTIVE Status = "INACTIVE"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusACTIVE, StatusINACTIVE:
+		return nil
+	default:
+		return fmt.Errorf("staffmember: invalid enum value for status field: %q", s)
+	}
+}
+
 // OrderOption defines the ordering options for the StaffMember queries.
 type OrderOption func(*sql.Selector)
 
@@ -123,6 +152,11 @@ func ByPassword(opts ...sql.OrderTermOption) OrderOption {
 // ByRole orders the results by the role field.
 func ByRole(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRole, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
 // ByProcessedOrdersCount orders the results by processed_orders count.

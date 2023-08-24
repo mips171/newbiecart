@@ -333,6 +333,26 @@ func AddressContainsFold(v string) predicate.Customer {
 	return predicate.Customer(sql.FieldContainsFold(FieldAddress, v))
 }
 
+// StatusEQ applies the EQ predicate on the "status" field.
+func StatusEQ(v Status) predicate.Customer {
+	return predicate.Customer(sql.FieldEQ(FieldStatus, v))
+}
+
+// StatusNEQ applies the NEQ predicate on the "status" field.
+func StatusNEQ(v Status) predicate.Customer {
+	return predicate.Customer(sql.FieldNEQ(FieldStatus, v))
+}
+
+// StatusIn applies the In predicate on the "status" field.
+func StatusIn(vs ...Status) predicate.Customer {
+	return predicate.Customer(sql.FieldIn(FieldStatus, vs...))
+}
+
+// StatusNotIn applies the NotIn predicate on the "status" field.
+func StatusNotIn(vs ...Status) predicate.Customer {
+	return predicate.Customer(sql.FieldNotIn(FieldStatus, vs...))
+}
+
 // HasOrders applies the HasEdge predicate on the "orders" edge.
 func HasOrders() predicate.Customer {
 	return predicate.Customer(func(s *sql.Selector) {

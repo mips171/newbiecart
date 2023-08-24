@@ -60,6 +60,20 @@ func (smu *StaffMemberUpdate) SetNillableRole(s *staffmember.Role) *StaffMemberU
 	return smu
 }
 
+// SetStatus sets the "status" field.
+func (smu *StaffMemberUpdate) SetStatus(s staffmember.Status) *StaffMemberUpdate {
+	smu.mutation.SetStatus(s)
+	return smu
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (smu *StaffMemberUpdate) SetNillableStatus(s *staffmember.Status) *StaffMemberUpdate {
+	if s != nil {
+		smu.SetStatus(*s)
+	}
+	return smu
+}
+
 // AddProcessedOrderIDs adds the "processed_orders" edge to the Order entity by IDs.
 func (smu *StaffMemberUpdate) AddProcessedOrderIDs(ids ...int) *StaffMemberUpdate {
 	smu.mutation.AddProcessedOrderIDs(ids...)
@@ -145,6 +159,11 @@ func (smu *StaffMemberUpdate) check() error {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "StaffMember.role": %w`, err)}
 		}
 	}
+	if v, ok := smu.mutation.Status(); ok {
+		if err := staffmember.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "StaffMember.status": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -171,6 +190,9 @@ func (smu *StaffMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := smu.mutation.Role(); ok {
 		_spec.SetField(staffmember.FieldRole, field.TypeEnum, value)
+	}
+	if value, ok := smu.mutation.Status(); ok {
+		_spec.SetField(staffmember.FieldStatus, field.TypeEnum, value)
 	}
 	if smu.mutation.ProcessedOrdersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -265,6 +287,20 @@ func (smuo *StaffMemberUpdateOne) SetRole(s staffmember.Role) *StaffMemberUpdate
 func (smuo *StaffMemberUpdateOne) SetNillableRole(s *staffmember.Role) *StaffMemberUpdateOne {
 	if s != nil {
 		smuo.SetRole(*s)
+	}
+	return smuo
+}
+
+// SetStatus sets the "status" field.
+func (smuo *StaffMemberUpdateOne) SetStatus(s staffmember.Status) *StaffMemberUpdateOne {
+	smuo.mutation.SetStatus(s)
+	return smuo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (smuo *StaffMemberUpdateOne) SetNillableStatus(s *staffmember.Status) *StaffMemberUpdateOne {
+	if s != nil {
+		smuo.SetStatus(*s)
 	}
 	return smuo
 }
@@ -367,6 +403,11 @@ func (smuo *StaffMemberUpdateOne) check() error {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "StaffMember.role": %w`, err)}
 		}
 	}
+	if v, ok := smuo.mutation.Status(); ok {
+		if err := staffmember.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "StaffMember.status": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -410,6 +451,9 @@ func (smuo *StaffMemberUpdateOne) sqlSave(ctx context.Context) (_node *StaffMemb
 	}
 	if value, ok := smuo.mutation.Role(); ok {
 		_spec.SetField(staffmember.FieldRole, field.TypeEnum, value)
+	}
+	if value, ok := smuo.mutation.Status(); ok {
+		_spec.SetField(staffmember.FieldStatus, field.TypeEnum, value)
 	}
 	if smuo.mutation.ProcessedOrdersCleared() {
 		edge := &sqlgraph.EdgeSpec{

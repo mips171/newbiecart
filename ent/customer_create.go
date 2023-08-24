@@ -45,6 +45,20 @@ func (cc *CustomerCreate) SetAddress(s string) *CustomerCreate {
 	return cc
 }
 
+// SetStatus sets the "status" field.
+func (cc *CustomerCreate) SetStatus(c customer.Status) *CustomerCreate {
+	cc.mutation.SetStatus(c)
+	return cc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (cc *CustomerCreate) SetNillableStatus(c *customer.Status) *CustomerCreate {
+	if c != nil {
+		cc.SetStatus(*c)
+	}
+	return cc
+}
+
 // AddOrderIDs adds the "orders" edge to the Order entity by IDs.
 func (cc *CustomerCreate) AddOrderIDs(ids ...int) *CustomerCreate {
 	cc.mutation.AddOrderIDs(ids...)
@@ -86,6 +100,7 @@ func (cc *CustomerCreate) Mutation() *CustomerMutation {
 
 // Save creates the Customer in the database.
 func (cc *CustomerCreate) Save(ctx context.Context) (*Customer, error) {
+	cc.defaults()
 	return withHooks(ctx, cc.sqlSave, cc.mutation, cc.hooks)
 }
 
@@ -108,6 +123,14 @@ func (cc *CustomerCreate) Exec(ctx context.Context) error {
 func (cc *CustomerCreate) ExecX(ctx context.Context) {
 	if err := cc.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (cc *CustomerCreate) defaults() {
+	if _, ok := cc.mutation.Status(); !ok {
+		v := customer.DefaultStatus
+		cc.mutation.SetStatus(v)
 	}
 }
 
@@ -134,6 +157,14 @@ func (cc *CustomerCreate) check() error {
 	}
 	if _, ok := cc.mutation.Address(); !ok {
 		return &ValidationError{Name: "address", err: errors.New(`ent: missing required field "Customer.address"`)}
+	}
+	if _, ok := cc.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Customer.status"`)}
+	}
+	if v, ok := cc.mutation.Status(); ok {
+		if err := customer.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Customer.status": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -176,6 +207,10 @@ func (cc *CustomerCreate) createSpec() (*Customer, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.Address(); ok {
 		_spec.SetField(customer.FieldAddress, field.TypeString, value)
 		_node.Address = value
+	}
+	if value, ok := cc.mutation.Status(); ok {
+		_spec.SetField(customer.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
 	}
 	if nodes := cc.mutation.OrdersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -226,6 +261,7 @@ func (ccb *CustomerCreateBulk) Save(ctx context.Context) ([]*Customer, error) {
 	for i := range ccb.builders {
 		func(i int, root context.Context) {
 			builder := ccb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*CustomerMutation)
 				if !ok {

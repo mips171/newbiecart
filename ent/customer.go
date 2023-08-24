@@ -25,6 +25,8 @@ type Customer struct {
 	Password string `json:"-"`
 	// Address holds the value of the "address" field.
 	Address string `json:"address,omitempty"`
+	// Status holds the value of the "status" field.
+	Status customer.Status `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CustomerQuery when eager-loading is set.
 	Edges        CustomerEdges `json:"edges"`
@@ -71,7 +73,7 @@ func (*Customer) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case customer.FieldID:
 			values[i] = new(sql.NullInt64)
-		case customer.FieldName, customer.FieldEmail, customer.FieldPassword, customer.FieldAddress:
+		case customer.FieldName, customer.FieldEmail, customer.FieldPassword, customer.FieldAddress, customer.FieldStatus:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -117,6 +119,12 @@ func (c *Customer) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field address", values[i])
 			} else if value.Valid {
 				c.Address = value.String
+			}
+		case customer.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				c.Status = customer.Status(value.String)
 			}
 		default:
 			c.selectValues.Set(columns[i], values[i])
@@ -174,6 +182,9 @@ func (c *Customer) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("address=")
 	builder.WriteString(c.Address)
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", c.Status))
 	builder.WriteByte(')')
 	return builder.String()
 }
