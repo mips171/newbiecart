@@ -7,3 +7,62 @@
         <p class="help is-danger">{{.}}</p>
     {{- end}}
 {{end}}
+<script>
+function passwordGenerator() {
+    return {
+        checkStrength(password) {
+            // Existing password strength logic...
+        },
+        generatePassword() {
+            const length = 12;
+            const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            let retVal = "";
+            for (let i = 0; i < length; i++) {
+                const charIndex = Math.floor(Math.random() * charset.length);
+                retVal += charset.charAt(charIndex);
+            }
+            this.$refs.passwordField.value = retVal;
+            this.checkStrength(retVal);
+        }
+    }
+}
+</script>
+<script>
+function passwordStrengthMeter() {
+    return {
+        strengthValue: 0,
+        strengthText: '',
+        strengthClass: '',
+        init() {
+            // initialization logic if required
+        },
+        checkStrength(password) {
+            let strength = 0;
+
+            // Example rules to determine password strength
+            if (password.length > 5) strength += 20;
+            if (/[A-Z]/.test(password)) strength += 20;
+            if (/[a-z]/.test(password)) strength += 20;
+            if (/[0-9]/.test(password)) strength += 20;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+
+            this.strengthValue = strength;
+
+            // Assign appropriate text and styling based on strength
+            if (strength <= 20) {
+                this.strengthText = 'Very Weak';
+                this.strengthClass = 'is-danger';
+            } else if (strength <= 40) {
+                this.strengthText = 'Weak';
+                this.strengthClass = 'is-warning';
+            } else if (strength <= 60) {
+                this.strengthText = 'Good';
+                this.strengthClass = 'is-primary';
+            } else {
+                this.strengthText = 'Strong';
+                this.strengthClass = 'is-success';
+            }
+        }
+    }
+}
+</script>
