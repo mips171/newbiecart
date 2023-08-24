@@ -3,6 +3,8 @@
 package staffmember
 
 import (
+	"fmt"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -61,9 +63,39 @@ var (
 	NameValidator func(string) error
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
-	// RoleValidator is a validator for the "role" field. It is called by the builders before save.
-	RoleValidator func(string) error
 )
+
+// Role defines the type for the "role" enum field.
+type Role string
+
+// RoleSalesAssociate is the default value of the Role enum.
+const DefaultRole = RoleSalesAssociate
+
+// Role values.
+const (
+	RoleAdministrator       Role = "ADMINISTRATOR"
+	RoleManager             Role = "MANAGER"
+	RoleSalesAssociate      Role = "SALES_ASSOCIATE"
+	RoleSupportAgent        Role = "SUPPORT_AGENT"
+	RoleTechnician          Role = "TECHNICIAN"
+	RoleCashier             Role = "CASHIER"
+	RoleInventorySpecialist Role = "INVENTORY_SPECIALIST"
+	RoleOther               Role = "OTHER"
+)
+
+func (r Role) String() string {
+	return string(r)
+}
+
+// RoleValidator is a validator for the "role" field enum values. It is called by the builders before save.
+func RoleValidator(r Role) error {
+	switch r {
+	case RoleAdministrator, RoleManager, RoleSalesAssociate, RoleSupportAgent, RoleTechnician, RoleCashier, RoleInventorySpecialist, RoleOther:
+		return nil
+	default:
+		return fmt.Errorf("staffmember: invalid enum value for role field: %q", r)
+	}
+}
 
 // OrderOption defines the ordering options for the StaffMember queries.
 type OrderOption func(*sql.Selector)

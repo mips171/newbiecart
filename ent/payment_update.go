@@ -42,8 +42,16 @@ func (pu *PaymentUpdate) AddAmount(f float64) *PaymentUpdate {
 }
 
 // SetPaymentMethod sets the "payment_method" field.
-func (pu *PaymentUpdate) SetPaymentMethod(s string) *PaymentUpdate {
-	pu.mutation.SetPaymentMethod(s)
+func (pu *PaymentUpdate) SetPaymentMethod(pm payment.PaymentMethod) *PaymentUpdate {
+	pu.mutation.SetPaymentMethod(pm)
+	return pu
+}
+
+// SetNillablePaymentMethod sets the "payment_method" field if the given value is not nil.
+func (pu *PaymentUpdate) SetNillablePaymentMethod(pm *payment.PaymentMethod) *PaymentUpdate {
+	if pm != nil {
+		pu.SetPaymentMethod(*pm)
+	}
 	return pu
 }
 
@@ -54,15 +62,15 @@ func (pu *PaymentUpdate) SetTransactionID(s string) *PaymentUpdate {
 }
 
 // SetStatus sets the "status" field.
-func (pu *PaymentUpdate) SetStatus(s string) *PaymentUpdate {
-	pu.mutation.SetStatus(s)
+func (pu *PaymentUpdate) SetStatus(pa payment.Status) *PaymentUpdate {
+	pu.mutation.SetStatus(pa)
 	return pu
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (pu *PaymentUpdate) SetNillableStatus(s *string) *PaymentUpdate {
-	if s != nil {
-		pu.SetStatus(*s)
+func (pu *PaymentUpdate) SetNillableStatus(pa *payment.Status) *PaymentUpdate {
+	if pa != nil {
+		pu.SetStatus(*pa)
 	}
 	return pu
 }
@@ -174,13 +182,13 @@ func (pu *PaymentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.AddField(payment.FieldAmount, field.TypeFloat64, value)
 	}
 	if value, ok := pu.mutation.PaymentMethod(); ok {
-		_spec.SetField(payment.FieldPaymentMethod, field.TypeString, value)
+		_spec.SetField(payment.FieldPaymentMethod, field.TypeEnum, value)
 	}
 	if value, ok := pu.mutation.TransactionID(); ok {
 		_spec.SetField(payment.FieldTransactionID, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.Status(); ok {
-		_spec.SetField(payment.FieldStatus, field.TypeString, value)
+		_spec.SetField(payment.FieldStatus, field.TypeEnum, value)
 	}
 	if pu.mutation.OrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -261,8 +269,16 @@ func (puo *PaymentUpdateOne) AddAmount(f float64) *PaymentUpdateOne {
 }
 
 // SetPaymentMethod sets the "payment_method" field.
-func (puo *PaymentUpdateOne) SetPaymentMethod(s string) *PaymentUpdateOne {
-	puo.mutation.SetPaymentMethod(s)
+func (puo *PaymentUpdateOne) SetPaymentMethod(pm payment.PaymentMethod) *PaymentUpdateOne {
+	puo.mutation.SetPaymentMethod(pm)
+	return puo
+}
+
+// SetNillablePaymentMethod sets the "payment_method" field if the given value is not nil.
+func (puo *PaymentUpdateOne) SetNillablePaymentMethod(pm *payment.PaymentMethod) *PaymentUpdateOne {
+	if pm != nil {
+		puo.SetPaymentMethod(*pm)
+	}
 	return puo
 }
 
@@ -273,15 +289,15 @@ func (puo *PaymentUpdateOne) SetTransactionID(s string) *PaymentUpdateOne {
 }
 
 // SetStatus sets the "status" field.
-func (puo *PaymentUpdateOne) SetStatus(s string) *PaymentUpdateOne {
-	puo.mutation.SetStatus(s)
+func (puo *PaymentUpdateOne) SetStatus(pa payment.Status) *PaymentUpdateOne {
+	puo.mutation.SetStatus(pa)
 	return puo
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (puo *PaymentUpdateOne) SetNillableStatus(s *string) *PaymentUpdateOne {
-	if s != nil {
-		puo.SetStatus(*s)
+func (puo *PaymentUpdateOne) SetNillableStatus(pa *payment.Status) *PaymentUpdateOne {
+	if pa != nil {
+		puo.SetStatus(*pa)
 	}
 	return puo
 }
@@ -423,13 +439,13 @@ func (puo *PaymentUpdateOne) sqlSave(ctx context.Context) (_node *Payment, err e
 		_spec.AddField(payment.FieldAmount, field.TypeFloat64, value)
 	}
 	if value, ok := puo.mutation.PaymentMethod(); ok {
-		_spec.SetField(payment.FieldPaymentMethod, field.TypeString, value)
+		_spec.SetField(payment.FieldPaymentMethod, field.TypeEnum, value)
 	}
 	if value, ok := puo.mutation.TransactionID(); ok {
 		_spec.SetField(payment.FieldTransactionID, field.TypeString, value)
 	}
 	if value, ok := puo.mutation.Status(); ok {
-		_spec.SetField(payment.FieldStatus, field.TypeString, value)
+		_spec.SetField(payment.FieldStatus, field.TypeEnum, value)
 	}
 	if puo.mutation.OrderCleared() {
 		edge := &sqlgraph.EdgeSpec{

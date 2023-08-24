@@ -55,7 +55,7 @@ var (
 	// OrdersColumns holds the columns for the "orders" table.
 	OrdersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "status", Type: field.TypeString, Default: "pending"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "IN_PROGRESS", "COMPLETED", "DELIVERED", "CANCELLED", "RETURNED", "REFUNDED", "FAILED", "ON_HOLD"}, Default: "PENDING"},
 		{Name: "placed_at", Type: field.TypeTime},
 		{Name: "balance_due", Type: field.TypeFloat64, Default: 0},
 		{Name: "user_orders", Type: field.TypeInt, Nullable: true},
@@ -111,9 +111,9 @@ var (
 	PaymentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "amount", Type: field.TypeFloat64},
-		{Name: "payment_method", Type: field.TypeString},
+		{Name: "payment_method", Type: field.TypeEnum, Enums: []string{"CREDIT_CARD", "PAYPAL", "BANK_TRANSFER", "DEBIT_CARD", "CASH", "CHECK", "MOBILE_PAYMENT", "OTHER"}, Default: "CREDIT_CARD"},
 		{Name: "transaction_id", Type: field.TypeString, Unique: true},
-		{Name: "status", Type: field.TypeString, Default: "pending"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "COMPLETED", "FAILED", "REFUNDED", "DISPUTED", "CHARGEBACK"}, Default: "PENDING"},
 		{Name: "processed_at", Type: field.TypeTime},
 	}
 	// PaymentsTable holds the schema information for the "payments" table.
@@ -155,7 +155,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
-		{Name: "role", Type: field.TypeString},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"ADMINISTRATOR", "MANAGER", "SALES_ASSOCIATE", "SUPPORT_AGENT", "TECHNICIAN", "CASHIER", "INVENTORY_SPECIALIST", "OTHER"}, Default: "SALES_ASSOCIATE"},
 	}
 	// StaffMembersTable holds the schema information for the "staff_members" table.
 	StaffMembersTable = &schema.Table{

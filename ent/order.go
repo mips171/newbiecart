@@ -18,7 +18,7 @@ type Order struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Status holds the value of the "status" field.
-	Status string `json:"status,omitempty"`
+	Status order.Status `json:"status,omitempty"`
 	// PlacedAt holds the value of the "placed_at" field.
 	PlacedAt time.Time `json:"placed_at,omitempty"`
 	// BalanceDue holds the value of the "balance_due" field.
@@ -121,7 +121,7 @@ func (o *Order) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
-				o.Status = value.String
+				o.Status = order.Status(value.String)
 			}
 		case order.FieldPlacedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -199,7 +199,7 @@ func (o *Order) String() string {
 	builder.WriteString("Order(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", o.ID))
 	builder.WriteString("status=")
-	builder.WriteString(o.Status)
+	builder.WriteString(fmt.Sprintf("%v", o.Status))
 	builder.WriteString(", ")
 	builder.WriteString("placed_at=")
 	builder.WriteString(o.PlacedAt.Format(time.ANSIC))

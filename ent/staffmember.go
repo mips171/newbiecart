@@ -23,7 +23,7 @@ type StaffMember struct {
 	// Password holds the value of the "password" field.
 	Password string `json:"-"`
 	// Role holds the value of the "role" field.
-	Role string `json:"role,omitempty"`
+	Role staffmember.Role `json:"role,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the StaffMemberQuery when eager-loading is set.
 	Edges        StaffMemberEdges `json:"edges"`
@@ -100,7 +100,7 @@ func (sm *StaffMember) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field role", values[i])
 			} else if value.Valid {
-				sm.Role = value.String
+				sm.Role = staffmember.Role(value.String)
 			}
 		default:
 			sm.selectValues.Set(columns[i], values[i])
@@ -152,7 +152,7 @@ func (sm *StaffMember) String() string {
 	builder.WriteString("password=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("role=")
-	builder.WriteString(sm.Role)
+	builder.WriteString(fmt.Sprintf("%v", sm.Role))
 	builder.WriteByte(')')
 	return builder.String()
 }

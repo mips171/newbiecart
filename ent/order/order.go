@@ -3,6 +3,7 @@
 package order
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -97,10 +98,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultStatus holds the default value on creation for the "status" field.
-	DefaultStatus string
-	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
-	StatusValidator func(string) error
 	// DefaultPlacedAt holds the default value on creation for the "placed_at" field.
 	DefaultPlacedAt func() time.Time
 	// DefaultBalanceDue holds the default value on creation for the "balance_due" field.
@@ -108,6 +105,39 @@ var (
 	// BalanceDueValidator is a validator for the "balance_due" field. It is called by the builders before save.
 	BalanceDueValidator func(float64) error
 )
+
+// Status defines the type for the "status" enum field.
+type Status string
+
+// StatusPending is the default value of the Status enum.
+const DefaultStatus = StatusPending
+
+// Status values.
+const (
+	StatusPending    Status = "PENDING"
+	StatusInProgress Status = "IN_PROGRESS"
+	StatusCompleted  Status = "COMPLETED"
+	StatusDelivered  Status = "DELIVERED"
+	StatusCancelled  Status = "CANCELLED"
+	StatusReturned   Status = "RETURNED"
+	StatusRefunded   Status = "REFUNDED"
+	StatusFailed     Status = "FAILED"
+	StatusOnHold     Status = "ON_HOLD"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusPending, StatusInProgress, StatusCompleted, StatusDelivered, StatusCancelled, StatusReturned, StatusRefunded, StatusFailed, StatusOnHold:
+		return nil
+	default:
+		return fmt.Errorf("order: invalid enum value for status field: %q", s)
+	}
+}
 
 // OrderOption defines the ordering options for the Order queries.
 type OrderOption func(*sql.Selector)

@@ -28,8 +28,16 @@ func (pc *PaymentCreate) SetAmount(f float64) *PaymentCreate {
 }
 
 // SetPaymentMethod sets the "payment_method" field.
-func (pc *PaymentCreate) SetPaymentMethod(s string) *PaymentCreate {
-	pc.mutation.SetPaymentMethod(s)
+func (pc *PaymentCreate) SetPaymentMethod(pm payment.PaymentMethod) *PaymentCreate {
+	pc.mutation.SetPaymentMethod(pm)
+	return pc
+}
+
+// SetNillablePaymentMethod sets the "payment_method" field if the given value is not nil.
+func (pc *PaymentCreate) SetNillablePaymentMethod(pm *payment.PaymentMethod) *PaymentCreate {
+	if pm != nil {
+		pc.SetPaymentMethod(*pm)
+	}
 	return pc
 }
 
@@ -40,15 +48,15 @@ func (pc *PaymentCreate) SetTransactionID(s string) *PaymentCreate {
 }
 
 // SetStatus sets the "status" field.
-func (pc *PaymentCreate) SetStatus(s string) *PaymentCreate {
-	pc.mutation.SetStatus(s)
+func (pc *PaymentCreate) SetStatus(pa payment.Status) *PaymentCreate {
+	pc.mutation.SetStatus(pa)
 	return pc
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (pc *PaymentCreate) SetNillableStatus(s *string) *PaymentCreate {
-	if s != nil {
-		pc.SetStatus(*s)
+func (pc *PaymentCreate) SetNillableStatus(pa *payment.Status) *PaymentCreate {
+	if pa != nil {
+		pc.SetStatus(*pa)
 	}
 	return pc
 }
@@ -117,6 +125,10 @@ func (pc *PaymentCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (pc *PaymentCreate) defaults() {
+	if _, ok := pc.mutation.PaymentMethod(); !ok {
+		v := payment.DefaultPaymentMethod
+		pc.mutation.SetPaymentMethod(v)
+	}
 	if _, ok := pc.mutation.Status(); !ok {
 		v := payment.DefaultStatus
 		pc.mutation.SetStatus(v)
@@ -190,7 +202,7 @@ func (pc *PaymentCreate) createSpec() (*Payment, *sqlgraph.CreateSpec) {
 		_node.Amount = value
 	}
 	if value, ok := pc.mutation.PaymentMethod(); ok {
-		_spec.SetField(payment.FieldPaymentMethod, field.TypeString, value)
+		_spec.SetField(payment.FieldPaymentMethod, field.TypeEnum, value)
 		_node.PaymentMethod = value
 	}
 	if value, ok := pc.mutation.TransactionID(); ok {
@@ -198,7 +210,7 @@ func (pc *PaymentCreate) createSpec() (*Payment, *sqlgraph.CreateSpec) {
 		_node.TransactionID = value
 	}
 	if value, ok := pc.mutation.Status(); ok {
-		_spec.SetField(payment.FieldStatus, field.TypeString, value)
+		_spec.SetField(payment.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
 	if value, ok := pc.mutation.ProcessedAt(); ok {

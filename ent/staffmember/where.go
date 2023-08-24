@@ -68,11 +68,6 @@ func Password(v string) predicate.StaffMember {
 	return predicate.StaffMember(sql.FieldEQ(FieldPassword, v))
 }
 
-// Role applies equality check predicate on the "role" field. It's identical to RoleEQ.
-func Role(v string) predicate.StaffMember {
-	return predicate.StaffMember(sql.FieldEQ(FieldRole, v))
-}
-
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.StaffMember {
 	return predicate.StaffMember(sql.FieldEQ(FieldName, v))
@@ -269,68 +264,23 @@ func PasswordContainsFold(v string) predicate.StaffMember {
 }
 
 // RoleEQ applies the EQ predicate on the "role" field.
-func RoleEQ(v string) predicate.StaffMember {
+func RoleEQ(v Role) predicate.StaffMember {
 	return predicate.StaffMember(sql.FieldEQ(FieldRole, v))
 }
 
 // RoleNEQ applies the NEQ predicate on the "role" field.
-func RoleNEQ(v string) predicate.StaffMember {
+func RoleNEQ(v Role) predicate.StaffMember {
 	return predicate.StaffMember(sql.FieldNEQ(FieldRole, v))
 }
 
 // RoleIn applies the In predicate on the "role" field.
-func RoleIn(vs ...string) predicate.StaffMember {
+func RoleIn(vs ...Role) predicate.StaffMember {
 	return predicate.StaffMember(sql.FieldIn(FieldRole, vs...))
 }
 
 // RoleNotIn applies the NotIn predicate on the "role" field.
-func RoleNotIn(vs ...string) predicate.StaffMember {
+func RoleNotIn(vs ...Role) predicate.StaffMember {
 	return predicate.StaffMember(sql.FieldNotIn(FieldRole, vs...))
-}
-
-// RoleGT applies the GT predicate on the "role" field.
-func RoleGT(v string) predicate.StaffMember {
-	return predicate.StaffMember(sql.FieldGT(FieldRole, v))
-}
-
-// RoleGTE applies the GTE predicate on the "role" field.
-func RoleGTE(v string) predicate.StaffMember {
-	return predicate.StaffMember(sql.FieldGTE(FieldRole, v))
-}
-
-// RoleLT applies the LT predicate on the "role" field.
-func RoleLT(v string) predicate.StaffMember {
-	return predicate.StaffMember(sql.FieldLT(FieldRole, v))
-}
-
-// RoleLTE applies the LTE predicate on the "role" field.
-func RoleLTE(v string) predicate.StaffMember {
-	return predicate.StaffMember(sql.FieldLTE(FieldRole, v))
-}
-
-// RoleContains applies the Contains predicate on the "role" field.
-func RoleContains(v string) predicate.StaffMember {
-	return predicate.StaffMember(sql.FieldContains(FieldRole, v))
-}
-
-// RoleHasPrefix applies the HasPrefix predicate on the "role" field.
-func RoleHasPrefix(v string) predicate.StaffMember {
-	return predicate.StaffMember(sql.FieldHasPrefix(FieldRole, v))
-}
-
-// RoleHasSuffix applies the HasSuffix predicate on the "role" field.
-func RoleHasSuffix(v string) predicate.StaffMember {
-	return predicate.StaffMember(sql.FieldHasSuffix(FieldRole, v))
-}
-
-// RoleEqualFold applies the EqualFold predicate on the "role" field.
-func RoleEqualFold(v string) predicate.StaffMember {
-	return predicate.StaffMember(sql.FieldEqualFold(FieldRole, v))
-}
-
-// RoleContainsFold applies the ContainsFold predicate on the "role" field.
-func RoleContainsFold(v string) predicate.StaffMember {
-	return predicate.StaffMember(sql.FieldContainsFold(FieldRole, v))
 }
 
 // HasProcessedOrders applies the HasEdge predicate on the "processed_orders" edge.

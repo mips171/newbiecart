@@ -25,15 +25,15 @@ type OrderCreate struct {
 }
 
 // SetStatus sets the "status" field.
-func (oc *OrderCreate) SetStatus(s string) *OrderCreate {
-	oc.mutation.SetStatus(s)
+func (oc *OrderCreate) SetStatus(o order.Status) *OrderCreate {
+	oc.mutation.SetStatus(o)
 	return oc
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (oc *OrderCreate) SetNillableStatus(s *string) *OrderCreate {
-	if s != nil {
-		oc.SetStatus(*s)
+func (oc *OrderCreate) SetNillableStatus(o *order.Status) *OrderCreate {
+	if o != nil {
+		oc.SetStatus(*o)
 	}
 	return oc
 }
@@ -223,7 +223,7 @@ func (oc *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 		_spec = sqlgraph.NewCreateSpec(order.Table, sqlgraph.NewFieldSpec(order.FieldID, field.TypeInt))
 	)
 	if value, ok := oc.mutation.Status(); ok {
-		_spec.SetField(order.FieldStatus, field.TypeString, value)
+		_spec.SetField(order.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
 	if value, ok := oc.mutation.PlacedAt(); ok {

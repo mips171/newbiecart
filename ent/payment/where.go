@@ -60,19 +60,9 @@ func Amount(v float64) predicate.Payment {
 	return predicate.Payment(sql.FieldEQ(FieldAmount, v))
 }
 
-// PaymentMethod applies equality check predicate on the "payment_method" field. It's identical to PaymentMethodEQ.
-func PaymentMethod(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldEQ(FieldPaymentMethod, v))
-}
-
 // TransactionID applies equality check predicate on the "transaction_id" field. It's identical to TransactionIDEQ.
 func TransactionID(v string) predicate.Payment {
 	return predicate.Payment(sql.FieldEQ(FieldTransactionID, v))
-}
-
-// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
-func Status(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldEQ(FieldStatus, v))
 }
 
 // ProcessedAt applies equality check predicate on the "processed_at" field. It's identical to ProcessedAtEQ.
@@ -121,68 +111,23 @@ func AmountLTE(v float64) predicate.Payment {
 }
 
 // PaymentMethodEQ applies the EQ predicate on the "payment_method" field.
-func PaymentMethodEQ(v string) predicate.Payment {
+func PaymentMethodEQ(v PaymentMethod) predicate.Payment {
 	return predicate.Payment(sql.FieldEQ(FieldPaymentMethod, v))
 }
 
 // PaymentMethodNEQ applies the NEQ predicate on the "payment_method" field.
-func PaymentMethodNEQ(v string) predicate.Payment {
+func PaymentMethodNEQ(v PaymentMethod) predicate.Payment {
 	return predicate.Payment(sql.FieldNEQ(FieldPaymentMethod, v))
 }
 
 // PaymentMethodIn applies the In predicate on the "payment_method" field.
-func PaymentMethodIn(vs ...string) predicate.Payment {
+func PaymentMethodIn(vs ...PaymentMethod) predicate.Payment {
 	return predicate.Payment(sql.FieldIn(FieldPaymentMethod, vs...))
 }
 
 // PaymentMethodNotIn applies the NotIn predicate on the "payment_method" field.
-func PaymentMethodNotIn(vs ...string) predicate.Payment {
+func PaymentMethodNotIn(vs ...PaymentMethod) predicate.Payment {
 	return predicate.Payment(sql.FieldNotIn(FieldPaymentMethod, vs...))
-}
-
-// PaymentMethodGT applies the GT predicate on the "payment_method" field.
-func PaymentMethodGT(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldGT(FieldPaymentMethod, v))
-}
-
-// PaymentMethodGTE applies the GTE predicate on the "payment_method" field.
-func PaymentMethodGTE(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldGTE(FieldPaymentMethod, v))
-}
-
-// PaymentMethodLT applies the LT predicate on the "payment_method" field.
-func PaymentMethodLT(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldLT(FieldPaymentMethod, v))
-}
-
-// PaymentMethodLTE applies the LTE predicate on the "payment_method" field.
-func PaymentMethodLTE(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldLTE(FieldPaymentMethod, v))
-}
-
-// PaymentMethodContains applies the Contains predicate on the "payment_method" field.
-func PaymentMethodContains(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldContains(FieldPaymentMethod, v))
-}
-
-// PaymentMethodHasPrefix applies the HasPrefix predicate on the "payment_method" field.
-func PaymentMethodHasPrefix(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldHasPrefix(FieldPaymentMethod, v))
-}
-
-// PaymentMethodHasSuffix applies the HasSuffix predicate on the "payment_method" field.
-func PaymentMethodHasSuffix(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldHasSuffix(FieldPaymentMethod, v))
-}
-
-// PaymentMethodEqualFold applies the EqualFold predicate on the "payment_method" field.
-func PaymentMethodEqualFold(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldEqualFold(FieldPaymentMethod, v))
-}
-
-// PaymentMethodContainsFold applies the ContainsFold predicate on the "payment_method" field.
-func PaymentMethodContainsFold(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldContainsFold(FieldPaymentMethod, v))
 }
 
 // TransactionIDEQ applies the EQ predicate on the "transaction_id" field.
@@ -251,68 +196,23 @@ func TransactionIDContainsFold(v string) predicate.Payment {
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v string) predicate.Payment {
+func StatusEQ(v Status) predicate.Payment {
 	return predicate.Payment(sql.FieldEQ(FieldStatus, v))
 }
 
 // StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v string) predicate.Payment {
+func StatusNEQ(v Status) predicate.Payment {
 	return predicate.Payment(sql.FieldNEQ(FieldStatus, v))
 }
 
 // StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...string) predicate.Payment {
+func StatusIn(vs ...Status) predicate.Payment {
 	return predicate.Payment(sql.FieldIn(FieldStatus, vs...))
 }
 
 // StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...string) predicate.Payment {
+func StatusNotIn(vs ...Status) predicate.Payment {
 	return predicate.Payment(sql.FieldNotIn(FieldStatus, vs...))
-}
-
-// StatusGT applies the GT predicate on the "status" field.
-func StatusGT(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldGT(FieldStatus, v))
-}
-
-// StatusGTE applies the GTE predicate on the "status" field.
-func StatusGTE(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldGTE(FieldStatus, v))
-}
-
-// StatusLT applies the LT predicate on the "status" field.
-func StatusLT(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldLT(FieldStatus, v))
-}
-
-// StatusLTE applies the LTE predicate on the "status" field.
-func StatusLTE(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldLTE(FieldStatus, v))
-}
-
-// StatusContains applies the Contains predicate on the "status" field.
-func StatusContains(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldContains(FieldStatus, v))
-}
-
-// StatusHasPrefix applies the HasPrefix predicate on the "status" field.
-func StatusHasPrefix(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldHasPrefix(FieldStatus, v))
-}
-
-// StatusHasSuffix applies the HasSuffix predicate on the "status" field.
-func StatusHasSuffix(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldHasSuffix(FieldStatus, v))
-}
-
-// StatusEqualFold applies the EqualFold predicate on the "status" field.
-func StatusEqualFold(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldEqualFold(FieldStatus, v))
-}
-
-// StatusContainsFold applies the ContainsFold predicate on the "status" field.
-func StatusContainsFold(v string) predicate.Payment {
-	return predicate.Payment(sql.FieldContainsFold(FieldStatus, v))
 }
 
 // ProcessedAtEQ applies the EQ predicate on the "processed_at" field.

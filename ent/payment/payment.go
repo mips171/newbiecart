@@ -3,6 +3,7 @@
 package payment
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -64,15 +65,71 @@ func ValidColumn(column string) bool {
 var (
 	// AmountValidator is a validator for the "amount" field. It is called by the builders before save.
 	AmountValidator func(float64) error
-	// PaymentMethodValidator is a validator for the "payment_method" field. It is called by the builders before save.
-	PaymentMethodValidator func(string) error
-	// DefaultStatus holds the default value on creation for the "status" field.
-	DefaultStatus string
-	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
-	StatusValidator func(string) error
 	// DefaultProcessedAt holds the default value on creation for the "processed_at" field.
 	DefaultProcessedAt func() time.Time
 )
+
+// PaymentMethod defines the type for the "payment_method" enum field.
+type PaymentMethod string
+
+// PaymentMethodCreditCard is the default value of the PaymentMethod enum.
+const DefaultPaymentMethod = PaymentMethodCreditCard
+
+// PaymentMethod values.
+const (
+	PaymentMethodCreditCard    PaymentMethod = "CREDIT_CARD"
+	PaymentMethodPayPal        PaymentMethod = "PAYPAL"
+	PaymentMethodBankTransfer  PaymentMethod = "BANK_TRANSFER"
+	PaymentMethodDebitCard     PaymentMethod = "DEBIT_CARD"
+	PaymentMethodCash          PaymentMethod = "CASH"
+	PaymentMethodCheck         PaymentMethod = "CHECK"
+	PaymentMethodMobilePayment PaymentMethod = "MOBILE_PAYMENT"
+	PaymentMethodOther         PaymentMethod = "OTHER"
+)
+
+func (pm PaymentMethod) String() string {
+	return string(pm)
+}
+
+// PaymentMethodValidator is a validator for the "payment_method" field enum values. It is called by the builders before save.
+func PaymentMethodValidator(pm PaymentMethod) error {
+	switch pm {
+	case PaymentMethodCreditCard, PaymentMethodPayPal, PaymentMethodBankTransfer, PaymentMethodDebitCard, PaymentMethodCash, PaymentMethodCheck, PaymentMethodMobilePayment, PaymentMethodOther:
+		return nil
+	default:
+		return fmt.Errorf("payment: invalid enum value for payment_method field: %q", pm)
+	}
+}
+
+// Status defines the type for the "status" enum field.
+type Status string
+
+// StatusPending is the default value of the Status enum.
+const DefaultStatus = StatusPending
+
+// Status values.
+const (
+	StatusPending    Status = "PENDING"
+	StatusCompleted  Status = "COMPLETED"
+	StatusFailed     Status = "FAILED"
+	StatusRefunded   Status = "REFUNDED"
+	StatusDisputed   Status = "DISPUTED"
+	StatusChargeback Status = "CHARGEBACK"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusPending, StatusCompleted, StatusFailed, StatusRefunded, StatusDisputed, StatusChargeback:
+		return nil
+	default:
+		return fmt.Errorf("payment: invalid enum value for status field: %q", s)
+	}
+}
 
 // OrderOption defines the ordering options for the Payment queries.
 type OrderOption func(*sql.Selector)

@@ -42,12 +42,6 @@ func init() {
 	customer.EmailValidator = customerDescEmail.Validators[0].(func(string) error)
 	orderFields := schema.Order{}.Fields()
 	_ = orderFields
-	// orderDescStatus is the schema descriptor for status field.
-	orderDescStatus := orderFields[0].Descriptor()
-	// order.DefaultStatus holds the default value on creation for the status field.
-	order.DefaultStatus = orderDescStatus.Default.(string)
-	// order.StatusValidator is a validator for the "status" field. It is called by the builders before save.
-	order.StatusValidator = orderDescStatus.Validators[0].(func(string) error)
 	// orderDescPlacedAt is the schema descriptor for placed_at field.
 	orderDescPlacedAt := orderFields[1].Descriptor()
 	// order.DefaultPlacedAt holds the default value on creation for the placed_at field.
@@ -86,16 +80,6 @@ func init() {
 	paymentDescAmount := paymentFields[0].Descriptor()
 	// payment.AmountValidator is a validator for the "amount" field. It is called by the builders before save.
 	payment.AmountValidator = paymentDescAmount.Validators[0].(func(float64) error)
-	// paymentDescPaymentMethod is the schema descriptor for payment_method field.
-	paymentDescPaymentMethod := paymentFields[1].Descriptor()
-	// payment.PaymentMethodValidator is a validator for the "payment_method" field. It is called by the builders before save.
-	payment.PaymentMethodValidator = paymentDescPaymentMethod.Validators[0].(func(string) error)
-	// paymentDescStatus is the schema descriptor for status field.
-	paymentDescStatus := paymentFields[3].Descriptor()
-	// payment.DefaultStatus holds the default value on creation for the status field.
-	payment.DefaultStatus = paymentDescStatus.Default.(string)
-	// payment.StatusValidator is a validator for the "status" field. It is called by the builders before save.
-	payment.StatusValidator = paymentDescStatus.Validators[0].(func(string) error)
 	// paymentDescProcessedAt is the schema descriptor for processed_at field.
 	paymentDescProcessedAt := paymentFields[4].Descriptor()
 	// payment.DefaultProcessedAt holds the default value on creation for the processed_at field.
@@ -140,10 +124,6 @@ func init() {
 	staffmemberDescEmail := staffmemberFields[1].Descriptor()
 	// staffmember.EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	staffmember.EmailValidator = staffmemberDescEmail.Validators[0].(func(string) error)
-	// staffmemberDescRole is the schema descriptor for role field.
-	staffmemberDescRole := staffmemberFields[3].Descriptor()
-	// staffmember.RoleValidator is a validator for the "role" field. It is called by the builders before save.
-	staffmember.RoleValidator = staffmemberDescRole.Validators[0].(func(string) error)
 	userHooks := schema.User{}.Hooks()
 	user.Hooks[0] = userHooks[0]
 	userFields := schema.User{}.Fields()

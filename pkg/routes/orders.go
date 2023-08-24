@@ -53,7 +53,7 @@ func (c *ordersController) fetchOrders(ctx echo.Context, pager *controller.Pager
 		}
 
 		orders[i] = Order{
-			Status:      o.Status,
+			Status:      string(o.Status),
 			PlacedAt:    o.PlacedAt.Format("2006-01-02"),
 			BalanceDue:  o.BalanceDue,
 			Customer:    cust,

@@ -20,11 +20,11 @@ type Payment struct {
 	// Amount holds the value of the "amount" field.
 	Amount float64 `json:"amount,omitempty"`
 	// PaymentMethod holds the value of the "payment_method" field.
-	PaymentMethod string `json:"payment_method,omitempty"`
+	PaymentMethod payment.PaymentMethod `json:"payment_method,omitempty"`
 	// TransactionID holds the value of the "transaction_id" field.
 	TransactionID string `json:"transaction_id,omitempty"`
 	// Status holds the value of the "status" field.
-	Status string `json:"status,omitempty"`
+	Status payment.Status `json:"status,omitempty"`
 	// ProcessedAt holds the value of the "processed_at" field.
 	ProcessedAt time.Time `json:"processed_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -95,7 +95,7 @@ func (pa *Payment) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field payment_method", values[i])
 			} else if value.Valid {
-				pa.PaymentMethod = value.String
+				pa.PaymentMethod = payment.PaymentMethod(value.String)
 			}
 		case payment.FieldTransactionID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -107,7 +107,7 @@ func (pa *Payment) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
-				pa.Status = value.String
+				pa.Status = payment.Status(value.String)
 			}
 		case payment.FieldProcessedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -160,13 +160,13 @@ func (pa *Payment) String() string {
 	builder.WriteString(fmt.Sprintf("%v", pa.Amount))
 	builder.WriteString(", ")
 	builder.WriteString("payment_method=")
-	builder.WriteString(pa.PaymentMethod)
+	builder.WriteString(fmt.Sprintf("%v", pa.PaymentMethod))
 	builder.WriteString(", ")
 	builder.WriteString("transaction_id=")
 	builder.WriteString(pa.TransactionID)
 	builder.WriteString(", ")
 	builder.WriteString("status=")
-	builder.WriteString(pa.Status)
+	builder.WriteString(fmt.Sprintf("%v", pa.Status))
 	builder.WriteString(", ")
 	builder.WriteString("processed_at=")
 	builder.WriteString(pa.ProcessedAt.Format(time.ANSIC))

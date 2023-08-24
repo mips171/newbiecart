@@ -47,8 +47,16 @@ func (smu *StaffMemberUpdate) SetPassword(s string) *StaffMemberUpdate {
 }
 
 // SetRole sets the "role" field.
-func (smu *StaffMemberUpdate) SetRole(s string) *StaffMemberUpdate {
+func (smu *StaffMemberUpdate) SetRole(s staffmember.Role) *StaffMemberUpdate {
 	smu.mutation.SetRole(s)
+	return smu
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (smu *StaffMemberUpdate) SetNillableRole(s *staffmember.Role) *StaffMemberUpdate {
+	if s != nil {
+		smu.SetRole(*s)
+	}
 	return smu
 }
 
@@ -162,7 +170,7 @@ func (smu *StaffMemberUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(staffmember.FieldPassword, field.TypeString, value)
 	}
 	if value, ok := smu.mutation.Role(); ok {
-		_spec.SetField(staffmember.FieldRole, field.TypeString, value)
+		_spec.SetField(staffmember.FieldRole, field.TypeEnum, value)
 	}
 	if smu.mutation.ProcessedOrdersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -248,8 +256,16 @@ func (smuo *StaffMemberUpdateOne) SetPassword(s string) *StaffMemberUpdateOne {
 }
 
 // SetRole sets the "role" field.
-func (smuo *StaffMemberUpdateOne) SetRole(s string) *StaffMemberUpdateOne {
+func (smuo *StaffMemberUpdateOne) SetRole(s staffmember.Role) *StaffMemberUpdateOne {
 	smuo.mutation.SetRole(s)
+	return smuo
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (smuo *StaffMemberUpdateOne) SetNillableRole(s *staffmember.Role) *StaffMemberUpdateOne {
+	if s != nil {
+		smuo.SetRole(*s)
+	}
 	return smuo
 }
 
@@ -393,7 +409,7 @@ func (smuo *StaffMemberUpdateOne) sqlSave(ctx context.Context) (_node *StaffMemb
 		_spec.SetField(staffmember.FieldPassword, field.TypeString, value)
 	}
 	if value, ok := smuo.mutation.Role(); ok {
-		_spec.SetField(staffmember.FieldRole, field.TypeString, value)
+		_spec.SetField(staffmember.FieldRole, field.TypeEnum, value)
 	}
 	if smuo.mutation.ProcessedOrdersCleared() {
 		edge := &sqlgraph.EdgeSpec{

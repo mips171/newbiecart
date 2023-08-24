@@ -1647,7 +1647,7 @@ type OrderMutation struct {
 	op                  Op
 	typ                 string
 	id                  *int
-	status              *string
+	status              *order.Status
 	placed_at           *time.Time
 	balance_due         *float64
 	addbalance_due      *float64
@@ -1768,12 +1768,12 @@ func (m *OrderMutation) IDs(ctx context.Context) ([]int, error) {
 }
 
 // SetStatus sets the "status" field.
-func (m *OrderMutation) SetStatus(s string) {
-	m.status = &s
+func (m *OrderMutation) SetStatus(o order.Status) {
+	m.status = &o
 }
 
 // Status returns the value of the "status" field in the mutation.
-func (m *OrderMutation) Status() (r string, exists bool) {
+func (m *OrderMutation) Status() (r order.Status, exists bool) {
 	v := m.status
 	if v == nil {
 		return
@@ -1784,7 +1784,7 @@ func (m *OrderMutation) Status() (r string, exists bool) {
 // OldStatus returns the old "status" field's value of the Order entity.
 // If the Order object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderMutation) OldStatus(ctx context.Context) (v string, err error) {
+func (m *OrderMutation) OldStatus(ctx context.Context) (v order.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
 	}
@@ -2194,7 +2194,7 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 func (m *OrderMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case order.FieldStatus:
-		v, ok := value.(string)
+		v, ok := value.(order.Status)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -3533,9 +3533,9 @@ type PaymentMutation struct {
 	id             *int
 	amount         *float64
 	addamount      *float64
-	payment_method *string
+	payment_method *payment.PaymentMethod
 	transaction_id *string
-	status         *string
+	status         *payment.Status
 	processed_at   *time.Time
 	clearedFields  map[string]struct{}
 	_order         map[int]struct{}
@@ -3701,12 +3701,12 @@ func (m *PaymentMutation) ResetAmount() {
 }
 
 // SetPaymentMethod sets the "payment_method" field.
-func (m *PaymentMutation) SetPaymentMethod(s string) {
-	m.payment_method = &s
+func (m *PaymentMutation) SetPaymentMethod(pm payment.PaymentMethod) {
+	m.payment_method = &pm
 }
 
 // PaymentMethod returns the value of the "payment_method" field in the mutation.
-func (m *PaymentMutation) PaymentMethod() (r string, exists bool) {
+func (m *PaymentMutation) PaymentMethod() (r payment.PaymentMethod, exists bool) {
 	v := m.payment_method
 	if v == nil {
 		return
@@ -3717,7 +3717,7 @@ func (m *PaymentMutation) PaymentMethod() (r string, exists bool) {
 // OldPaymentMethod returns the old "payment_method" field's value of the Payment entity.
 // If the Payment object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PaymentMutation) OldPaymentMethod(ctx context.Context) (v string, err error) {
+func (m *PaymentMutation) OldPaymentMethod(ctx context.Context) (v payment.PaymentMethod, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPaymentMethod is only allowed on UpdateOne operations")
 	}
@@ -3773,12 +3773,12 @@ func (m *PaymentMutation) ResetTransactionID() {
 }
 
 // SetStatus sets the "status" field.
-func (m *PaymentMutation) SetStatus(s string) {
-	m.status = &s
+func (m *PaymentMutation) SetStatus(pa payment.Status) {
+	m.status = &pa
 }
 
 // Status returns the value of the "status" field in the mutation.
-func (m *PaymentMutation) Status() (r string, exists bool) {
+func (m *PaymentMutation) Status() (r payment.Status, exists bool) {
 	v := m.status
 	if v == nil {
 		return
@@ -3789,7 +3789,7 @@ func (m *PaymentMutation) Status() (r string, exists bool) {
 // OldStatus returns the old "status" field's value of the Payment entity.
 // If the Payment object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PaymentMutation) OldStatus(ctx context.Context) (v string, err error) {
+func (m *PaymentMutation) OldStatus(ctx context.Context) (v payment.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
 	}
@@ -4002,7 +4002,7 @@ func (m *PaymentMutation) SetField(name string, value ent.Value) error {
 		m.SetAmount(v)
 		return nil
 	case payment.FieldPaymentMethod:
-		v, ok := value.(string)
+		v, ok := value.(payment.PaymentMethod)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -4016,7 +4016,7 @@ func (m *PaymentMutation) SetField(name string, value ent.Value) error {
 		m.SetTransactionID(v)
 		return nil
 	case payment.FieldStatus:
-		v, ok := value.(string)
+		v, ok := value.(payment.Status)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -5548,7 +5548,7 @@ type StaffMemberMutation struct {
 	name                    *string
 	email                   *string
 	password                *string
-	role                    *string
+	role                    *staffmember.Role
 	clearedFields           map[string]struct{}
 	processed_orders        map[int]struct{}
 	removedprocessed_orders map[int]struct{}
@@ -5765,12 +5765,12 @@ func (m *StaffMemberMutation) ResetPassword() {
 }
 
 // SetRole sets the "role" field.
-func (m *StaffMemberMutation) SetRole(s string) {
+func (m *StaffMemberMutation) SetRole(s staffmember.Role) {
 	m.role = &s
 }
 
 // Role returns the value of the "role" field in the mutation.
-func (m *StaffMemberMutation) Role() (r string, exists bool) {
+func (m *StaffMemberMutation) Role() (r staffmember.Role, exists bool) {
 	v := m.role
 	if v == nil {
 		return
@@ -5781,7 +5781,7 @@ func (m *StaffMemberMutation) Role() (r string, exists bool) {
 // OldRole returns the old "role" field's value of the StaffMember entity.
 // If the StaffMember object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StaffMemberMutation) OldRole(ctx context.Context) (v string, err error) {
+func (m *StaffMemberMutation) OldRole(ctx context.Context) (v staffmember.Role, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldRole is only allowed on UpdateOne operations")
 	}
@@ -5965,7 +5965,7 @@ func (m *StaffMemberMutation) SetField(name string, value ent.Value) error {
 		m.SetPassword(v)
 		return nil
 	case staffmember.FieldRole:
-		v, ok := value.(string)
+		v, ok := value.(staffmember.Role)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

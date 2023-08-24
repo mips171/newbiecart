@@ -18,18 +18,34 @@ func (Payment) Fields() []ent.Field {
 	return []ent.Field{
 		field.Float("amount").
 			Positive(),
-		field.String("payment_method").
-			NotEmpty(), // Could be values like "Credit Card", "PayPal", "Bank Transfer", etc.
+		field.Enum("payment_method").
+			NamedValues(
+				"Credit Card", "CREDIT_CARD",
+				"PayPal", "PAYPAL",
+				"Bank Transfer", "BANK_TRANSFER",
+				"Debit Card", "DEBIT_CARD",
+				"Cash", "CASH",
+				"Check", "CHECK",
+				"Mobile Payment", "MOBILE_PAYMENT",
+				"Other", "OTHER",
+			).
+			Default("CREDIT_CARD"),
 		field.String("transaction_id").
 			Unique(), // Transaction ID returned from the payment gateway or system.
-		field.String("status").
-			Default("pending"). // Typical values: "pending", "completed", "failed", etc.
-			NotEmpty(),
+		field.Enum("status").
+			NamedValues(
+				"Pending", "PENDING",
+				"Completed", "COMPLETED",
+				"Failed", "FAILED",
+				"Refunded", "REFUNDED",
+				"Disputed", "DISPUTED",
+				"Chargeback", "CHARGEBACK",
+			).
+			Default("PENDING"),
 		field.Time("processed_at").
 			Default(time.Now).
 			Immutable(),
 	}
-
 }
 
 // Edges of the Payment.

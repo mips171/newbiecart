@@ -32,15 +32,15 @@ func (ou *OrderUpdate) Where(ps ...predicate.Order) *OrderUpdate {
 }
 
 // SetStatus sets the "status" field.
-func (ou *OrderUpdate) SetStatus(s string) *OrderUpdate {
-	ou.mutation.SetStatus(s)
+func (ou *OrderUpdate) SetStatus(o order.Status) *OrderUpdate {
+	ou.mutation.SetStatus(o)
 	return ou
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (ou *OrderUpdate) SetNillableStatus(s *string) *OrderUpdate {
-	if s != nil {
-		ou.SetStatus(*s)
+func (ou *OrderUpdate) SetNillableStatus(o *order.Status) *OrderUpdate {
+	if o != nil {
+		ou.SetStatus(*o)
 	}
 	return ou
 }
@@ -270,7 +270,7 @@ func (ou *OrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := ou.mutation.Status(); ok {
-		_spec.SetField(order.FieldStatus, field.TypeString, value)
+		_spec.SetField(order.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := ou.mutation.BalanceDue(); ok {
 		_spec.SetField(order.FieldBalanceDue, field.TypeFloat64, value)
@@ -479,15 +479,15 @@ type OrderUpdateOne struct {
 }
 
 // SetStatus sets the "status" field.
-func (ouo *OrderUpdateOne) SetStatus(s string) *OrderUpdateOne {
-	ouo.mutation.SetStatus(s)
+func (ouo *OrderUpdateOne) SetStatus(o order.Status) *OrderUpdateOne {
+	ouo.mutation.SetStatus(o)
 	return ouo
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (ouo *OrderUpdateOne) SetNillableStatus(s *string) *OrderUpdateOne {
-	if s != nil {
-		ouo.SetStatus(*s)
+func (ouo *OrderUpdateOne) SetNillableStatus(o *order.Status) *OrderUpdateOne {
+	if o != nil {
+		ouo.SetStatus(*o)
 	}
 	return ouo
 }
@@ -747,7 +747,7 @@ func (ouo *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error
 		}
 	}
 	if value, ok := ouo.mutation.Status(); ok {
-		_spec.SetField(order.FieldStatus, field.TypeString, value)
+		_spec.SetField(order.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := ouo.mutation.BalanceDue(); ok {
 		_spec.SetField(order.FieldBalanceDue, field.TypeFloat64, value)

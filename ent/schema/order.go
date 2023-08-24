@@ -16,9 +16,19 @@ type Order struct {
 // Fields of the Order.
 func (Order) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("status").
-			Default("pending").
-			NotEmpty(),
+		field.Enum("status").
+			NamedValues(
+				"Pending", "PENDING",
+				"In Progress", "IN_PROGRESS",
+				"Completed", "COMPLETED",
+				"Delivered", "DELIVERED",
+				"Cancelled", "CANCELLED",
+				"Returned", "RETURNED",
+				"Refunded", "REFUNDED",
+				"Failed", "FAILED",
+				"On Hold", "ON_HOLD",
+			).
+			Default("PENDING"),
 		field.Time("placed_at").
 			Default(time.Now).
 			Immutable(),

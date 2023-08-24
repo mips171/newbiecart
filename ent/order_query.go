@@ -407,7 +407,7 @@ func (oq *OrderQuery) WithProcessedBy(opts ...func(*StaffMemberQuery)) *OrderQue
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty"`
+//		Status order.Status `json:"status,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -430,7 +430,7 @@ func (oq *OrderQuery) GroupBy(field string, fields ...string) *OrderGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty"`
+//		Status order.Status `json:"status,omitempty"`
 //	}
 //
 //	client.Order.Query().

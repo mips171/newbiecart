@@ -21,10 +21,18 @@ func (StaffMember) Fields() []ent.Field {
 			NotEmpty(),
 		field.String("password").
 			Sensitive(), // Hide in logs
-		field.String("role").
-			NotEmpty(),
+		field.Enum("role").
+			NamedValues(
+				"Administrator", "ADMINISTRATOR",
+				"Manager", "MANAGER",
+				"Sales Associate", "SALES_ASSOCIATE",
+				"Support Agent", "SUPPORT_AGENT",
+				"Technician", "TECHNICIAN",
+				"Cashier", "CASHIER",
+				"Inventory Specialist", "INVENTORY_SPECIALIST",
+				"Other", "OTHER",
+			).Default("SALES_ASSOCIATE"),
 	}
-
 }
 
 // Edges of the StaffMember.

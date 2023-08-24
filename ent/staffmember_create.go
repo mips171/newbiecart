@@ -39,8 +39,16 @@ func (smc *StaffMemberCreate) SetPassword(s string) *StaffMemberCreate {
 }
 
 // SetRole sets the "role" field.
-func (smc *StaffMemberCreate) SetRole(s string) *StaffMemberCreate {
+func (smc *StaffMemberCreate) SetRole(s staffmember.Role) *StaffMemberCreate {
 	smc.mutation.SetRole(s)
+	return smc
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (smc *StaffMemberCreate) SetNillableRole(s *staffmember.Role) *StaffMemberCreate {
+	if s != nil {
+		smc.SetRole(*s)
+	}
 	return smc
 }
 
@@ -66,6 +74,7 @@ func (smc *StaffMemberCreate) Mutation() *StaffMemberMutation {
 
 // Save creates the StaffMember in the database.
 func (smc *StaffMemberCreate) Save(ctx context.Context) (*StaffMember, error) {
+	smc.defaults()
 	return withHooks(ctx, smc.sqlSave, smc.mutation, smc.hooks)
 }
 
@@ -88,6 +97,14 @@ func (smc *StaffMemberCreate) Exec(ctx context.Context) error {
 func (smc *StaffMemberCreate) ExecX(ctx context.Context) {
 	if err := smc.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (smc *StaffMemberCreate) defaults() {
+	if _, ok := smc.mutation.Role(); !ok {
+		v := staffmember.DefaultRole
+		smc.mutation.SetRole(v)
 	}
 }
 
@@ -159,7 +176,7 @@ func (smc *StaffMemberCreate) createSpec() (*StaffMember, *sqlgraph.CreateSpec) 
 		_node.Password = value
 	}
 	if value, ok := smc.mutation.Role(); ok {
-		_spec.SetField(staffmember.FieldRole, field.TypeString, value)
+		_spec.SetField(staffmember.FieldRole, field.TypeEnum, value)
 		_node.Role = value
 	}
 	if nodes := smc.mutation.ProcessedOrdersIDs(); len(nodes) > 0 {
@@ -195,6 +212,7 @@ func (smcb *StaffMemberCreateBulk) Save(ctx context.Context) ([]*StaffMember, er
 	for i := range smcb.builders {
 		func(i int, root context.Context) {
 			builder := smcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*StaffMemberMutation)
 				if !ok {

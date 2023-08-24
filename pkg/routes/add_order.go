@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/mikestefanello/pagoda/ent"
+	"github.com/mikestefanello/pagoda/ent/order"
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/msg"
@@ -70,7 +71,7 @@ func (c *AddOrderController) Post(ctx echo.Context) error {
 	// Attempt creating the order
 	o, err := c.Container.ORM.Order.
 		Create().
-		SetStatus(form.Status).
+		SetStatus(order.Status(form.Status)).
 		SetBalanceDue(form.BalanceDue).
 		Save(ctx.Request().Context())
 
