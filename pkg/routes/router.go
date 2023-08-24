@@ -101,15 +101,11 @@ func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 	productDetail := productDetail{Controller: ctr}
 	g.GET("/products/:id", productDetail.Get)
 
-	addOrder := AddOrderController{Controller: ctr}
-	g.GET("/orders/add", addOrder.Get).Name = "add_order"
-	g.POST("/orders/add", addOrder.Post).Name = "add_order.post"
-
 	orders := ordersController{Controller: ctr}
-	g.GET("/orders", orders.Get).Name = "orders"
-
-	orderDetail := orderDetail{Controller: ctr}
-	g.GET("/orders/:id", orderDetail.Get).Name = "order"
+	g.GET("/orders/add", orders.CreateOrder).Name = "add_order"
+	g.POST("/orders/add", orders.ShowCreateOrderForm).Name = "add_order.post"
+	g.GET("/orders", orders.GetOrders).Name = "orders"
+	g.GET("/orders/:id", orders.Get).Name = "order"
 }
 
 func userRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
