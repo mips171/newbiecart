@@ -29,6 +29,8 @@ const (
 	EdgePayments = "payments"
 	// EdgeProcessedBy holds the string denoting the processed_by edge name in mutations.
 	EdgeProcessedBy = "processed_by"
+	// EdgeCompany holds the string denoting the company edge name in mutations.
+	EdgeCompany = "company"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// CustomerTable is the table that holds the customer relation/edge. The primary key declared below.
@@ -51,6 +53,13 @@ const (
 	// ProcessedByInverseTable is the table name for the StaffMember entity.
 	// It exists in this package in order to avoid circular dependency with the "staffmember" package.
 	ProcessedByInverseTable = "staff_members"
+	// CompanyTable is the table that holds the company relation/edge.
+	CompanyTable = "orders"
+	// CompanyInverseTable is the table name for the Company entity.
+	// It exists in this package in order to avoid circular dependency with the "company" package.
+	CompanyInverseTable = "companies"
+	// CompanyColumn is the table column denoting the company relation/edge.
+	CompanyColumn = "company_orders"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -64,6 +73,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "orders"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"company_orders",
 	"user_orders",
 }
 
@@ -217,6 +227,13 @@ func ByProcessedBy(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newProcessedByStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCompanyField orders the results by company field.
+func ByCompanyField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCompanyStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newCustomerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -243,5 +260,12 @@ func newProcessedByStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ProcessedByInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, true, ProcessedByTable, ProcessedByPrimaryKey...),
+	)
+}
+func newCompanyStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CompanyInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CompanyTable, CompanyColumn),
 	)
 }

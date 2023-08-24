@@ -38,6 +38,17 @@ var (
 		Columns:    CartItemsColumns,
 		PrimaryKey: []*schema.Column{CartItemsColumns[0]},
 	}
+	// CompaniesColumns holds the columns for the "companies" table.
+	CompaniesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+	}
+	// CompaniesTable holds the schema information for the "companies" table.
+	CompaniesTable = &schema.Table{
+		Name:       "companies",
+		Columns:    CompaniesColumns,
+		PrimaryKey: []*schema.Column{CompaniesColumns[0]},
+	}
 	// CustomersColumns holds the columns for the "customers" table.
 	CustomersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -46,12 +57,21 @@ var (
 		{Name: "password", Type: field.TypeString},
 		{Name: "address", Type: field.TypeString},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "INACTIVE"}, Default: "ACTIVE"},
+		{Name: "company_customers", Type: field.TypeInt, Nullable: true},
 	}
 	// CustomersTable holds the schema information for the "customers" table.
 	CustomersTable = &schema.Table{
 		Name:       "customers",
 		Columns:    CustomersColumns,
 		PrimaryKey: []*schema.Column{CustomersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "customers_companies_customers",
+				Columns:    []*schema.Column{CustomersColumns[6]},
+				RefColumns: []*schema.Column{CompaniesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// OrdersColumns holds the columns for the "orders" table.
 	OrdersColumns = []*schema.Column{
@@ -59,6 +79,7 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "IN_PROGRESS", "COMPLETED", "DELIVERED", "CANCELLED", "RETURNED", "REFUNDED", "FAILED", "ON_HOLD"}, Default: "PENDING"},
 		{Name: "placed_at", Type: field.TypeTime},
 		{Name: "balance_due", Type: field.TypeFloat64, Default: 0},
+		{Name: "company_orders", Type: field.TypeInt, Nullable: true},
 		{Name: "user_orders", Type: field.TypeInt, Nullable: true},
 	}
 	// OrdersTable holds the schema information for the "orders" table.
@@ -68,8 +89,14 @@ var (
 		PrimaryKey: []*schema.Column{OrdersColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "orders_users_orders",
+				Symbol:     "orders_companies_orders",
 				Columns:    []*schema.Column{OrdersColumns[4]},
+				RefColumns: []*schema.Column{CompaniesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "orders_users_orders",
+				Columns:    []*schema.Column{OrdersColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -387,6 +414,7 @@ var (
 	Tables = []*schema.Table{
 		CartsTable,
 		CartItemsTable,
+		CompaniesTable,
 		CustomersTable,
 		OrdersTable,
 		OrderItemsTable,
@@ -409,7 +437,9 @@ var (
 
 func init() {
 	CartsTable.ForeignKeys[0].RefTable = CustomersTable
-	OrdersTable.ForeignKeys[0].RefTable = UsersTable
+	CustomersTable.ForeignKeys[0].RefTable = CompaniesTable
+	OrdersTable.ForeignKeys[0].RefTable = CompaniesTable
+	OrdersTable.ForeignKeys[1].RefTable = UsersTable
 	PasswordTokensTable.ForeignKeys[0].RefTable = UsersTable
 	CartCartItemsTable.ForeignKeys[0].RefTable = CartsTable
 	CartCartItemsTable.ForeignKeys[1].RefTable = CartItemsTable

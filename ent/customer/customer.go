@@ -28,6 +28,8 @@ const (
 	EdgeOrders = "orders"
 	// EdgeCart holds the string denoting the cart edge name in mutations.
 	EdgeCart = "cart"
+	// EdgeCompany holds the string denoting the company edge name in mutations.
+	EdgeCompany = "company"
 	// Table holds the table name of the customer in the database.
 	Table = "customers"
 	// OrdersTable is the table that holds the orders relation/edge. The primary key declared below.
@@ -42,6 +44,13 @@ const (
 	CartInverseTable = "carts"
 	// CartColumn is the table column denoting the cart relation/edge.
 	CartColumn = "customer_cart"
+	// CompanyTable is the table that holds the company relation/edge.
+	CompanyTable = "customers"
+	// CompanyInverseTable is the table name for the Company entity.
+	// It exists in this package in order to avoid circular dependency with the "company" package.
+	CompanyInverseTable = "companies"
+	// CompanyColumn is the table column denoting the company relation/edge.
+	CompanyColumn = "company_customers"
 )
 
 // Columns holds all SQL columns for customer fields.
@@ -54,6 +63,12 @@ var Columns = []string{
 	FieldStatus,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "customers"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"company_customers",
+}
+
 var (
 	// OrdersPrimaryKey and OrdersColumn2 are the table columns denoting the
 	// primary key for the orders relation (M2M).
@@ -64,6 +79,11 @@ var (
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -156,6 +176,13 @@ func ByCartField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCartStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByCompanyField orders the results by company field.
+func ByCompanyField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCompanyStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newOrdersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -168,5 +195,12 @@ func newCartStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CartInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, CartTable, CartColumn),
+	)
+}
+func newCompanyStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CompanyInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CompanyTable, CompanyColumn),
 	)
 }

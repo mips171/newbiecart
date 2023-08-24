@@ -12,6 +12,9 @@ type Cart func(*sql.Selector)
 // CartItem is the predicate function for cartitem builders.
 type CartItem func(*sql.Selector)
 
+// Company is the predicate function for company builders.
+type Company func(*sql.Selector)
+
 // Customer is the predicate function for customer builders.
 type Customer func(*sql.Selector)
 

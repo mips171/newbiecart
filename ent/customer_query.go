@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mikestefanello/pagoda/ent/cart"
+	"github.com/mikestefanello/pagoda/ent/company"
 	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/order"
 	"github.com/mikestefanello/pagoda/ent/predicate"
@@ -20,12 +21,14 @@ import (
 // CustomerQuery is the builder for querying Customer entities.
 type CustomerQuery struct {
 	config
-	ctx        *QueryContext
-	order      []customer.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Customer
-	withOrders *OrderQuery
-	withCart   *CartQuery
+	ctx         *QueryContext
+	order       []customer.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.Customer
+	withOrders  *OrderQuery
+	withCart    *CartQuery
+	withCompany *CompanyQuery
+	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -99,6 +102,28 @@ func (cq *CustomerQuery) QueryCart() *CartQuery {
 			sqlgraph.From(customer.Table, customer.FieldID, selector),
 			sqlgraph.To(cart.Table, cart.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, customer.CartTable, customer.CartColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCompany chains the current query on the "company" edge.
+func (cq *CustomerQuery) QueryCompany() *CompanyQuery {
+	query := (&CompanyClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(customer.Table, customer.FieldID, selector),
+			sqlgraph.To(company.Table, company.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, customer.CompanyTable, customer.CompanyColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -293,13 +318,14 @@ func (cq *CustomerQuery) Clone() *CustomerQuery {
 		return nil
 	}
 	return &CustomerQuery{
-		config:     cq.config,
-		ctx:        cq.ctx.Clone(),
-		order:      append([]customer.OrderOption{}, cq.order...),
-		inters:     append([]Interceptor{}, cq.inters...),
-		predicates: append([]predicate.Customer{}, cq.predicates...),
-		withOrders: cq.withOrders.Clone(),
-		withCart:   cq.withCart.Clone(),
+		config:      cq.config,
+		ctx:         cq.ctx.Clone(),
+		order:       append([]customer.OrderOption{}, cq.order...),
+		inters:      append([]Interceptor{}, cq.inters...),
+		predicates:  append([]predicate.Customer{}, cq.predicates...),
+		withOrders:  cq.withOrders.Clone(),
+		withCart:    cq.withCart.Clone(),
+		withCompany: cq.withCompany.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
@@ -325,6 +351,17 @@ func (cq *CustomerQuery) WithCart(opts ...func(*CartQuery)) *CustomerQuery {
 		opt(query)
 	}
 	cq.withCart = query
+	return cq
+}
+
+// WithCompany tells the query-builder to eager-load the nodes that are connected to
+// the "company" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CustomerQuery) WithCompany(opts ...func(*CompanyQuery)) *CustomerQuery {
+	query := (&CompanyClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withCompany = query
 	return cq
 }
 
@@ -405,12 +442,20 @@ func (cq *CustomerQuery) prepareQuery(ctx context.Context) error {
 func (cq *CustomerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Customer, error) {
 	var (
 		nodes       = []*Customer{}
+		withFKs     = cq.withFKs
 		_spec       = cq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			cq.withOrders != nil,
 			cq.withCart != nil,
+			cq.withCompany != nil,
 		}
 	)
+	if cq.withCompany != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, customer.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Customer).scanValues(nil, columns)
 	}
@@ -439,6 +484,12 @@ func (cq *CustomerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cus
 	if query := cq.withCart; query != nil {
 		if err := cq.loadCart(ctx, query, nodes, nil,
 			func(n *Customer, e *Cart) { n.Edges.Cart = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := cq.withCompany; query != nil {
+		if err := cq.loadCompany(ctx, query, nodes, nil,
+			func(n *Customer, e *Company) { n.Edges.Company = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -531,6 +582,38 @@ func (cq *CustomerQuery) loadCart(ctx context.Context, query *CartQuery, nodes [
 			return fmt.Errorf(`unexpected referenced foreign-key "customer_cart" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (cq *CustomerQuery) loadCompany(ctx context.Context, query *CompanyQuery, nodes []*Customer, init func(*Customer), assign func(*Customer, *Company)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Customer)
+	for i := range nodes {
+		if nodes[i].company_customers == nil {
+			continue
+		}
+		fk := *nodes[i].company_customers
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(company.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "company_customers" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

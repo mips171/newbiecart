@@ -34,5 +34,6 @@ func (Customer) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("orders", Order.Type),
 		edge.To("cart", Cart.Type).Unique(),
+		edge.From("company", Company.Type).Unique().Ref("customers"), // Ref to 'customers' in Company entity.
 	}
 }

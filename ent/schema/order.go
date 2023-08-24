@@ -47,5 +47,7 @@ func (Order) Edges() []ent.Edge {
 		edge.To("payments", Payment.Type),
 		edge.From("processed_by", StaffMember.Type).
 			Ref("processed_orders"),
+		edge.From("company", Company.Type).Unique().
+			Ref("orders"),
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mikestefanello/pagoda/ent/cartitem"
+	"github.com/mikestefanello/pagoda/ent/company"
 	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/order"
 	"github.com/mikestefanello/pagoda/ent/orderitem"
@@ -30,6 +31,12 @@ func init() {
 	cartitem.DefaultQuantity = cartitemDescQuantity.Default.(int)
 	// cartitem.QuantityValidator is a validator for the "quantity" field. It is called by the builders before save.
 	cartitem.QuantityValidator = cartitemDescQuantity.Validators[0].(func(int) error)
+	companyFields := schema.Company{}.Fields()
+	_ = companyFields
+	// companyDescName is the schema descriptor for name field.
+	companyDescName := companyFields[0].Descriptor()
+	// company.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	company.NameValidator = companyDescName.Validators[0].(func(string) error)
 	customerFields := schema.Customer{}.Fields()
 	_ = customerFields
 	// customerDescName is the schema descriptor for name field.

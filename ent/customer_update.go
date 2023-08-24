@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mikestefanello/pagoda/ent/cart"
+	"github.com/mikestefanello/pagoda/ent/company"
 	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/order"
 	"github.com/mikestefanello/pagoda/ent/predicate"
@@ -101,6 +102,25 @@ func (cu *CustomerUpdate) SetCart(c *Cart) *CustomerUpdate {
 	return cu.SetCartID(c.ID)
 }
 
+// SetCompanyID sets the "company" edge to the Company entity by ID.
+func (cu *CustomerUpdate) SetCompanyID(id int) *CustomerUpdate {
+	cu.mutation.SetCompanyID(id)
+	return cu
+}
+
+// SetNillableCompanyID sets the "company" edge to the Company entity by ID if the given value is not nil.
+func (cu *CustomerUpdate) SetNillableCompanyID(id *int) *CustomerUpdate {
+	if id != nil {
+		cu = cu.SetCompanyID(*id)
+	}
+	return cu
+}
+
+// SetCompany sets the "company" edge to the Company entity.
+func (cu *CustomerUpdate) SetCompany(c *Company) *CustomerUpdate {
+	return cu.SetCompanyID(c.ID)
+}
+
 // Mutation returns the CustomerMutation object of the builder.
 func (cu *CustomerUpdate) Mutation() *CustomerMutation {
 	return cu.mutation
@@ -130,6 +150,12 @@ func (cu *CustomerUpdate) RemoveOrders(o ...*Order) *CustomerUpdate {
 // ClearCart clears the "cart" edge to the Cart entity.
 func (cu *CustomerUpdate) ClearCart() *CustomerUpdate {
 	cu.mutation.ClearCart()
+	return cu
+}
+
+// ClearCompany clears the "company" edge to the Company entity.
+func (cu *CustomerUpdate) ClearCompany() *CustomerUpdate {
+	cu.mutation.ClearCompany()
 	return cu
 }
 
@@ -281,6 +307,35 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if cu.mutation.CompanyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   customer.CompanyTable,
+			Columns: []string{customer.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.CompanyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   customer.CompanyTable,
+			Columns: []string{customer.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{customer.Label}
@@ -373,6 +428,25 @@ func (cuo *CustomerUpdateOne) SetCart(c *Cart) *CustomerUpdateOne {
 	return cuo.SetCartID(c.ID)
 }
 
+// SetCompanyID sets the "company" edge to the Company entity by ID.
+func (cuo *CustomerUpdateOne) SetCompanyID(id int) *CustomerUpdateOne {
+	cuo.mutation.SetCompanyID(id)
+	return cuo
+}
+
+// SetNillableCompanyID sets the "company" edge to the Company entity by ID if the given value is not nil.
+func (cuo *CustomerUpdateOne) SetNillableCompanyID(id *int) *CustomerUpdateOne {
+	if id != nil {
+		cuo = cuo.SetCompanyID(*id)
+	}
+	return cuo
+}
+
+// SetCompany sets the "company" edge to the Company entity.
+func (cuo *CustomerUpdateOne) SetCompany(c *Company) *CustomerUpdateOne {
+	return cuo.SetCompanyID(c.ID)
+}
+
 // Mutation returns the CustomerMutation object of the builder.
 func (cuo *CustomerUpdateOne) Mutation() *CustomerMutation {
 	return cuo.mutation
@@ -402,6 +476,12 @@ func (cuo *CustomerUpdateOne) RemoveOrders(o ...*Order) *CustomerUpdateOne {
 // ClearCart clears the "cart" edge to the Cart entity.
 func (cuo *CustomerUpdateOne) ClearCart() *CustomerUpdateOne {
 	cuo.mutation.ClearCart()
+	return cuo
+}
+
+// ClearCompany clears the "company" edge to the Company entity.
+func (cuo *CustomerUpdateOne) ClearCompany() *CustomerUpdateOne {
+	cuo.mutation.ClearCompany()
 	return cuo
 }
 
@@ -576,6 +656,35 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (_node *Customer, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cart.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.CompanyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   customer.CompanyTable,
+			Columns: []string{customer.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.CompanyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   customer.CompanyTable,
+			Columns: []string{customer.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

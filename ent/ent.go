@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/mikestefanello/pagoda/ent/cart"
 	"github.com/mikestefanello/pagoda/ent/cartitem"
+	"github.com/mikestefanello/pagoda/ent/company"
 	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/order"
 	"github.com/mikestefanello/pagoda/ent/orderitem"
@@ -85,6 +86,7 @@ func checkColumn(table, column string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			cart.Table:            cart.ValidColumn,
 			cartitem.Table:        cartitem.ValidColumn,
+			company.Table:         company.ValidColumn,
 			customer.Table:        customer.ValidColumn,
 			order.Table:           order.ValidColumn,
 			orderitem.Table:       orderitem.ValidColumn,

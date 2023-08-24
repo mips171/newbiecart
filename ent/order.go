@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/mikestefanello/pagoda/ent/company"
 	"github.com/mikestefanello/pagoda/ent/order"
 )
 
@@ -25,9 +26,10 @@ type Order struct {
 	BalanceDue float64 `json:"balance_due,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderQuery when eager-loading is set.
-	Edges        OrderEdges `json:"edges"`
-	user_orders  *int
-	selectValues sql.SelectValues
+	Edges          OrderEdges `json:"edges"`
+	company_orders *int
+	user_orders    *int
+	selectValues   sql.SelectValues
 }
 
 // OrderEdges holds the relations/edges for other nodes in the graph.
@@ -40,9 +42,11 @@ type OrderEdges struct {
 	Payments []*Payment `json:"payments,omitempty"`
 	// ProcessedBy holds the value of the processed_by edge.
 	ProcessedBy []*StaffMember `json:"processed_by,omitempty"`
+	// Company holds the value of the company edge.
+	Company *Company `json:"company,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // CustomerOrErr returns the Customer value or an error if the edge
@@ -81,6 +85,19 @@ func (e OrderEdges) ProcessedByOrErr() ([]*StaffMember, error) {
 	return nil, &NotLoadedError{edge: "processed_by"}
 }
 
+// CompanyOrErr returns the Company value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderEdges) CompanyOrErr() (*Company, error) {
+	if e.loadedTypes[4] {
+		if e.Company == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: company.Label}
+		}
+		return e.Company, nil
+	}
+	return nil, &NotLoadedError{edge: "company"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Order) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -94,7 +111,9 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case order.FieldPlacedAt:
 			values[i] = new(sql.NullTime)
-		case order.ForeignKeys[0]: // user_orders
+		case order.ForeignKeys[0]: // company_orders
+			values[i] = new(sql.NullInt64)
+		case order.ForeignKeys[1]: // user_orders
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -137,6 +156,13 @@ func (o *Order) assignValues(columns []string, values []any) error {
 			}
 		case order.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field company_orders", value)
+			} else if value.Valid {
+				o.company_orders = new(int)
+				*o.company_orders = int(value.Int64)
+			}
+		case order.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_orders", value)
 			} else if value.Valid {
 				o.user_orders = new(int)
@@ -173,6 +199,11 @@ func (o *Order) QueryPayments() *PaymentQuery {
 // QueryProcessedBy queries the "processed_by" edge of the Order entity.
 func (o *Order) QueryProcessedBy() *StaffMemberQuery {
 	return NewOrderClient(o.config).QueryProcessedBy(o)
+}
+
+// QueryCompany queries the "company" edge of the Order entity.
+func (o *Order) QueryCompany() *CompanyQuery {
+	return NewOrderClient(o.config).QueryCompany(o)
 }
 
 // Update returns a builder for updating this Order.

@@ -16,6 +16,8 @@ type Tx struct {
 	Cart *CartClient
 	// CartItem is the client for interacting with the CartItem builders.
 	CartItem *CartItemClient
+	// Company is the client for interacting with the Company builders.
+	Company *CompanyClient
 	// Customer is the client for interacting with the Customer builders.
 	Customer *CustomerClient
 	// Order is the client for interacting with the Order builders.
@@ -167,6 +169,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Cart = NewCartClient(tx.config)
 	tx.CartItem = NewCartItemClient(tx.config)
+	tx.Company = NewCompanyClient(tx.config)
 	tx.Customer = NewCustomerClient(tx.config)
 	tx.Order = NewOrderClient(tx.config)
 	tx.OrderItem = NewOrderItemClient(tx.config)

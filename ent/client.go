@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/mikestefanello/pagoda/ent/cart"
 	"github.com/mikestefanello/pagoda/ent/cartitem"
+	"github.com/mikestefanello/pagoda/ent/company"
 	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/order"
 	"github.com/mikestefanello/pagoda/ent/orderitem"
@@ -36,6 +37,8 @@ type Client struct {
 	Cart *CartClient
 	// CartItem is the client for interacting with the CartItem builders.
 	CartItem *CartItemClient
+	// Company is the client for interacting with the Company builders.
+	Company *CompanyClient
 	// Customer is the client for interacting with the Customer builders.
 	Customer *CustomerClient
 	// Order is the client for interacting with the Order builders.
@@ -69,6 +72,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Cart = NewCartClient(c.config)
 	c.CartItem = NewCartItemClient(c.config)
+	c.Company = NewCompanyClient(c.config)
 	c.Customer = NewCustomerClient(c.config)
 	c.Order = NewOrderClient(c.config)
 	c.OrderItem = NewOrderItemClient(c.config)
@@ -162,6 +166,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:          cfg,
 		Cart:            NewCartClient(cfg),
 		CartItem:        NewCartItemClient(cfg),
+		Company:         NewCompanyClient(cfg),
 		Customer:        NewCustomerClient(cfg),
 		Order:           NewOrderClient(cfg),
 		OrderItem:       NewOrderItemClient(cfg),
@@ -192,6 +197,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:          cfg,
 		Cart:            NewCartClient(cfg),
 		CartItem:        NewCartItemClient(cfg),
+		Company:         NewCompanyClient(cfg),
 		Customer:        NewCustomerClient(cfg),
 		Order:           NewOrderClient(cfg),
 		OrderItem:       NewOrderItemClient(cfg),
@@ -230,8 +236,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Cart, c.CartItem, c.Customer, c.Order, c.OrderItem, c.PasswordToken,
-		c.Payment, c.Product, c.ProductCategory, c.StaffMember, c.User,
+		c.Cart, c.CartItem, c.Company, c.Customer, c.Order, c.OrderItem,
+		c.PasswordToken, c.Payment, c.Product, c.ProductCategory, c.StaffMember,
+		c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -241,8 +248,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Cart, c.CartItem, c.Customer, c.Order, c.OrderItem, c.PasswordToken,
-		c.Payment, c.Product, c.ProductCategory, c.StaffMember, c.User,
+		c.Cart, c.CartItem, c.Company, c.Customer, c.Order, c.OrderItem,
+		c.PasswordToken, c.Payment, c.Product, c.ProductCategory, c.StaffMember,
+		c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -255,6 +263,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Cart.mutate(ctx, m)
 	case *CartItemMutation:
 		return c.CartItem.mutate(ctx, m)
+	case *CompanyMutation:
+		return c.Company.mutate(ctx, m)
 	case *CustomerMutation:
 		return c.Customer.mutate(ctx, m)
 	case *OrderMutation:
@@ -578,6 +588,156 @@ func (c *CartItemClient) mutate(ctx context.Context, m *CartItemMutation) (Value
 	}
 }
 
+// CompanyClient is a client for the Company schema.
+type CompanyClient struct {
+	config
+}
+
+// NewCompanyClient returns a client for the Company from the given config.
+func NewCompanyClient(c config) *CompanyClient {
+	return &CompanyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `company.Hooks(f(g(h())))`.
+func (c *CompanyClient) Use(hooks ...Hook) {
+	c.hooks.Company = append(c.hooks.Company, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `company.Intercept(f(g(h())))`.
+func (c *CompanyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Company = append(c.inters.Company, interceptors...)
+}
+
+// Create returns a builder for creating a Company entity.
+func (c *CompanyClient) Create() *CompanyCreate {
+	mutation := newCompanyMutation(c.config, OpCreate)
+	return &CompanyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Company entities.
+func (c *CompanyClient) CreateBulk(builders ...*CompanyCreate) *CompanyCreateBulk {
+	return &CompanyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Company.
+func (c *CompanyClient) Update() *CompanyUpdate {
+	mutation := newCompanyMutation(c.config, OpUpdate)
+	return &CompanyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CompanyClient) UpdateOne(co *Company) *CompanyUpdateOne {
+	mutation := newCompanyMutation(c.config, OpUpdateOne, withCompany(co))
+	return &CompanyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CompanyClient) UpdateOneID(id int) *CompanyUpdateOne {
+	mutation := newCompanyMutation(c.config, OpUpdateOne, withCompanyID(id))
+	return &CompanyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Company.
+func (c *CompanyClient) Delete() *CompanyDelete {
+	mutation := newCompanyMutation(c.config, OpDelete)
+	return &CompanyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CompanyClient) DeleteOne(co *Company) *CompanyDeleteOne {
+	return c.DeleteOneID(co.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CompanyClient) DeleteOneID(id int) *CompanyDeleteOne {
+	builder := c.Delete().Where(company.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CompanyDeleteOne{builder}
+}
+
+// Query returns a query builder for Company.
+func (c *CompanyClient) Query() *CompanyQuery {
+	return &CompanyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCompany},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Company entity by its id.
+func (c *CompanyClient) Get(ctx context.Context, id int) (*Company, error) {
+	return c.Query().Where(company.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CompanyClient) GetX(ctx context.Context, id int) *Company {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCustomers queries the customers edge of a Company.
+func (c *CompanyClient) QueryCustomers(co *Company) *CustomerQuery {
+	query := (&CustomerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(company.Table, company.FieldID, id),
+			sqlgraph.To(customer.Table, customer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, company.CustomersTable, company.CustomersColumn),
+		)
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrders queries the orders edge of a Company.
+func (c *CompanyClient) QueryOrders(co *Company) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(company.Table, company.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, company.OrdersTable, company.OrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CompanyClient) Hooks() []Hook {
+	return c.hooks.Company
+}
+
+// Interceptors returns the client interceptors.
+func (c *CompanyClient) Interceptors() []Interceptor {
+	return c.inters.Company
+}
+
+func (c *CompanyClient) mutate(ctx context.Context, m *CompanyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CompanyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CompanyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CompanyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CompanyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Company mutation op: %q", m.Op())
+	}
+}
+
 // CustomerClient is a client for the Customer schema.
 type CustomerClient struct {
 	config
@@ -696,6 +856,22 @@ func (c *CustomerClient) QueryCart(cu *Customer) *CartQuery {
 			sqlgraph.From(customer.Table, customer.FieldID, id),
 			sqlgraph.To(cart.Table, cart.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, customer.CartTable, customer.CartColumn),
+		)
+		fromV = sqlgraph.Neighbors(cu.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCompany queries the company edge of a Customer.
+func (c *CustomerClient) QueryCompany(cu *Customer) *CompanyQuery {
+	query := (&CompanyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cu.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(customer.Table, customer.FieldID, id),
+			sqlgraph.To(company.Table, company.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, customer.CompanyTable, customer.CompanyColumn),
 		)
 		fromV = sqlgraph.Neighbors(cu.driver.Dialect(), step)
 		return fromV, nil
@@ -878,6 +1054,22 @@ func (c *OrderClient) QueryProcessedBy(o *Order) *StaffMemberQuery {
 			sqlgraph.From(order.Table, order.FieldID, id),
 			sqlgraph.To(staffmember.Table, staffmember.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, order.ProcessedByTable, order.ProcessedByPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(o.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCompany queries the company edge of a Order.
+func (c *OrderClient) QueryCompany(o *Order) *CompanyQuery {
+	query := (&CompanyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := o.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(company.Table, company.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, order.CompanyTable, order.CompanyColumn),
 		)
 		fromV = sqlgraph.Neighbors(o.driver.Dialect(), step)
 		return fromV, nil
@@ -1916,11 +2108,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Cart, CartItem, Customer, Order, OrderItem, PasswordToken, Payment, Product,
-		ProductCategory, StaffMember, User []ent.Hook
+		Cart, CartItem, Company, Customer, Order, OrderItem, PasswordToken, Payment,
+		Product, ProductCategory, StaffMember, User []ent.Hook
 	}
 	inters struct {
-		Cart, CartItem, Customer, Order, OrderItem, PasswordToken, Payment, Product,
-		ProductCategory, StaffMember, User []ent.Interceptor
+		Cart, CartItem, Company, Customer, Order, OrderItem, PasswordToken, Payment,
+		Product, ProductCategory, StaffMember, User []ent.Interceptor
 	}
 )

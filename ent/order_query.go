@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/mikestefanello/pagoda/ent/company"
 	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/order"
 	"github.com/mikestefanello/pagoda/ent/orderitem"
@@ -30,6 +31,7 @@ type OrderQuery struct {
 	withOrderItems  *OrderItemQuery
 	withPayments    *PaymentQuery
 	withProcessedBy *StaffMemberQuery
+	withCompany     *CompanyQuery
 	withFKs         bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -148,6 +150,28 @@ func (oq *OrderQuery) QueryProcessedBy() *StaffMemberQuery {
 			sqlgraph.From(order.Table, order.FieldID, selector),
 			sqlgraph.To(staffmember.Table, staffmember.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, order.ProcessedByTable, order.ProcessedByPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(oq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCompany chains the current query on the "company" edge.
+func (oq *OrderQuery) QueryCompany() *CompanyQuery {
+	query := (&CompanyClient{config: oq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := oq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := oq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, selector),
+			sqlgraph.To(company.Table, company.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, order.CompanyTable, order.CompanyColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(oq.driver.Dialect(), step)
 		return fromU, nil
@@ -351,6 +375,7 @@ func (oq *OrderQuery) Clone() *OrderQuery {
 		withOrderItems:  oq.withOrderItems.Clone(),
 		withPayments:    oq.withPayments.Clone(),
 		withProcessedBy: oq.withProcessedBy.Clone(),
+		withCompany:     oq.withCompany.Clone(),
 		// clone intermediate query.
 		sql:  oq.sql.Clone(),
 		path: oq.path,
@@ -398,6 +423,17 @@ func (oq *OrderQuery) WithProcessedBy(opts ...func(*StaffMemberQuery)) *OrderQue
 		opt(query)
 	}
 	oq.withProcessedBy = query
+	return oq
+}
+
+// WithCompany tells the query-builder to eager-load the nodes that are connected to
+// the "company" edge. The optional arguments are used to configure the query builder of the edge.
+func (oq *OrderQuery) WithCompany(opts ...func(*CompanyQuery)) *OrderQuery {
+	query := (&CompanyClient{config: oq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	oq.withCompany = query
 	return oq
 }
 
@@ -480,13 +516,17 @@ func (oq *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 		nodes       = []*Order{}
 		withFKs     = oq.withFKs
 		_spec       = oq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			oq.withCustomer != nil,
 			oq.withOrderItems != nil,
 			oq.withPayments != nil,
 			oq.withProcessedBy != nil,
+			oq.withCompany != nil,
 		}
 	)
+	if oq.withCompany != nil {
+		withFKs = true
+	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, order.ForeignKeys...)
 	}
@@ -533,6 +573,12 @@ func (oq *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 		if err := oq.loadProcessedBy(ctx, query, nodes,
 			func(n *Order) { n.Edges.ProcessedBy = []*StaffMember{} },
 			func(n *Order, e *StaffMember) { n.Edges.ProcessedBy = append(n.Edges.ProcessedBy, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := oq.withCompany; query != nil {
+		if err := oq.loadCompany(ctx, query, nodes, nil,
+			func(n *Order, e *Company) { n.Edges.Company = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -779,6 +825,38 @@ func (oq *OrderQuery) loadProcessedBy(ctx context.Context, query *StaffMemberQue
 		}
 		for kn := range nodes {
 			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (oq *OrderQuery) loadCompany(ctx context.Context, query *CompanyQuery, nodes []*Order, init func(*Order), assign func(*Order, *Company)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Order)
+	for i := range nodes {
+		if nodes[i].company_orders == nil {
+			continue
+		}
+		fk := *nodes[i].company_orders
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(company.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "company_orders" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil

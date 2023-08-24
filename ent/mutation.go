@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/mikestefanello/pagoda/ent/cart"
 	"github.com/mikestefanello/pagoda/ent/cartitem"
+	"github.com/mikestefanello/pagoda/ent/company"
 	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/order"
 	"github.com/mikestefanello/pagoda/ent/orderitem"
@@ -36,6 +37,7 @@ const (
 	// Node types.
 	TypeCart            = "Cart"
 	TypeCartItem        = "CartItem"
+	TypeCompany         = "Company"
 	TypeCustomer        = "Customer"
 	TypeOrder           = "Order"
 	TypeOrderItem       = "OrderItem"
@@ -1001,26 +1003,530 @@ func (m *CartItemMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown CartItem edge %s", name)
 }
 
+// CompanyMutation represents an operation that mutates the Company nodes in the graph.
+type CompanyMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	name             *string
+	clearedFields    map[string]struct{}
+	customers        map[int]struct{}
+	removedcustomers map[int]struct{}
+	clearedcustomers bool
+	orders           map[int]struct{}
+	removedorders    map[int]struct{}
+	clearedorders    bool
+	done             bool
+	oldValue         func(context.Context) (*Company, error)
+	predicates       []predicate.Company
+}
+
+var _ ent.Mutation = (*CompanyMutation)(nil)
+
+// companyOption allows management of the mutation configuration using functional options.
+type companyOption func(*CompanyMutation)
+
+// newCompanyMutation creates new mutation for the Company entity.
+func newCompanyMutation(c config, op Op, opts ...companyOption) *CompanyMutation {
+	m := &CompanyMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCompany,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCompanyID sets the ID field of the mutation.
+func withCompanyID(id int) companyOption {
+	return func(m *CompanyMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Company
+		)
+		m.oldValue = func(ctx context.Context) (*Company, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Company.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCompany sets the old Company of the mutation.
+func withCompany(node *Company) companyOption {
+	return func(m *CompanyMutation) {
+		m.oldValue = func(context.Context) (*Company, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CompanyMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CompanyMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CompanyMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CompanyMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Company.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *CompanyMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *CompanyMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *CompanyMutation) ResetName() {
+	m.name = nil
+}
+
+// AddCustomerIDs adds the "customers" edge to the Customer entity by ids.
+func (m *CompanyMutation) AddCustomerIDs(ids ...int) {
+	if m.customers == nil {
+		m.customers = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.customers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCustomers clears the "customers" edge to the Customer entity.
+func (m *CompanyMutation) ClearCustomers() {
+	m.clearedcustomers = true
+}
+
+// CustomersCleared reports if the "customers" edge to the Customer entity was cleared.
+func (m *CompanyMutation) CustomersCleared() bool {
+	return m.clearedcustomers
+}
+
+// RemoveCustomerIDs removes the "customers" edge to the Customer entity by IDs.
+func (m *CompanyMutation) RemoveCustomerIDs(ids ...int) {
+	if m.removedcustomers == nil {
+		m.removedcustomers = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.customers, ids[i])
+		m.removedcustomers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCustomers returns the removed IDs of the "customers" edge to the Customer entity.
+func (m *CompanyMutation) RemovedCustomersIDs() (ids []int) {
+	for id := range m.removedcustomers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CustomersIDs returns the "customers" edge IDs in the mutation.
+func (m *CompanyMutation) CustomersIDs() (ids []int) {
+	for id := range m.customers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCustomers resets all changes to the "customers" edge.
+func (m *CompanyMutation) ResetCustomers() {
+	m.customers = nil
+	m.clearedcustomers = false
+	m.removedcustomers = nil
+}
+
+// AddOrderIDs adds the "orders" edge to the Order entity by ids.
+func (m *CompanyMutation) AddOrderIDs(ids ...int) {
+	if m.orders == nil {
+		m.orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.orders[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrders clears the "orders" edge to the Order entity.
+func (m *CompanyMutation) ClearOrders() {
+	m.clearedorders = true
+}
+
+// OrdersCleared reports if the "orders" edge to the Order entity was cleared.
+func (m *CompanyMutation) OrdersCleared() bool {
+	return m.clearedorders
+}
+
+// RemoveOrderIDs removes the "orders" edge to the Order entity by IDs.
+func (m *CompanyMutation) RemoveOrderIDs(ids ...int) {
+	if m.removedorders == nil {
+		m.removedorders = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.orders, ids[i])
+		m.removedorders[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrders returns the removed IDs of the "orders" edge to the Order entity.
+func (m *CompanyMutation) RemovedOrdersIDs() (ids []int) {
+	for id := range m.removedorders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrdersIDs returns the "orders" edge IDs in the mutation.
+func (m *CompanyMutation) OrdersIDs() (ids []int) {
+	for id := range m.orders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrders resets all changes to the "orders" edge.
+func (m *CompanyMutation) ResetOrders() {
+	m.orders = nil
+	m.clearedorders = false
+	m.removedorders = nil
+}
+
+// Where appends a list predicates to the CompanyMutation builder.
+func (m *CompanyMutation) Where(ps ...predicate.Company) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CompanyMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CompanyMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Company, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CompanyMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CompanyMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Company).
+func (m *CompanyMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CompanyMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.name != nil {
+		fields = append(fields, company.FieldName)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CompanyMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case company.FieldName:
+		return m.Name()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CompanyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case company.FieldName:
+		return m.OldName(ctx)
+	}
+	return nil, fmt.Errorf("unknown Company field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CompanyMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case company.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Company field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CompanyMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CompanyMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CompanyMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Company numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CompanyMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CompanyMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CompanyMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Company nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CompanyMutation) ResetField(name string) error {
+	switch name {
+	case company.FieldName:
+		m.ResetName()
+		return nil
+	}
+	return fmt.Errorf("unknown Company field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CompanyMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.customers != nil {
+		edges = append(edges, company.EdgeCustomers)
+	}
+	if m.orders != nil {
+		edges = append(edges, company.EdgeOrders)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CompanyMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case company.EdgeCustomers:
+		ids := make([]ent.Value, 0, len(m.customers))
+		for id := range m.customers {
+			ids = append(ids, id)
+		}
+		return ids
+	case company.EdgeOrders:
+		ids := make([]ent.Value, 0, len(m.orders))
+		for id := range m.orders {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CompanyMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedcustomers != nil {
+		edges = append(edges, company.EdgeCustomers)
+	}
+	if m.removedorders != nil {
+		edges = append(edges, company.EdgeOrders)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CompanyMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case company.EdgeCustomers:
+		ids := make([]ent.Value, 0, len(m.removedcustomers))
+		for id := range m.removedcustomers {
+			ids = append(ids, id)
+		}
+		return ids
+	case company.EdgeOrders:
+		ids := make([]ent.Value, 0, len(m.removedorders))
+		for id := range m.removedorders {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CompanyMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedcustomers {
+		edges = append(edges, company.EdgeCustomers)
+	}
+	if m.clearedorders {
+		edges = append(edges, company.EdgeOrders)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CompanyMutation) EdgeCleared(name string) bool {
+	switch name {
+	case company.EdgeCustomers:
+		return m.clearedcustomers
+	case company.EdgeOrders:
+		return m.clearedorders
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CompanyMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Company unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CompanyMutation) ResetEdge(name string) error {
+	switch name {
+	case company.EdgeCustomers:
+		m.ResetCustomers()
+		return nil
+	case company.EdgeOrders:
+		m.ResetOrders()
+		return nil
+	}
+	return fmt.Errorf("unknown Company edge %s", name)
+}
+
 // CustomerMutation represents an operation that mutates the Customer nodes in the graph.
 type CustomerMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	name          *string
-	email         *string
-	password      *string
-	address       *string
-	status        *customer.Status
-	clearedFields map[string]struct{}
-	orders        map[int]struct{}
-	removedorders map[int]struct{}
-	clearedorders bool
-	cart          *int
-	clearedcart   bool
-	done          bool
-	oldValue      func(context.Context) (*Customer, error)
-	predicates    []predicate.Customer
+	op             Op
+	typ            string
+	id             *int
+	name           *string
+	email          *string
+	password       *string
+	address        *string
+	status         *customer.Status
+	clearedFields  map[string]struct{}
+	orders         map[int]struct{}
+	removedorders  map[int]struct{}
+	clearedorders  bool
+	cart           *int
+	clearedcart    bool
+	company        *int
+	clearedcompany bool
+	done           bool
+	oldValue       func(context.Context) (*Customer, error)
+	predicates     []predicate.Customer
 }
 
 var _ ent.Mutation = (*CustomerMutation)(nil)
@@ -1394,6 +1900,45 @@ func (m *CustomerMutation) ResetCart() {
 	m.clearedcart = false
 }
 
+// SetCompanyID sets the "company" edge to the Company entity by id.
+func (m *CustomerMutation) SetCompanyID(id int) {
+	m.company = &id
+}
+
+// ClearCompany clears the "company" edge to the Company entity.
+func (m *CustomerMutation) ClearCompany() {
+	m.clearedcompany = true
+}
+
+// CompanyCleared reports if the "company" edge to the Company entity was cleared.
+func (m *CustomerMutation) CompanyCleared() bool {
+	return m.clearedcompany
+}
+
+// CompanyID returns the "company" edge ID in the mutation.
+func (m *CustomerMutation) CompanyID() (id int, exists bool) {
+	if m.company != nil {
+		return *m.company, true
+	}
+	return
+}
+
+// CompanyIDs returns the "company" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CompanyID instead. It exists only for internal usage by the builders.
+func (m *CustomerMutation) CompanyIDs() (ids []int) {
+	if id := m.company; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCompany resets all changes to the "company" edge.
+func (m *CustomerMutation) ResetCompany() {
+	m.company = nil
+	m.clearedcompany = false
+}
+
 // Where appends a list predicates to the CustomerMutation builder.
 func (m *CustomerMutation) Where(ps ...predicate.Customer) {
 	m.predicates = append(m.predicates, ps...)
@@ -1595,12 +2140,15 @@ func (m *CustomerMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CustomerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.orders != nil {
 		edges = append(edges, customer.EdgeOrders)
 	}
 	if m.cart != nil {
 		edges = append(edges, customer.EdgeCart)
+	}
+	if m.company != nil {
+		edges = append(edges, customer.EdgeCompany)
 	}
 	return edges
 }
@@ -1619,13 +2167,17 @@ func (m *CustomerMutation) AddedIDs(name string) []ent.Value {
 		if id := m.cart; id != nil {
 			return []ent.Value{*id}
 		}
+	case customer.EdgeCompany:
+		if id := m.company; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CustomerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedorders != nil {
 		edges = append(edges, customer.EdgeOrders)
 	}
@@ -1648,12 +2200,15 @@ func (m *CustomerMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CustomerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedorders {
 		edges = append(edges, customer.EdgeOrders)
 	}
 	if m.clearedcart {
 		edges = append(edges, customer.EdgeCart)
+	}
+	if m.clearedcompany {
+		edges = append(edges, customer.EdgeCompany)
 	}
 	return edges
 }
@@ -1666,6 +2221,8 @@ func (m *CustomerMutation) EdgeCleared(name string) bool {
 		return m.clearedorders
 	case customer.EdgeCart:
 		return m.clearedcart
+	case customer.EdgeCompany:
+		return m.clearedcompany
 	}
 	return false
 }
@@ -1676,6 +2233,9 @@ func (m *CustomerMutation) ClearEdge(name string) error {
 	switch name {
 	case customer.EdgeCart:
 		m.ClearCart()
+		return nil
+	case customer.EdgeCompany:
+		m.ClearCompany()
 		return nil
 	}
 	return fmt.Errorf("unknown Customer unique edge %s", name)
@@ -1690,6 +2250,9 @@ func (m *CustomerMutation) ResetEdge(name string) error {
 		return nil
 	case customer.EdgeCart:
 		m.ResetCart()
+		return nil
+	case customer.EdgeCompany:
+		m.ResetCompany()
 		return nil
 	}
 	return fmt.Errorf("unknown Customer edge %s", name)
@@ -1718,6 +2281,8 @@ type OrderMutation struct {
 	processed_by        map[int]struct{}
 	removedprocessed_by map[int]struct{}
 	clearedprocessed_by bool
+	company             *int
+	clearedcompany      bool
 	done                bool
 	oldValue            func(context.Context) (*Order, error)
 	predicates          []predicate.Order
@@ -2165,6 +2730,45 @@ func (m *OrderMutation) ResetProcessedBy() {
 	m.removedprocessed_by = nil
 }
 
+// SetCompanyID sets the "company" edge to the Company entity by id.
+func (m *OrderMutation) SetCompanyID(id int) {
+	m.company = &id
+}
+
+// ClearCompany clears the "company" edge to the Company entity.
+func (m *OrderMutation) ClearCompany() {
+	m.clearedcompany = true
+}
+
+// CompanyCleared reports if the "company" edge to the Company entity was cleared.
+func (m *OrderMutation) CompanyCleared() bool {
+	return m.clearedcompany
+}
+
+// CompanyID returns the "company" edge ID in the mutation.
+func (m *OrderMutation) CompanyID() (id int, exists bool) {
+	if m.company != nil {
+		return *m.company, true
+	}
+	return
+}
+
+// CompanyIDs returns the "company" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CompanyID instead. It exists only for internal usage by the builders.
+func (m *OrderMutation) CompanyIDs() (ids []int) {
+	if id := m.company; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCompany resets all changes to the "company" edge.
+func (m *OrderMutation) ResetCompany() {
+	m.company = nil
+	m.clearedcompany = false
+}
+
 // Where appends a list predicates to the OrderMutation builder.
 func (m *OrderMutation) Where(ps ...predicate.Order) {
 	m.predicates = append(m.predicates, ps...)
@@ -2347,7 +2951,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.customer != nil {
 		edges = append(edges, order.EdgeCustomer)
 	}
@@ -2359,6 +2963,9 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.processed_by != nil {
 		edges = append(edges, order.EdgeProcessedBy)
+	}
+	if m.company != nil {
+		edges = append(edges, order.EdgeCompany)
 	}
 	return edges
 }
@@ -2391,13 +2998,17 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeCompany:
+		if id := m.company; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedcustomer != nil {
 		edges = append(edges, order.EdgeCustomer)
 	}
@@ -2447,7 +3058,7 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedcustomer {
 		edges = append(edges, order.EdgeCustomer)
 	}
@@ -2459,6 +3070,9 @@ func (m *OrderMutation) ClearedEdges() []string {
 	}
 	if m.clearedprocessed_by {
 		edges = append(edges, order.EdgeProcessedBy)
+	}
+	if m.clearedcompany {
+		edges = append(edges, order.EdgeCompany)
 	}
 	return edges
 }
@@ -2475,6 +3089,8 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedpayments
 	case order.EdgeProcessedBy:
 		return m.clearedprocessed_by
+	case order.EdgeCompany:
+		return m.clearedcompany
 	}
 	return false
 }
@@ -2483,6 +3099,9 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *OrderMutation) ClearEdge(name string) error {
 	switch name {
+	case order.EdgeCompany:
+		m.ClearCompany()
+		return nil
 	}
 	return fmt.Errorf("unknown Order unique edge %s", name)
 }
@@ -2502,6 +3121,9 @@ func (m *OrderMutation) ResetEdge(name string) error {
 		return nil
 	case order.EdgeProcessedBy:
 		m.ResetProcessedBy()
+		return nil
+	case order.EdgeCompany:
+		m.ResetCompany()
 		return nil
 	}
 	return fmt.Errorf("unknown Order edge %s", name)

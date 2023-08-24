@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/mikestefanello/pagoda/ent/company"
 	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/order"
 	"github.com/mikestefanello/pagoda/ent/orderitem"
@@ -126,6 +127,25 @@ func (ou *OrderUpdate) AddProcessedBy(s ...*StaffMember) *OrderUpdate {
 	return ou.AddProcessedByIDs(ids...)
 }
 
+// SetCompanyID sets the "company" edge to the Company entity by ID.
+func (ou *OrderUpdate) SetCompanyID(id int) *OrderUpdate {
+	ou.mutation.SetCompanyID(id)
+	return ou
+}
+
+// SetNillableCompanyID sets the "company" edge to the Company entity by ID if the given value is not nil.
+func (ou *OrderUpdate) SetNillableCompanyID(id *int) *OrderUpdate {
+	if id != nil {
+		ou = ou.SetCompanyID(*id)
+	}
+	return ou
+}
+
+// SetCompany sets the "company" edge to the Company entity.
+func (ou *OrderUpdate) SetCompany(c *Company) *OrderUpdate {
+	return ou.SetCompanyID(c.ID)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (ou *OrderUpdate) Mutation() *OrderMutation {
 	return ou.mutation
@@ -213,6 +233,12 @@ func (ou *OrderUpdate) RemoveProcessedBy(s ...*StaffMember) *OrderUpdate {
 		ids[i] = s[i].ID
 	}
 	return ou.RemoveProcessedByIDs(ids...)
+}
+
+// ClearCompany clears the "company" edge to the Company entity.
+func (ou *OrderUpdate) ClearCompany() *OrderUpdate {
+	ou.mutation.ClearCompany()
+	return ou
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -458,6 +484,35 @@ func (ou *OrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ou.mutation.CompanyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   order.CompanyTable,
+			Columns: []string{order.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ou.mutation.CompanyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   order.CompanyTable,
+			Columns: []string{order.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{order.Label}
@@ -573,6 +628,25 @@ func (ouo *OrderUpdateOne) AddProcessedBy(s ...*StaffMember) *OrderUpdateOne {
 	return ouo.AddProcessedByIDs(ids...)
 }
 
+// SetCompanyID sets the "company" edge to the Company entity by ID.
+func (ouo *OrderUpdateOne) SetCompanyID(id int) *OrderUpdateOne {
+	ouo.mutation.SetCompanyID(id)
+	return ouo
+}
+
+// SetNillableCompanyID sets the "company" edge to the Company entity by ID if the given value is not nil.
+func (ouo *OrderUpdateOne) SetNillableCompanyID(id *int) *OrderUpdateOne {
+	if id != nil {
+		ouo = ouo.SetCompanyID(*id)
+	}
+	return ouo
+}
+
+// SetCompany sets the "company" edge to the Company entity.
+func (ouo *OrderUpdateOne) SetCompany(c *Company) *OrderUpdateOne {
+	return ouo.SetCompanyID(c.ID)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (ouo *OrderUpdateOne) Mutation() *OrderMutation {
 	return ouo.mutation
@@ -660,6 +734,12 @@ func (ouo *OrderUpdateOne) RemoveProcessedBy(s ...*StaffMember) *OrderUpdateOne 
 		ids[i] = s[i].ID
 	}
 	return ouo.RemoveProcessedByIDs(ids...)
+}
+
+// ClearCompany clears the "company" edge to the Company entity.
+func (ouo *OrderUpdateOne) ClearCompany() *OrderUpdateOne {
+	ouo.mutation.ClearCompany()
+	return ouo
 }
 
 // Where appends a list predicates to the OrderUpdate builder.
@@ -928,6 +1008,35 @@ func (ouo *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(staffmember.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ouo.mutation.CompanyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   order.CompanyTable,
+			Columns: []string{order.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ouo.mutation.CompanyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   order.CompanyTable,
+			Columns: []string{order.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

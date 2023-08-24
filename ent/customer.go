@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/mikestefanello/pagoda/ent/cart"
+	"github.com/mikestefanello/pagoda/ent/company"
 	"github.com/mikestefanello/pagoda/ent/customer"
 )
 
@@ -29,8 +30,9 @@ type Customer struct {
 	Status customer.Status `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CustomerQuery when eager-loading is set.
-	Edges        CustomerEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges             CustomerEdges `json:"edges"`
+	company_customers *int
+	selectValues      sql.SelectValues
 }
 
 // CustomerEdges holds the relations/edges for other nodes in the graph.
@@ -39,9 +41,11 @@ type CustomerEdges struct {
 	Orders []*Order `json:"orders,omitempty"`
 	// Cart holds the value of the cart edge.
 	Cart *Cart `json:"cart,omitempty"`
+	// Company holds the value of the company edge.
+	Company *Company `json:"company,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // OrdersOrErr returns the Orders value or an error if the edge
@@ -66,6 +70,19 @@ func (e CustomerEdges) CartOrErr() (*Cart, error) {
 	return nil, &NotLoadedError{edge: "cart"}
 }
 
+// CompanyOrErr returns the Company value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CustomerEdges) CompanyOrErr() (*Company, error) {
+	if e.loadedTypes[2] {
+		if e.Company == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: company.Label}
+		}
+		return e.Company, nil
+	}
+	return nil, &NotLoadedError{edge: "company"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Customer) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -75,6 +92,8 @@ func (*Customer) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case customer.FieldName, customer.FieldEmail, customer.FieldPassword, customer.FieldAddress, customer.FieldStatus:
 			values[i] = new(sql.NullString)
+		case customer.ForeignKeys[0]: // company_customers
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -126,6 +145,13 @@ func (c *Customer) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.Status = customer.Status(value.String)
 			}
+		case customer.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field company_customers", value)
+			} else if value.Valid {
+				c.company_customers = new(int)
+				*c.company_customers = int(value.Int64)
+			}
 		default:
 			c.selectValues.Set(columns[i], values[i])
 		}
@@ -147,6 +173,11 @@ func (c *Customer) QueryOrders() *OrderQuery {
 // QueryCart queries the "cart" edge of the Customer entity.
 func (c *Customer) QueryCart() *CartQuery {
 	return NewCustomerClient(c.config).QueryCart(c)
+}
+
+// QueryCompany queries the "company" edge of the Customer entity.
+func (c *Customer) QueryCompany() *CompanyQuery {
+	return NewCustomerClient(c.config).QueryCompany(c)
 }
 
 // Update returns a builder for updating this Customer.

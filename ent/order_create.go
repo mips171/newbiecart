@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/mikestefanello/pagoda/ent/company"
 	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/order"
 	"github.com/mikestefanello/pagoda/ent/orderitem"
@@ -124,6 +125,25 @@ func (oc *OrderCreate) AddProcessedBy(s ...*StaffMember) *OrderCreate {
 		ids[i] = s[i].ID
 	}
 	return oc.AddProcessedByIDs(ids...)
+}
+
+// SetCompanyID sets the "company" edge to the Company entity by ID.
+func (oc *OrderCreate) SetCompanyID(id int) *OrderCreate {
+	oc.mutation.SetCompanyID(id)
+	return oc
+}
+
+// SetNillableCompanyID sets the "company" edge to the Company entity by ID if the given value is not nil.
+func (oc *OrderCreate) SetNillableCompanyID(id *int) *OrderCreate {
+	if id != nil {
+		oc = oc.SetCompanyID(*id)
+	}
+	return oc
+}
+
+// SetCompany sets the "company" edge to the Company entity.
+func (oc *OrderCreate) SetCompany(c *Company) *OrderCreate {
+	return oc.SetCompanyID(c.ID)
 }
 
 // Mutation returns the OrderMutation object of the builder.
@@ -296,6 +316,23 @@ func (oc *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := oc.mutation.CompanyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   order.CompanyTable,
+			Columns: []string{order.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.company_orders = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

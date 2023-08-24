@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mikestefanello/pagoda/ent/cart"
+	"github.com/mikestefanello/pagoda/ent/company"
 	"github.com/mikestefanello/pagoda/ent/customer"
 	"github.com/mikestefanello/pagoda/ent/order"
 )
@@ -91,6 +92,25 @@ func (cc *CustomerCreate) SetNillableCartID(id *int) *CustomerCreate {
 // SetCart sets the "cart" edge to the Cart entity.
 func (cc *CustomerCreate) SetCart(c *Cart) *CustomerCreate {
 	return cc.SetCartID(c.ID)
+}
+
+// SetCompanyID sets the "company" edge to the Company entity by ID.
+func (cc *CustomerCreate) SetCompanyID(id int) *CustomerCreate {
+	cc.mutation.SetCompanyID(id)
+	return cc
+}
+
+// SetNillableCompanyID sets the "company" edge to the Company entity by ID if the given value is not nil.
+func (cc *CustomerCreate) SetNillableCompanyID(id *int) *CustomerCreate {
+	if id != nil {
+		cc = cc.SetCompanyID(*id)
+	}
+	return cc
+}
+
+// SetCompany sets the "company" edge to the Company entity.
+func (cc *CustomerCreate) SetCompany(c *Company) *CustomerCreate {
+	return cc.SetCompanyID(c.ID)
 }
 
 // Mutation returns the CustomerMutation object of the builder.
@@ -242,6 +262,23 @@ func (cc *CustomerCreate) createSpec() (*Customer, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.CompanyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   customer.CompanyTable,
+			Columns: []string{customer.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.company_customers = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
