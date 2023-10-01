@@ -16,8 +16,6 @@
                             Status: <span class="{{if eq .Status "pending"}}has-text-warning{{else}}has-text-success{{end}}">{{.Status}}</span><br>
                             Placed On: {{.PlacedAt}}<br>
                             Balance Due: ${{printf "%.2f" .BalanceDue}}<br>
-                            Customer: {{.Customer.Name}}<br>
-                            Processed By: {{.ProcessedBy.Name}}
                         </p>
                     </div>
                 </div>

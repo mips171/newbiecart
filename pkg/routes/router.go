@@ -92,7 +92,7 @@ func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 	g.POST("/customers/add", customers.CreateCustomer).Name = "customers.add.submit"
 
 	products := ProductController{Controller: ctr}
-	g.GET("/products", products.GetAll).Name = "products"
+	g.GET("/products", products.GetAll).Name = "products.view_all"
 	g.GET("/products/:id", products.GetByID).Name = "products.view"
 	g.GET("/products/add", products.Add).Name = "products.add"
 	g.POST("/products/add", products.Add).Name = "products.add.post"
@@ -100,10 +100,10 @@ func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 	g.POST("/products/:id/edit", products.EditByID).Name = "products.edit.post"        // submit the edit form
 
 	orders := OrderController{Controller: ctr}
-	g.GET("/orders", orders.GetAll).Name = "orders"
+	g.GET("/orders", orders.GetAll).Name = "orders.view_all"
 	g.GET("/orders/:id", orders.GetByID).Name = "orders.view"
-	g.GET("/orders/add", orders.AddOrder).Name = "orders.add"
-	g.POST("/orders/add", orders.AddOrder).Name = "orders.add.post"
+	g.GET("/orders/add", orders.Add).Name = "orders.add"
+	g.POST("/orders/add", orders.Add).Name = "orders.add.post"
 	g.GET("/orders/:id/edit", orders.EditByID).Name = "orders.edit"  // display the edit form
 	g.POST("/orders/:id/edit", orders.EditByID).Name = "orders.edit.post"        // submit the edit form
 }

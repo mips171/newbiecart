@@ -1,5 +1,6 @@
 {{define "content"}}
 <form method="post" hx-boost="true" action="{{call .ToURL "order.post"}}">
+
     <div class="field">
         <label for="status" class="label">Order Status</label>
         <div class="control">
@@ -17,6 +18,7 @@
             {{template "field-errors" (.Form.Submission.GetFieldErrors "Status")}}
         </div>
     </div>
+
     <div class="field">
         <label for="balance_due" class="label">Balance Due</label>
         <div class="control">
@@ -25,24 +27,7 @@
             {{template "field-errors" (.Form.Submission.GetFieldErrors "BalanceDue")}}
         </div>
     </div>
-    <div class="field">
-        <label for="customer" class="label">Customer</label>
-        <div class="control">
-            <!-- This is a placeholder; you may need a dropdown or an auto-complete based on your design -->
-            <input type="text" id="customer" name="customer" class="input {{.Form.Submission.GetFieldStatusClass "Customer"}}"
-                value="{{.Form.Customer}}">
-            {{template "field-errors" (.Form.Submission.GetFieldErrors "Customer")}}
-        </div>
-    </div>
-    <div class="field">
-        <label for="processed_by" class="label">Processed By</label>
-        <div class="control">
-            <!-- This is a placeholder; you may need a dropdown or an auto-complete based on your design -->
-            <input type="number" id="processed_by" name="processed_by" class="input {{.Form.Submission.GetFieldStatusClass "ProcessedBy"}}"
-                value="{{.Form.ProcessedBy}}">
-            {{template "field-errors" (.Form.Submission.GetFieldErrors "ProcessedBy")}}
-        </div>
-    </div>
+
 	<div class="field">
 		<label for="placed_at" class="label">Placed At</label>
 		<div class="control">
@@ -50,6 +35,7 @@
 			{{template "field-errors" (.Form.Submission.GetFieldErrors "PlacedAt")}}
 		</div>
 	</div>
+
     <div class="field is-grouped">
         <p class="control">
             <button class="button is-primary">Add Order</button>
@@ -58,6 +44,7 @@
             <a href="{{call .ToURL "home"}}" class="button is-light">Cancel</a>
         </p>
     </div>
+
     {{template "csrf" .}}
 </form>
 {{end}}
