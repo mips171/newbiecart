@@ -1,30 +1,16 @@
 package routes
 
 import (
-	"strconv"
-
 	"github.com/labstack/echo/v4"
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/msg"
 )
 
-type (
-	editProductForm struct {
-		ID          int     `form:"id" validate:"required"`
-		Name        string  `form:"name" validate:"required"`
-		Sku         string  `form:"sku" validate:"required"`
-		Description string  `form:"description" validate:"required"`
-		Price       float64 `form:"price" validate:"required,gte=0"`
-		Quantity    int     `form:"quantity" validate:"required,gte=0"`
-		Submission  controller.FormSubmission
-	}
-)
-
 func (c *ProductController) handleEditByIdGet(ctx echo.Context) error {
-	productID, err := strconv.Atoi(ctx.Param("id"))
+	productID, err := c.getProductIDFromContext(ctx)
 	if err != nil {
-		return c.Fail(err, "Invalid product ID")
+		return c.handleError(err, "Invalid product ID")
 	}
 
 	product, err := c.Container.ORM.Product.Get(ctx.Request().Context(), productID)
@@ -34,10 +20,10 @@ func (c *ProductController) handleEditByIdGet(ctx echo.Context) error {
 
 	page := controller.NewPage(ctx)
 	page.Layout = "main"
-	page.Name = "edit_product"
+	page.Name = "products/edit"
 	page.Title = "Edit Product"
-	page.Form = editProductForm{
-		ID:          product.ID,
+	page.Form = ProductForm{
+		ID:          &product.ID,  // Make sure to pass the address of product.ID
 		Name:        product.Name,
 		Sku:         product.Sku,
 		Description: product.Description,
@@ -51,7 +37,7 @@ func (c *ProductController) handleEditByIdGet(ctx echo.Context) error {
 }
 
 func (c *ProductController) handleEditByIdPost(ctx echo.Context) error {
-	var form editProductForm
+	var form ProductForm
 	ctx.Set(context.FormKey, &form)
 
 	// Parse the form values
@@ -70,7 +56,7 @@ func (c *ProductController) handleEditByIdPost(ctx echo.Context) error {
 	ctx.Logger().Infof("Attempting to update product with ID: %d", form.ID)
 
 	// Fetch the existing product and update its fields
-	product, err := c.Container.ORM.Product.UpdateOneID(form.ID). // Assuming form.ID exists
+	product, err := c.Container.ORM.Product.UpdateOneID(*form.ID). // Assuming form.ID exists
 									SetName(form.Name).
 									SetSku(form.Sku).
 									SetDescription(form.Description).

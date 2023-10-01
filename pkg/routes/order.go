@@ -3,18 +3,15 @@ package routes
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/ent/order"
-	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/msg"
 )
 
 type (
-	ordersController struct {
+	OrderController struct {
 		controller.Controller
 		Client *ent.Client
 	}
@@ -26,29 +23,19 @@ type (
 		ProcessedBy ent.StaffMember // Placeholder if you need to display the staff member's name
 		ID          int
 	}
-	addOrderForm struct {
-		Status      string  `form:"status" validate:"required"`
-		PlacedAt    string  `form:"placed_at" validate:"required"`
-		BalanceDue  float64 `form:"balance_due" validate:"required,gte=0"`
-		Customer    string  `form:"customer" validate:"required"`
-		ProcessedBy float64 `form:"processed_by" validate:"required,gte=0"`
-		Submission  controller.FormSubmission
-	}
+
 )
 
-func (c *ordersController) Get(ctx echo.Context) error {
-	orderID := ctx.Param("id")
-
-	// make orderID an int
-	orderIDInt, err := strconv.Atoi(orderID)
+func (c *OrderController) GetByID(ctx echo.Context) error {
+	orderID, err := c.getOrderIDFromContext(ctx)
 	if err != nil {
-		return c.Fail(err, "invalid order ID")
+		return c.handleError(err, "Invalid order ID")
 	}
 
 	// Fetch the order from the database using its ID
 	order, err := c.Container.ORM.Order.
 		Query().
-		Where(order.IDEQ(orderIDInt)).
+		Where(order.IDEQ(orderID)).
 		Only(ctx.Request().Context())
 
 	if err != nil {
@@ -57,17 +44,17 @@ func (c *ordersController) Get(ctx echo.Context) error {
 
 	page := controller.NewPage(ctx)
 	page.Layout = "main"
-	page.Name = "order"
+	page.Name = "orders/view"
 	page.Title = fmt.Sprint(order.ID)
 	page.Data = order
 
 	return c.RenderPage(ctx, page)
 }
 
-func (c *ordersController) GetOrders(ctx echo.Context) error {
+func (c *OrderController) GetAll(ctx echo.Context) error {
 	page := controller.NewPage(ctx)
 	page.Layout = "main"
-	page.Name = "orders"
+	page.Name = "orders/view_all"
 	page.Metatags.Description = "All Orders"
 	page.Pager = controller.NewPager(ctx, 30)
 	page.Data = c.fetchOrders(ctx, &page.Pager)
@@ -75,7 +62,7 @@ func (c *ordersController) GetOrders(ctx echo.Context) error {
 	return c.RenderPage(ctx, page)
 }
 
-func (c *ordersController) fetchOrders(ctx echo.Context, pager *controller.Pager) []Order {
+func (c *OrderController) fetchOrders(ctx echo.Context, pager *controller.Pager) []Order {
 	ords, _ := c.Container.ORM.Order.Query(). // always use the container's ORM
 							WithCustomer().
 							WithProcessedBy().
@@ -111,59 +98,35 @@ func (c *ordersController) fetchOrders(ctx echo.Context, pager *controller.Pager
 	return orders
 }
 
-func (c *ordersController) ShowCreateOrderForm(ctx echo.Context) error {
-	page := controller.NewPage(ctx)
-	page.Layout = "main"
-	page.Name = "add_order"
-	page.Title = "New Order"
-	page.Form = addOrderForm{}
-
-	if form := ctx.Get(context.FormKey); form != nil {
-		page.Form = form.(*addOrderForm)
+func (c *OrderController) AddOrder(ctx echo.Context) error {
+	switch ctx.Request().Method {
+	case echo.GET:
+		return c.handleAddOrderGet(ctx)
+	case echo.POST:
+		return c.handleAddOrderPost(ctx)
+	default:
+		return echo.ErrMethodNotAllowed
 	}
-
-	if form := ctx.Get(context.FormKey); form != nil {
-		page.Form = form.(*addOrderForm)
-	} else {
-		today := time.Now().Format("2006-01-02")
-		page.Form = addOrderForm{
-			PlacedAt: today,
-		}
-	}
-
-	return c.RenderPage(ctx, page)
 }
 
-func (c *ordersController) CreateOrder(ctx echo.Context) error {
-	var form addOrderForm
-	ctx.Set(context.FormKey, &form)
-
-	// Parse the form values
-	if err := ctx.Bind(&form); err != nil {
-		return c.Fail(err, "unable to parse order form")
+func (c *OrderController) EditByID(ctx echo.Context) error {
+	switch ctx.Request().Method {
+	case echo.GET:
+		return c.handleEditByIdGet(ctx)
+	case echo.POST:
+		return c.handleEditByIdPost(ctx)
+	default:
+		return echo.ErrMethodNotAllowed
 	}
+}
 
-	if err := form.Submission.Process(ctx, form); err != nil {
-		return c.Fail(err, "unable to process form submission")
-	}
+// Helper methods
+func (c *OrderController) getOrderIDFromContext(ctx echo.Context) (int, error) {
+	orderId := ctx.Param("id")
+	return strconv.Atoi(orderId)
+}
 
-	if form.Submission.HasErrors() {
-		return c.Get(ctx)
-	}
-
-	// Attempt creating the order
-	o, err := c.Container.ORM.Order.
-		Create().
-		SetStatus(order.Status(form.Status)).
-		SetBalanceDue(form.BalanceDue).
-		Save(ctx.Request().Context())
-
-	if err != nil {
-		return c.Fail(err, "unable to create order")
-	}
-
-	ctx.Logger().Infof("order created: %s", o.ID)
-	msg.Success(ctx, "The order was successfully added.")
-
-	return c.Redirect(ctx, "orders")
+func (c *OrderController) handleError(err error, msg string) error {
+	// Handle errors, e.g., logging, setting HTTP status
+	return c.Fail(err, msg)
 }

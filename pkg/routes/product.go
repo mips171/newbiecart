@@ -9,32 +9,45 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 )
 
-// Interfaces to make actions explicit
-type ProductGetter interface {
-	GetAll(ctx echo.Context) error
-	GetByID(ctx echo.Context) error
-}
+type (
 
-type ProductEditor interface {
-	EditByID(ctx echo.Context) error
-}
+	// Interfaces to make actions explicit
+	ProductGetter interface {
+		GetAll(ctx echo.Context) error
+		GetByID(ctx echo.Context) error
+	}
 
-type ProductAdder interface {
-	AddProduct(ctx echo.Context) error
-}
+	ProductEditor interface {
+		EditByID(ctx echo.Context) error
+	}
 
-// ProductController with integrated methods
-type ProductController struct {
-	controller.Controller
-	Client *ent.Client
-}
+	ProductAdder interface {
+		Add(ctx echo.Context) error
+	}
 
-type Product struct {
-	Name        string
-	Description string
-	Price       float64
-	ID          int
-}
+	// ProductController with integrated methods
+	ProductController struct {
+		controller.Controller
+		Client *ent.Client
+	}
+
+	Product struct {
+		Name        string
+		Description string
+		Price       float64
+		ID          int
+	}
+
+	ProductForm struct {
+		ID          *int    `form:"id"` // Note use of pointer to allow for nil values, and no "required" validation
+		Name        string  `form:"name" validate:"required"`
+		Sku         string  `form:"sku" validate:"required"`
+		Description string  `form:"description" validate:"required"`
+		Price       float64 `form:"price" validate:"required,gte=0"`
+		Quantity    int     `form:"quantity" validate:"required,gte=0"`
+		Submission  controller.FormSubmission
+	}
+)
 
 var _ ProductGetter = &ProductController{}
 var _ ProductEditor = &ProductController{}
@@ -43,7 +56,7 @@ var _ ProductAdder = &ProductController{}
 func (c *ProductController) GetAll(ctx echo.Context) error {
 	page := controller.NewPage(ctx)
 	page.Layout = "main"
-	page.Name = "products/view_all" 	// Located at templates/pages/products/
+	page.Name = "products/view_all" // Located at templates/pages/products/
 	page.Metatags.Description = "Browse our products."
 	page.Metatags.Keywords = []string{"Shopping", "Products", "Buy"}
 	page.Pager = controller.NewPager(ctx, 10)
@@ -87,7 +100,7 @@ func (c *ProductController) EditByID(ctx echo.Context) error {
 	}
 }
 
-func (c *ProductController) AddProduct(ctx echo.Context) error {
+func (c *ProductController) Add(ctx echo.Context) error {
 	switch ctx.Request().Method {
 	case echo.GET:
 		return c.handleAddGet(ctx)

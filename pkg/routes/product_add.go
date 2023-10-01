@@ -10,33 +10,23 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type (
-	addProductForm struct {
-		Name        string  `form:"name" validate:"required"`
-		Sku         string  `form:"sku" validate:"required"`
-		Description string  `form:"description" validate:"required"`
-		Price       float64 `form:"price" validate:"required,gte=0"`
-		Quantity    int     `form:"quantity" validate:"required,gte=0"`
-		Submission  controller.FormSubmission
-	}
-)
 
 func (c *ProductController) handleAddGet(ctx echo.Context) error {
 	page := controller.NewPage(ctx)
 	page.Layout = "main"
 	page.Name = "products/add"
 	page.Title = "Add New Product"
-	page.Form = addProductForm{}
+	page.Form = ProductForm{}
 
 	if form := ctx.Get(context.FormKey); form != nil {
-		page.Form = form.(*addProductForm)
+		page.Form = form.(*ProductForm)
 	}
 
 	return c.RenderPage(ctx, page)
 }
 
 func (c *ProductController) handleAddPost(ctx echo.Context) error {
-	var form addProductForm
+	var form ProductForm
 	ctx.Set(context.FormKey, &form)
 
 	// Parse the form values
