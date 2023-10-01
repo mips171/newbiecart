@@ -4,41 +4,128 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/ent/product"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 )
 
-type (
-	productDetail struct {
-		controller.Controller
-	}
-)
+// Interfaces to make actions explicit
+type ProductGetter interface {
+	GetAll(ctx echo.Context) error
+	GetByID(ctx echo.Context) error
+}
 
-func (c *productDetail) Get(ctx echo.Context) error {
-	productID := ctx.Param("id")
+type ProductEditor interface {
+	EditByID(ctx echo.Context) error
+}
 
-	// make productID an int
-	productIDInt, err := strconv.Atoi(productID)
+type ProductAdder interface {
+	AddProduct(ctx echo.Context) error
+}
+
+// ProductController with integrated methods
+type ProductController struct {
+	controller.Controller
+	Client *ent.Client
+}
+
+type Product struct {
+	Name        string
+	Description string
+	Price       float64
+	ID          int
+}
+
+var _ ProductGetter = &ProductController{}
+var _ ProductEditor = &ProductController{}
+var _ ProductAdder = &ProductController{}
+
+func (c *ProductController) GetAll(ctx echo.Context) error {
+	page := controller.NewPage(ctx)
+	page.Layout = "main"
+	page.Name = "products/view_all" 	// Located at templates/pages/products/
+	page.Metatags.Description = "Browse our products."
+	page.Metatags.Keywords = []string{"Shopping", "Products", "Buy"}
+	page.Pager = controller.NewPager(ctx, 10)
+	page.Data = c.fetchProducts(ctx, &page.Pager)
+
+	return c.RenderPage(ctx, page)
+}
+
+func (c *ProductController) GetByID(ctx echo.Context) error {
+	productID, err := c.getProductIDFromContext(ctx)
 	if err != nil {
-		return c.Fail(err, "invalid product ID")
+		return c.handleError(err, "Invalid product ID")
 	}
 
-	// Fetch the product from the database using its ID
 	product, err := c.Container.ORM.Product.
 		Query().
-		Where(product.IDEQ(productIDInt)).
+		Where(product.IDEQ(productID)).
 		Only(ctx.Request().Context())
 
 	if err != nil {
-		return c.Fail(err, "unable to fetch product details")
+		return c.handleError(err, "Unable to fetch product details")
 	}
 
 	page := controller.NewPage(ctx)
 	page.Layout = "product_layout"
-	page.Name = "product"
+	page.Name = "products/view"
 	page.Title = product.Name
 	page.Data = product
 
 	return c.RenderPage(ctx, page)
+}
 
+func (c *ProductController) EditByID(ctx echo.Context) error {
+	switch ctx.Request().Method {
+	case echo.GET:
+		return c.handleEditByIdGet(ctx)
+	case echo.POST:
+		return c.handleEditByIdPost(ctx)
+	default:
+		return echo.ErrMethodNotAllowed
+	}
+}
+
+func (c *ProductController) AddProduct(ctx echo.Context) error {
+	switch ctx.Request().Method {
+	case echo.GET:
+		return c.handleAddGet(ctx)
+	case echo.POST:
+		return c.handleAddPost(ctx)
+	default:
+		return echo.ErrMethodNotAllowed
+	}
+}
+
+// Helper methods
+func (c *ProductController) getProductIDFromContext(ctx echo.Context) (int, error) {
+	productID := ctx.Param("id")
+	return strconv.Atoi(productID)
+}
+
+func (c *ProductController) handleError(err error, msg string) error {
+	// Handle errors, e.g., logging, setting HTTP status
+	return c.Fail(err, msg)
+}
+
+func (c *ProductController) fetchProducts(ctx echo.Context, pager *controller.Pager) []Product {
+	prods, _ := c.Container.ORM.Product.Query().
+		Offset(pager.GetOffset()).
+		Limit(pager.ItemsPerPage).
+		Order(ent.Asc(product.FieldName)).
+		All(ctx.Request().Context())
+
+	pager.SetItems(len(prods))
+
+	products := make([]Product, len(prods))
+	for i, p := range prods {
+		products[i] = Product{
+			Name:        p.Name,
+			Description: p.Description,
+			Price:       p.Price,
+			ID:          p.ID,
+		}
+	}
+	return products
 }

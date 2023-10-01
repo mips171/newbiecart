@@ -1,7 +1,8 @@
 package routes
 
 import (
-	"github.com/mikestefanello/pagoda/ent"
+	"fmt"
+
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/msg"
@@ -10,11 +11,6 @@ import (
 )
 
 type (
-	AddProductController struct {
-		controller.Controller
-		Client *ent.Client
-	}
-
 	addProductForm struct {
 		Name        string  `form:"name" validate:"required"`
 		Sku         string  `form:"sku" validate:"required"`
@@ -25,10 +21,10 @@ type (
 	}
 )
 
-func (c *AddProductController) Get(ctx echo.Context) error {
+func (c *ProductController) handleAddGet(ctx echo.Context) error {
 	page := controller.NewPage(ctx)
 	page.Layout = "main"
-	page.Name = "add_product"
+	page.Name = "products/add"
 	page.Title = "Add New Product"
 	page.Form = addProductForm{}
 
@@ -39,7 +35,7 @@ func (c *AddProductController) Get(ctx echo.Context) error {
 	return c.RenderPage(ctx, page)
 }
 
-func (c *AddProductController) Post(ctx echo.Context) error {
+func (c *ProductController) handleAddPost(ctx echo.Context) error {
 	var form addProductForm
 	ctx.Set(context.FormKey, &form)
 
@@ -53,7 +49,7 @@ func (c *AddProductController) Post(ctx echo.Context) error {
 	}
 
 	if form.Submission.HasErrors() {
-		return c.Get(ctx)
+		return c.handleAddGet(ctx)
 	}
 
 	// Attempt creating the product
@@ -70,8 +66,8 @@ func (c *AddProductController) Post(ctx echo.Context) error {
 		return c.Fail(err, "unable to create product")
 	}
 
-	ctx.Logger().Infof("product created: %s", p.Name)
-	msg.Success(ctx, "The product was successfully added.")
+	ctx.Logger().Infof("created: %s",p.Name)
+	msg.Success(ctx, fmt.Sprintf("Added successfully: %s", p.Name))
 
 	return c.Redirect(ctx, "products")
 }

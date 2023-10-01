@@ -91,19 +91,17 @@ func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 	g.GET("/customers/add", customers.ShowCreateCustomerForm).Name = "customers.add"
 	g.POST("/customers/add", customers.CreateCustomer).Name = "customers.add.submit"
 
-	products := ProductController{Controller: ctr}
-	g.GET("/products", products.Get).Name = "products"
-
-	addProduct := AddProductController{Controller: ctr}
-	g.GET("/products/add", addProduct.Get).Name = "add_product"
-	g.POST("/products/add", addProduct.Post).Name = "add_product.post"
-
-	editProduct := EditProductController{Controller: ctr}
-	g.GET("/products/:id/edit", editProduct.Get).Name = "edit_product"
-	g.POST("/products/:id/edit", editProduct.Post).Name = "edit_product.post"
-
-	productDetail := productDetail{Controller: ctr}
-	g.GET("/products/:id", productDetail.Get)
+	product := ProductController{Controller: ctr}
+	// View all products
+	g.GET("/products", product.GetAll).Name = "products"
+	// View a specific product
+	g.GET("/products/:id", product.GetByID).Name = "products.view"
+	// Add a new product
+	g.GET("/products/add", product.AddProduct).Name = "products.add"
+	g.POST("/products/add", product.AddProduct).Name = "products.add.post"
+	// Edit an existing product
+	g.GET("/products/:id/edit", product.EditByID).Name = "products.edit"  // display the edit form
+	g.POST("/products/:id/edit", product.EditByID).Name = "products.edit.post"        // submit the edit form
 
 	orders := ordersController{Controller: ctr}
 	g.GET("/orders/add", orders.CreateOrder).Name = "add_order"

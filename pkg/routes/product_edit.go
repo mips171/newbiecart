@@ -4,17 +4,12 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/msg"
 )
 
 type (
-	EditProductController struct {
-		controller.Controller
-		Client *ent.Client
-	}
 	editProductForm struct {
 		ID          int     `form:"id" validate:"required"`
 		Name        string  `form:"name" validate:"required"`
@@ -26,7 +21,7 @@ type (
 	}
 )
 
-func (c *EditProductController) Get(ctx echo.Context) error {
+func (c *ProductController) handleEditByIdGet(ctx echo.Context) error {
 	productID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		return c.Fail(err, "Invalid product ID")
@@ -55,7 +50,7 @@ func (c *EditProductController) Get(ctx echo.Context) error {
 	return c.RenderPage(ctx, page)
 }
 
-func (c *EditProductController) Post(ctx echo.Context) error {
+func (c *ProductController) handleEditByIdPost(ctx echo.Context) error {
 	var form editProductForm
 	ctx.Set(context.FormKey, &form)
 
@@ -69,7 +64,7 @@ func (c *EditProductController) Post(ctx echo.Context) error {
 	}
 
 	if form.Submission.HasErrors() {
-		return c.Get(ctx)
+		return c.handleEditByIdGet(ctx)
 	}
 
 	ctx.Logger().Infof("Attempting to update product with ID: %d", form.ID)
