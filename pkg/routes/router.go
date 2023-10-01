@@ -80,12 +80,16 @@ func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 	g.POST("/contact", contact.Post).Name = "contact.post"
 
 	customers := customersController{Controller: ctr}
-	g.GET("/customers", customers.GetCustomers).Name = "customers"
-	// g.GET("/customers/:id", customers.ViewCustomer).Name = "customer"
-	g.GET("/customers/:id/edit", customers.EditCustomer).Name = "edit_customer"
-	g.GET("/customers/:id/edit", customers.EditCustomer).Name = "edit_customer.post"
-	g.GET("/customers/add", customers.ShowCreateCustomerForm).Name = "add_customer"
-	g.POST("/customers/add", customers.CreateCustomer).Name = "add_customer.post"
+	// List of Customers
+	g.GET("/customers", customers.GetCustomers).Name = "customers.list"
+	// View a Specific Customer
+	g.GET("/customers/:id", customers.ViewCustomer).Name = "customers.view"
+	// Edit a Specific Customer
+	g.GET("/customers/:id/edit", customers.EditCustomer).Name = "customers.edit"
+	g.POST("/customers/:id/edit", customers.EditCustomerPost).Name = "customers.edit.submit"
+	// Create a New Customer
+	g.GET("/customers/add", customers.ShowCreateCustomerForm).Name = "customers.add"
+	g.POST("/customers/add", customers.CreateCustomer).Name = "customers.add.submit"
 
 	products := ProductController{Controller: ctr}
 	g.GET("/products", products.Get).Name = "products"

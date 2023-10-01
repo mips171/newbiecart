@@ -1,4 +1,4 @@
-{{define "content"}}
+{{define "primary-content"}}
     <form method="post" hx-boost="true" action="{{call .ToURL "register.post"}}">
         <div class="field">
             <label for="name" class="label">Name</label>
@@ -19,6 +19,15 @@
                     <i class="fa fa-check"></i>
                 </span>
                 {{template "field-errors" (.Form.Submission.GetFieldErrors "Email")}}
+            </div>
+        </div>
+        <div class="field" x-data="phoneInput()">
+            <label for="phone" class="label">Phone</label>
+            <div class="control has-icons-left">
+                <input x-model="phoneNumber" type="tel" id="phone" name="phone" class="input" placeholder="(123) 456-7890" @input="maskPhone">
+                <span class="icon is-small is-left">
+                    <i class="fa fa-phone"></i>
+                </span>
             </div>
         </div>
         <div class="field">
@@ -47,6 +56,19 @@
                 {{template "field-errors" (.Form.Submission.GetFieldErrors "Address")}}
             </div>
         </div>
+        <div class="field is-grouped">
+        <p class="control">
+            <button class="button is-primary">Register</button>
+        </p>
+        <p class="control">
+            <a href="{{call .ToURL "home"}}" class="button is-light">Cancel</a>
+        </p>
+    </div>
+    {{template "csrf" .}}
+</form>
+{{end}}
+
+{{define "secondary-content"}}
         <div class="field">
             <label for="status" class="label">Status</label>
             <div class="control">
@@ -60,14 +82,4 @@
                 {{template "field-errors" (.Form.Submission.GetFieldErrors "Status")}}
             </div>
         </div>
-		<div class="field is-grouped">
-            <p class="control">
-                <button class="button is-primary">Register</button>
-            </p>
-            <p class="control">
-                <a href="{{call .ToURL "home"}}" class="button is-light">Cancel</a>
-            </p>
-        </div>
-        {{template "csrf" .}}
-    </form>
 {{end}}

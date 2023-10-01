@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" style="height:100%;">
+    <head>
+        {{template "metatags" .}}
+        {{template "css" .}}
+        {{template "js" .}}
+    </head>
+    <body class="has-background-light" style="min-height:100%;">
+        <nav class="navbar is-dark">
+            <div class="container">
+                <div class="navbar-brand" hx-boost="true">
+                    <a href="{{call .ToURL "home"}}" class="navbar-item">{{.AppName}}</a>
+                </div>
+                <div id="navbarMenu" class="navbar-menu">
+                    <div class="navbar-end">
+                        {{template "search" .}}
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mt-5">
+            <div class="columns">
+                <!-- Left Column: Main Navigation -->
+                <div class="column is-3">
+                    <aside class="menu" hx-boost="true">
+                        <!-- ... (as your current menu code) ... -->
+                    </aside>
+                </div>
+
+                <!-- Center Column: Primary Entity Attributes -->
+                <div class="column is-5">
+                    <div class="box">
+                        {{- if .Title}}
+                            <h1 class="title">{{.Title}}</h1>
+                        {{- end}}
+
+                        {{template "messages" .}}
+                        {{template "primary-content" .}}
+                    </div>
+                </div>
+
+                <!-- Right Column: Secondary Entity Attributes -->
+                <div class="column is-4">
+                    <div class="box">
+                        {{template "secondary-content" .}}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{template "footer" .}}
+    </body>
+</html>
+
+<!-- Rest of your code like the "search" template definition remains the same. -->

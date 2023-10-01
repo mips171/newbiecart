@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -34,6 +35,16 @@ type (
 		Status     string `form:"status" validate:"required"`
 		Submission controller.FormSubmission
 	}
+
+	editCustomerForm struct {
+		ID         int    `form:"id" validate:"required"`
+		Name       string `form:"name" validate:"required"`
+		Email      string `form:"email" validate:"required"`
+		Password   string `form:"password" validate:"required"`
+		Address    string `form:"address" validate:"required"`
+		Status     string `form:"status" validate:"required"`
+		Submission controller.FormSubmission
+	}
 )
 
 func NewCustomersController(client *ent.Client) *customersController {
@@ -44,7 +55,7 @@ func NewCustomersController(client *ent.Client) *customersController {
 func (c *customersController) GetCustomers(ctx echo.Context) error {
 	page := controller.NewPage(ctx)
 	page.Layout = "main"
-	page.Name = "customers"
+	page.Name = "customers/list"
 	page.Metatags.Description = "All Customers"
 	page.Pager = controller.NewPager(ctx, 30)
 	page.Data = c.fetchCustomers(ctx, &page.Pager)
@@ -77,11 +88,39 @@ func (c *customersController) fetchCustomers(ctx echo.Context, pager *controller
 	return customers
 }
 
+func (c *customersController) ViewCustomer(ctx echo.Context) error {
+	customerID := ctx.Param("id")
+
+	// make customerID an int
+	customerIDInt, err := strconv.Atoi(customerID)
+	if err != nil {
+		return c.Fail(err, "invalid customer ID")
+	}
+
+	// Fetch the customer from the database using its ID
+	customer, err := c.Container.ORM.Customer.
+		Query().
+		Where(customer.IDEQ(customerIDInt)).
+		Only(ctx.Request().Context())
+
+	if err != nil {
+		return c.Fail(err, "unable to fetch customer details")
+	}
+
+	page := controller.NewPage(ctx)
+	page.Layout = "edit_entity"
+	page.Name = "customers.view"
+	page.Title = fmt.Sprint(customer.ID)
+	page.Data = customer
+
+	return c.RenderPage(ctx, page)
+}
+
 // Display the form to add a customer
 func (c *customersController) ShowCreateCustomerForm(ctx echo.Context) error {
 	page := controller.NewPage(ctx)
-	page.Layout = "main"
-	page.Name = "add_customer"
+	page.Layout = "edit_entity"
+	page.Name = "customers/add"
 	page.Title = "New Customer"
 
 	if form := ctx.Get(context.FormKey); form != nil {
@@ -97,8 +136,8 @@ func (c *customersController) ShowCreateCustomerForm(ctx echo.Context) error {
 func (c *customersController) CreateCustomer(ctx echo.Context) error {
 
 	page := controller.NewPage(ctx)
-	page.Layout = "main"
-	page.Name = "add_customer"
+	page.Layout = "edit_entity"
+	page.Name = "customers/add"
 	page.Title = "New Customer"
 	page.Form = addCustomerForm{}
 
@@ -131,8 +170,36 @@ func (c *customersController) CreateCustomer(ctx echo.Context) error {
 	return ctx.Redirect(http.StatusSeeOther, "/customers")
 }
 
-// EditCustomer processes the customer editing form
 func (c *customersController) EditCustomer(ctx echo.Context) error {
+	customerID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		return c.Fail(err, "Invalid customer ID")
+	}
+
+	customer, err := c.Container.ORM.Customer.Get(ctx.Request().Context(), customerID)
+	if err != nil {
+		return c.Fail(err, "Unable to fetch customer")
+	}
+
+	page := controller.NewPage(ctx)
+	page.Layout = "edit_entity"
+	page.Name = "customers/edit"
+	page.Title = "Edit customer"
+	page.Form = editCustomerForm{
+		ID:         customer.ID,
+		Name:       customer.Name,
+		Email:      customer.Email,
+		Password:   customer.Password,
+		Address:    customer.Address,
+		Status:     string(customer.Status),
+		Submission: controller.FormSubmission{},
+	}
+
+	return c.RenderPage(ctx, page)
+}
+
+// EditCustomer processes the customer editing form
+func (c *customersController) EditCustomerPost(ctx echo.Context) error {
 	id := ctx.Param("id") // Assuming id is an integer parameter in the route
 
 	// Fetch customer based on ID
