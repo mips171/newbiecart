@@ -13,6 +13,8 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/msg"
 )
 
+const orderDateFormat = "2006-01-02T15:04"
+
 type (
 	// Interfaces to make actions explicit
 	OrderGetter interface {
@@ -47,7 +49,7 @@ type (
 		ID          *int    `form:"id"` // Note use of pointer to allow for nil values, and no "required" validation
 		Status      string  `form:"status" validate:"required"`
 		PlacedAt    string  `form:"placed_at" validate:"required"`
-		BalanceDue  float64 `form:"balance_due" validate:"required,gte=0"`
+		BalanceDue  float64 `form:"balance_due" validate:"required"`
 		// Customer    string  `form:"customer" validate:"required"`
 		// ProcessedBy float64 `form:"processed_by" validate:"required,gte=0"`
 		Submission  controller.FormSubmission
@@ -123,7 +125,7 @@ func (c *OrderController) handleEditByIdGet(ctx echo.Context) error {
 	page.Title = "Editing Order"
 	page.Form = OrderForm{
 		ID: &order.ID, // Make sure to pass the address of order.ID
-		PlacedAt: order.PlacedAt.Format("2006-01-02T15:04"),
+		PlacedAt: order.PlacedAt.Format(orderDateFormat),
 		BalanceDue: order.BalanceDue,
 		Status: string(order.Status),
 		// ... populate other fields ...
@@ -151,12 +153,13 @@ func (c *OrderController) handleEditByIdPost(ctx echo.Context) error {
 
 	ctx.Logger().Infof("Attempting to update order with ID: %d", form.ID)
 
-	fmt.Println("got status:", form.Status)
+	ctx.Logger().Debugf("got form: %v", form)
 
 	// Fetch the existing order and update its fields
 	order, err := c.Container.ORM.Order.UpdateOneID(*form.ID). // Assuming form.ID exists
 		SetStatus(order.Status(form.Status)).
-		// SetBalanceDue(form.BalanceDue).
+		SetBalanceDue(form.BalanceDue).
+
 		// ... set other fields ...
 		Save(ctx.Request().Context())
 
@@ -216,7 +219,7 @@ func (c *OrderController) handleAddPost(ctx echo.Context) error {
 	// (I am assuming some fields like 'Status', 'PlacedAt', and 'BalanceDue' based on the provided schema)
 
 	// turn form.PlacedAt into appropriate format
-	placedAt, err := time.Parse("2006-01-02T15:04", form.PlacedAt)
+	placedAt, err := time.Parse(orderDateFormat, form.PlacedAt)
 	if err != nil {
 		return c.Fail(err, "unable to parse form.PlacedAt")
 	}
@@ -263,7 +266,7 @@ func (c *OrderController) fetchOrders(ctx echo.Context, pager *controller.Pager)
 	for i, p := range prods {
 		orders[i] = Order{
 			ID:         p.ID,
-			PlacedAt: 	p.PlacedAt.Format("2006-01-02T15:04"),
+			PlacedAt: 	p.PlacedAt.Format(orderDateFormat),
 			BalanceDue: p.BalanceDue,
 		}
 	}

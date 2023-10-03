@@ -34,7 +34,7 @@ func (Order) Fields() []ent.Field {
 			Immutable(),
 		field.Float("balance_due").
 			Default(0).
-			Positive(),
+			Min(0),
 	}
 }
 

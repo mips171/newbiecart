@@ -30,10 +30,11 @@
 
 	<div class="field">
 		<label for="placed_at" class="label">Placed At</label>
-		<div class="control">
-			<input type="date" id="placed_at" name="placed_at" class="input {{.Form.Submission.GetFieldStatusClass "PlacedAt"}}" value="{{.Form.PlacedAt}}">
-			{{template "field-errors" (.Form.Submission.GetFieldErrors "PlacedAt")}}
-		</div>
+        <div class="control">
+            <input type="datetime-local" id="placed_at" name="placed_at" class="input {{.Form.Submission.GetFieldStatusClass "PlacedAt"}}"
+                value="{{.Form.PlacedAt}}">
+            {{template "field-errors" (.Form.Submission.GetFieldErrors "PlacedAt")}}
+        </div>
 	</div>
 
     <div class="field is-grouped">
