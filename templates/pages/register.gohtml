@@ -1,10 +1,20 @@
 {{define "content"}}
     <form method="post" hx-boost="true" action="{{call .ToURL "register.post"}}">
+        <!-- First Name -->
         <div class="field">
-            <label for="name" class="label">Name</label>
+            <label for="name_first" class="label">First Name</label>
             <div class="control">
-                <input type="text" id="name" name="name" class="input {{.Form.Submission.GetFieldStatusClass "Name"}}" value="{{.Form.Name}}">
-                {{template "field-errors" (.Form.Submission.GetFieldErrors "Name")}}
+                <input type="text" id="name_first" name="name_first" class="input {{.Form.Submission.GetFieldStatusClass "NameFirst"}}" value="{{.Form.NameFirst}}">
+                {{template "field-errors" (.Form.Submission.GetFieldErrors "NameFirst")}}
+            </div>
+        </div>
+
+        <!-- Surname -->
+        <div class="field">
+            <label for="name_surname" class="label">Surname</label>
+            <div class="control">
+                <input type="text" id="name_surname" name="name_surname" class="input {{.Form.Submission.GetFieldStatusClass "NameSurname"}}" value="{{.Form.NameSurname}}">
+                {{template "field-errors" (.Form.Submission.GetFieldErrors "NameSurname")}}
             </div>
         </div>
         <div class="field">
@@ -12,6 +22,14 @@
             <div class="control">
                 <input type="email" id="email" name="email" class="input {{.Form.Submission.GetFieldStatusClass "Email"}}" value="{{.Form.Email}}">
                 {{template "field-errors" (.Form.Submission.GetFieldErrors "Email")}}
+            </div>
+        </div>
+        <!-- Phone Number -->
+        <div class="field">
+            <label for="phone" class="label">Phone Number</label>
+            <div class="control">
+                <input type="tel" id="phone" name="phone" class="input {{.Form.Submission.GetFieldStatusClass "Phone"}}" value="{{.Form.Phone}}">
+                {{template "field-errors" (.Form.Submission.GetFieldErrors "Phone")}}
             </div>
         </div>
         <div class="field">

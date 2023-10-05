@@ -92,6 +92,8 @@ func (f *FormSubmission) setErrorMessages(err error) {
 			message = "This field is required."
 		case "email":
 			message = "Enter a valid email address."
+		case "phone":
+			message = "Enter a valid phone number"
 		case "eqfield":
 			message = "Does not match."
 		default:

@@ -17,8 +17,10 @@ type (
 	}
 
 	registerForm struct {
-		Name            string `form:"name" validate:"required"`
+		NameFirst       string `form:"name_first" validate:"required"`
+		NameSurname     string `form:"name_surname" validate:"required"`
 		Email           string `form:"email" validate:"required,email"`
+		Phone           string `form:"phone" validate:"required"`
 		Password        string `form:"password" validate:"required"`
 		ConfirmPassword string `form:"password-confirm" validate:"required,eqfield=Password"`
 		Submission      controller.FormSubmission
@@ -65,9 +67,10 @@ func (c *register) Post(ctx echo.Context) error {
 	// Attempt creating the user
 	u, err := c.Container.ORM.User.
 		Create().
-		SetNameFirst(form.Name).
-		SetNameSurname(form.Name).
+		SetNameFirst(form.NameFirst).
+		SetNameSurname(form.NameSurname).
 		SetEmail(form.Email).
+		SetPhone(form.Phone).
 		SetPassword(pwHash).
 		Save(ctx.Request().Context())
 
