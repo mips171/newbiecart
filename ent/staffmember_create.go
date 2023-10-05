@@ -231,11 +231,15 @@ func (smc *StaffMemberCreate) createSpec() (*StaffMember, *sqlgraph.CreateSpec) 
 // StaffMemberCreateBulk is the builder for creating many StaffMember entities in bulk.
 type StaffMemberCreateBulk struct {
 	config
+	err      error
 	builders []*StaffMemberCreate
 }
 
 // Save creates the StaffMember entities in the database.
 func (smcb *StaffMemberCreateBulk) Save(ctx context.Context) ([]*StaffMember, error) {
+	if smcb.err != nil {
+		return nil, smcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(smcb.builders))
 	nodes := make([]*StaffMember, len(smcb.builders))
 	mutators := make([]Mutator, len(smcb.builders))

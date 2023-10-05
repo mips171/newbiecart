@@ -166,11 +166,15 @@ func (ptc *PasswordTokenCreate) createSpec() (*PasswordToken, *sqlgraph.CreateSp
 // PasswordTokenCreateBulk is the builder for creating many PasswordToken entities in bulk.
 type PasswordTokenCreateBulk struct {
 	config
+	err      error
 	builders []*PasswordTokenCreate
 }
 
 // Save creates the PasswordToken entities in the database.
 func (ptcb *PasswordTokenCreateBulk) Save(ctx context.Context) ([]*PasswordToken, error) {
+	if ptcb.err != nil {
+		return nil, ptcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ptcb.builders))
 	nodes := make([]*PasswordToken, len(ptcb.builders))
 	mutators := make([]Mutator, len(ptcb.builders))

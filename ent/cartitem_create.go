@@ -184,11 +184,15 @@ func (cic *CartItemCreate) createSpec() (*CartItem, *sqlgraph.CreateSpec) {
 // CartItemCreateBulk is the builder for creating many CartItem entities in bulk.
 type CartItemCreateBulk struct {
 	config
+	err      error
 	builders []*CartItemCreate
 }
 
 // Save creates the CartItem entities in the database.
 func (cicb *CartItemCreateBulk) Save(ctx context.Context) ([]*CartItem, error) {
+	if cicb.err != nil {
+		return nil, cicb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(cicb.builders))
 	nodes := make([]*CartItem, len(cicb.builders))
 	mutators := make([]Mutator, len(cicb.builders))

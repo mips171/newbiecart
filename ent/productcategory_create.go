@@ -135,11 +135,15 @@ func (pcc *ProductCategoryCreate) createSpec() (*ProductCategory, *sqlgraph.Crea
 // ProductCategoryCreateBulk is the builder for creating many ProductCategory entities in bulk.
 type ProductCategoryCreateBulk struct {
 	config
+	err      error
 	builders []*ProductCategoryCreate
 }
 
 // Save creates the ProductCategory entities in the database.
 func (pccb *ProductCategoryCreateBulk) Save(ctx context.Context) ([]*ProductCategory, error) {
+	if pccb.err != nil {
+		return nil, pccb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(pccb.builders))
 	nodes := make([]*ProductCategory, len(pccb.builders))
 	mutators := make([]Mutator, len(pccb.builders))

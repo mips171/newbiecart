@@ -239,11 +239,15 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 // CompanyCreateBulk is the builder for creating many Company entities in bulk.
 type CompanyCreateBulk struct {
 	config
+	err      error
 	builders []*CompanyCreate
 }
 
 // Save creates the Company entities in the database.
 func (ccb *CompanyCreateBulk) Save(ctx context.Context) ([]*Company, error) {
+	if ccb.err != nil {
+		return nil, ccb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ccb.builders))
 	nodes := make([]*Company, len(ccb.builders))
 	mutators := make([]Mutator, len(ccb.builders))
