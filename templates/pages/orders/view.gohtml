@@ -13,7 +13,7 @@
 
     <!-- Order Actions: Edit Order -->
     <div class="order-actions mt-4">
-        <button class="button is-link">Edit Order</button>
+        <a href="{{call .ToURL "orders.edit" .Data.ID}}" class="button is-light">Edit Order</a>
     </div>
 </div>
 {{end}}
