@@ -159,6 +159,10 @@ func init() {
 	productcategoryDescDescription := productcategoryFields[1].Descriptor()
 	// productcategory.DefaultDescription holds the default value on creation for the description field.
 	productcategory.DefaultDescription = productcategoryDescDescription.Default.(string)
+	// productcategoryDescImageURL is the schema descriptor for image_url field.
+	productcategoryDescImageURL := productcategoryFields[2].Descriptor()
+	// productcategory.DefaultImageURL holds the default value on creation for the image_url field.
+	productcategory.DefaultImageURL = productcategoryDescImageURL.Default.(string)
 	staffmemberFields := schema.StaffMember{}.Fields()
 	_ = staffmemberFields
 	// staffmemberDescName is the schema descriptor for name field.

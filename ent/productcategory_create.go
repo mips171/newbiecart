@@ -40,6 +40,20 @@ func (pcc *ProductCategoryCreate) SetNillableDescription(s *string) *ProductCate
 	return pcc
 }
 
+// SetImageURL sets the "image_url" field.
+func (pcc *ProductCategoryCreate) SetImageURL(s string) *ProductCategoryCreate {
+	pcc.mutation.SetImageURL(s)
+	return pcc
+}
+
+// SetNillableImageURL sets the "image_url" field if the given value is not nil.
+func (pcc *ProductCategoryCreate) SetNillableImageURL(s *string) *ProductCategoryCreate {
+	if s != nil {
+		pcc.SetImageURL(*s)
+	}
+	return pcc
+}
+
 // AddProductIDs adds the "products" edge to the Product entity by IDs.
 func (pcc *ProductCategoryCreate) AddProductIDs(ids ...int) *ProductCategoryCreate {
 	pcc.mutation.AddProductIDs(ids...)
@@ -94,6 +108,10 @@ func (pcc *ProductCategoryCreate) defaults() {
 		v := productcategory.DefaultDescription
 		pcc.mutation.SetDescription(v)
 	}
+	if _, ok := pcc.mutation.ImageURL(); !ok {
+		v := productcategory.DefaultImageURL
+		pcc.mutation.SetImageURL(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -108,6 +126,9 @@ func (pcc *ProductCategoryCreate) check() error {
 	}
 	if _, ok := pcc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "ProductCategory.description"`)}
+	}
+	if _, ok := pcc.mutation.ImageURL(); !ok {
+		return &ValidationError{Name: "image_url", err: errors.New(`ent: missing required field "ProductCategory.image_url"`)}
 	}
 	return nil
 }
@@ -142,6 +163,10 @@ func (pcc *ProductCategoryCreate) createSpec() (*ProductCategory, *sqlgraph.Crea
 	if value, ok := pcc.mutation.Description(); ok {
 		_spec.SetField(productcategory.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if value, ok := pcc.mutation.ImageURL(); ok {
+		_spec.SetField(productcategory.FieldImageURL, field.TypeString, value)
+		_node.ImageURL = value
 	}
 	if nodes := pcc.mutation.ProductsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -1,0 +1,33 @@
+{{define "content"}}
+<div class="category-container">
+    <!-- Category Header with Name and SKU -->
+    <div class="category-header">
+        <h1 class="title">{{.Data.Name}}</h1>
+    </div>
+
+	<!-- Category Image -->
+    <div class="category-image">
+        <figure class="image is-128x128">
+            <img src="{{.Data.ImageURL}}" alt="{{.Data.Name}}">
+        </figure>
+    </div>
+
+    <!-- Category Description -->
+    <div class="category-description mt-4">
+        <p>{{.Data.Description}}</p>
+    </div>
+
+    <!-- Category Details: Quantity -->
+    <div class="category-details mt-4">
+        <div class="field is-grouped">
+            <!-- Number of items -->
+            <div class="control">
+                <div class="tags has-addons">
+                    <span class="tag is-dark">Number of Products</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{{end}}

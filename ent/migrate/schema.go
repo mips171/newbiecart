@@ -178,6 +178,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "description", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "image_url", Type: field.TypeString, Default: "https://via.placeholder.com/150"},
 	}
 	// ProductCategoriesTable holds the schema information for the "product_categories" table.
 	ProductCategoriesTable = &schema.Table{

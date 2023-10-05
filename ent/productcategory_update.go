@@ -48,6 +48,20 @@ func (pcu *ProductCategoryUpdate) SetNillableDescription(s *string) *ProductCate
 	return pcu
 }
 
+// SetImageURL sets the "image_url" field.
+func (pcu *ProductCategoryUpdate) SetImageURL(s string) *ProductCategoryUpdate {
+	pcu.mutation.SetImageURL(s)
+	return pcu
+}
+
+// SetNillableImageURL sets the "image_url" field if the given value is not nil.
+func (pcu *ProductCategoryUpdate) SetNillableImageURL(s *string) *ProductCategoryUpdate {
+	if s != nil {
+		pcu.SetImageURL(*s)
+	}
+	return pcu
+}
+
 // AddProductIDs adds the "products" edge to the Product entity by IDs.
 func (pcu *ProductCategoryUpdate) AddProductIDs(ids ...int) *ProductCategoryUpdate {
 	pcu.mutation.AddProductIDs(ids...)
@@ -144,6 +158,9 @@ func (pcu *ProductCategoryUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := pcu.mutation.Description(); ok {
 		_spec.SetField(productcategory.FieldDescription, field.TypeString, value)
 	}
+	if value, ok := pcu.mutation.ImageURL(); ok {
+		_spec.SetField(productcategory.FieldImageURL, field.TypeString, value)
+	}
 	if pcu.mutation.ProductsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -225,6 +242,20 @@ func (pcuo *ProductCategoryUpdateOne) SetDescription(s string) *ProductCategoryU
 func (pcuo *ProductCategoryUpdateOne) SetNillableDescription(s *string) *ProductCategoryUpdateOne {
 	if s != nil {
 		pcuo.SetDescription(*s)
+	}
+	return pcuo
+}
+
+// SetImageURL sets the "image_url" field.
+func (pcuo *ProductCategoryUpdateOne) SetImageURL(s string) *ProductCategoryUpdateOne {
+	pcuo.mutation.SetImageURL(s)
+	return pcuo
+}
+
+// SetNillableImageURL sets the "image_url" field if the given value is not nil.
+func (pcuo *ProductCategoryUpdateOne) SetNillableImageURL(s *string) *ProductCategoryUpdateOne {
+	if s != nil {
+		pcuo.SetImageURL(*s)
 	}
 	return pcuo
 }
@@ -354,6 +385,9 @@ func (pcuo *ProductCategoryUpdateOne) sqlSave(ctx context.Context) (_node *Produ
 	}
 	if value, ok := pcuo.mutation.Description(); ok {
 		_spec.SetField(productcategory.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := pcuo.mutation.ImageURL(); ok {
+		_spec.SetField(productcategory.FieldImageURL, field.TypeString, value)
 	}
 	if pcuo.mutation.ProductsCleared() {
 		edge := &sqlgraph.EdgeSpec{

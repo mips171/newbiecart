@@ -19,6 +19,8 @@ func (ProductCategory) Fields() []ent.Field {
 			Unique(), // Name should be unique.
 		field.Text("description").
 			Default(""),
+		field.String("image_url").
+			Default("https://via.placeholder.com/150"),
 		// ... other fields
 	}
 }

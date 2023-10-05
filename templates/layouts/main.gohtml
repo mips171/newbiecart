@@ -26,6 +26,7 @@
                         <p class="menu-label">General</p>
                         <ul class="menu-list">
                             <!-- The .ToURL needs to be to the route, not the URL -->
+                            <li>{{link (call .ToURL "product_categories.view_all") "Categories" .Path}}</li>
                             <li>{{link (call .ToURL "products.view_all") "Products" .Path}}</li>
                             <li>{{link (call .ToURL "orders.view_all") "Orders" .Path}}</li>
 
