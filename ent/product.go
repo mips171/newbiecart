@@ -47,8 +47,8 @@ type ProductEdges struct {
 	CartItems []*CartItem `json:"cart_items,omitempty"`
 	// OrderItems holds the value of the order_items edge.
 	OrderItems []*OrderItem `json:"order_items,omitempty"`
-	// Category holds the value of the category edge.
-	Category []*ProductCategory `json:"category,omitempty"`
+	// Categories holds the value of the categories edge.
+	Categories []*ProductCategory `json:"categories,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
@@ -72,13 +72,13 @@ func (e ProductEdges) OrderItemsOrErr() ([]*OrderItem, error) {
 	return nil, &NotLoadedError{edge: "order_items"}
 }
 
-// CategoryOrErr returns the Category value or an error if the edge
+// CategoriesOrErr returns the Categories value or an error if the edge
 // was not loaded in eager-loading.
-func (e ProductEdges) CategoryOrErr() ([]*ProductCategory, error) {
+func (e ProductEdges) CategoriesOrErr() ([]*ProductCategory, error) {
 	if e.loadedTypes[2] {
-		return e.Category, nil
+		return e.Categories, nil
 	}
-	return nil, &NotLoadedError{edge: "category"}
+	return nil, &NotLoadedError{edge: "categories"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -192,9 +192,9 @@ func (pr *Product) QueryOrderItems() *OrderItemQuery {
 	return NewProductClient(pr.config).QueryOrderItems(pr)
 }
 
-// QueryCategory queries the "category" edge of the Product entity.
-func (pr *Product) QueryCategory() *ProductCategoryQuery {
-	return NewProductClient(pr.config).QueryCategory(pr)
+// QueryCategories queries the "categories" edge of the Product entity.
+func (pr *Product) QueryCategories() *ProductCategoryQuery {
+	return NewProductClient(pr.config).QueryCategories(pr)
 }
 
 // Update returns a builder for updating this Product.

@@ -18,6 +18,15 @@
         <p>{{.Data.Description}}</p>
     </div>
 
+    <!-- Product Categories -->
+    <div class="product-categories mt-4">
+        <div class="tags">
+        {{range .Data.Edges.Categories}}
+            <span>{{.Name}}</span>
+        {{end}}
+        </div>
+    </div>
+
     <!-- Product Details: Price and Quantity -->
     <div class="product-details mt-4">
         <div class="field is-grouped">

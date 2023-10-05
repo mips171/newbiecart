@@ -601,21 +601,21 @@ func HasOrderItemsWith(preds ...predicate.OrderItem) predicate.Product {
 	})
 }
 
-// HasCategory applies the HasEdge predicate on the "category" edge.
-func HasCategory() predicate.Product {
+// HasCategories applies the HasEdge predicate on the "categories" edge.
+func HasCategories() predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, CategoryTable, CategoryPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, true, CategoriesTable, CategoriesPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasCategoryWith applies the HasEdge predicate on the "category" edge with a given conditions (other predicates).
-func HasCategoryWith(preds ...predicate.ProductCategory) predicate.Product {
+// HasCategoriesWith applies the HasEdge predicate on the "categories" edge with a given conditions (other predicates).
+func HasCategoriesWith(preds ...predicate.ProductCategory) predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
-		step := newCategoryStep()
+		step := newCategoriesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -45,7 +45,7 @@ func (Product) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("cart_items", CartItem.Type),
 		edge.To("order_items", OrderItem.Type),
-		edge.From("category", ProductCategory.Type).
+		edge.From("categories", ProductCategory.Type).
 			Ref("products"),
 	}
 }

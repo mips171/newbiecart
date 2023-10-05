@@ -163,14 +163,14 @@ func (pc *ProductCreate) AddOrderItems(o ...*OrderItem) *ProductCreate {
 	return pc.AddOrderItemIDs(ids...)
 }
 
-// AddCategoryIDs adds the "category" edge to the ProductCategory entity by IDs.
+// AddCategoryIDs adds the "categories" edge to the ProductCategory entity by IDs.
 func (pc *ProductCreate) AddCategoryIDs(ids ...int) *ProductCreate {
 	pc.mutation.AddCategoryIDs(ids...)
 	return pc
 }
 
-// AddCategory adds the "category" edges to the ProductCategory entity.
-func (pc *ProductCreate) AddCategory(p ...*ProductCategory) *ProductCreate {
+// AddCategories adds the "categories" edges to the ProductCategory entity.
+func (pc *ProductCreate) AddCategories(p ...*ProductCategory) *ProductCreate {
 	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
@@ -381,12 +381,12 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.CategoryIDs(); len(nodes) > 0 {
+	if nodes := pc.mutation.CategoriesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   product.CategoryTable,
-			Columns: product.CategoryPrimaryKey,
+			Table:   product.CategoriesTable,
+			Columns: product.CategoriesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(productcategory.FieldID, field.TypeInt),

@@ -40,6 +40,8 @@ type (
 		Description string
 		Price       types.Currency
 		ID          int
+		CategoryIDs []int
+		Categories  []ProductCategory // New field
 	}
 
 	ProductForm struct {
@@ -49,7 +51,13 @@ type (
 		Description string `form:"description" validate:"required"`
 		Price       string `form:"price" validate:"required"`
 		Quantity    int    `form:"quantity" validate:"required,gte=0"`
+		CategoryIDs []int  `form:"category_ids"`
 		Submission  controller.FormSubmission
+	}
+
+	ProductPageData struct {
+		Products   []Product
+		Categories []ProductCategory
 	}
 )
 
@@ -78,6 +86,7 @@ func (c *ProductController) GetByID(ctx echo.Context) error {
 	product, err := c.Container.ORM.Product.
 		Query().
 		Where(product.IDEQ(productID)).
+		WithCategories().
 		Only(ctx.Request().Context())
 
 	if err != nil {
@@ -88,9 +97,20 @@ func (c *ProductController) GetByID(ctx echo.Context) error {
 	page.Layout = "product_layout"
 	page.Name = "products/view"
 	page.Title = product.Name
-	page.Data = product
+	page.Data = product // directly assign the ent Product entity
 
 	return c.RenderPage(ctx, page)
+}
+
+func (c *ProductController) convertToProductCategories(ents []*ent.ProductCategory) []ProductCategory {
+	categories := make([]ProductCategory, len(ents))
+	for i, e := range ents {
+		categories[i] = ProductCategory{
+			ID:   e.ID,
+			Name: e.Name,
+		}
+	}
+	return categories
 }
 
 func (c *ProductController) EditByID(ctx echo.Context) error {
@@ -163,8 +183,8 @@ func (c *ProductController) handleEditByIdPost(ctx echo.Context) error {
 									SetSku(form.Sku).
 									SetDescription(form.Description).
 									SetPrice(price.String()).
+									AddCategoryIDs(form.CategoryIDs...).
 									SetStockCount(form.Quantity).
-
 		// ... set other fields ...
 		Save(ctx.Request().Context())
 
@@ -200,6 +220,13 @@ func (c *ProductController) handleAddGet(ctx echo.Context) error {
 		page.Form = form.(*ProductForm)
 	}
 
+	pageData := ProductPageData{
+		Products:   c.fetchProducts(ctx, &page.Pager),
+		Categories: c.fetchCategories(ctx),
+	}
+
+	page.Data = pageData
+
 	return c.RenderPage(ctx, page)
 }
 
@@ -228,6 +255,7 @@ func (c *ProductController) handleAddPost(ctx echo.Context) error {
 		SetDescription(form.Description).
 		SetPrice(form.Price).
 		SetStockCount(form.Quantity).
+		AddCategoryIDs(form.CategoryIDs...).
 		SetCreatedAt(time.Now()).
 		SetUpdatedAt(time.Now()).
 		Save(ctx.Request().Context())
@@ -277,4 +305,18 @@ func (c *ProductController) fetchProducts(ctx echo.Context, pager *controller.Pa
 		}
 	}
 	return products
+}
+
+func (c *ProductController) fetchCategories(ctx echo.Context) []ProductCategory {
+	// Fetch categories from the ORM and convert them into ProductCategory structs
+	// This is just a placeholder; adapt to your ORM and schema
+	categories, _ := c.Container.ORM.ProductCategory.Query().All(ctx.Request().Context())
+	catList := make([]ProductCategory, len(categories))
+	for i, cat := range categories {
+		catList[i] = ProductCategory{
+			ID:   cat.ID,
+			Name: cat.Name,
+		}
+	}
+	return catList
 }

@@ -1,6 +1,9 @@
 {{ define "content" }}
 
 <h1>Our Categories</h1>
+
+    <a href="{{call .ToURL "product_categories.add"}}" class="button is-light">Add Category</a>
+
     <div id="categories">
         {{- range .Data}}
             <article class="media">

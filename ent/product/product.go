@@ -36,8 +36,8 @@ const (
 	EdgeCartItems = "cart_items"
 	// EdgeOrderItems holds the string denoting the order_items edge name in mutations.
 	EdgeOrderItems = "order_items"
-	// EdgeCategory holds the string denoting the category edge name in mutations.
-	EdgeCategory = "category"
+	// EdgeCategories holds the string denoting the categories edge name in mutations.
+	EdgeCategories = "categories"
 	// Table holds the table name of the product in the database.
 	Table = "products"
 	// CartItemsTable is the table that holds the cart_items relation/edge. The primary key declared below.
@@ -50,11 +50,11 @@ const (
 	// OrderItemsInverseTable is the table name for the OrderItem entity.
 	// It exists in this package in order to avoid circular dependency with the "orderitem" package.
 	OrderItemsInverseTable = "order_items"
-	// CategoryTable is the table that holds the category relation/edge. The primary key declared below.
-	CategoryTable = "product_category_products"
-	// CategoryInverseTable is the table name for the ProductCategory entity.
+	// CategoriesTable is the table that holds the categories relation/edge. The primary key declared below.
+	CategoriesTable = "product_category_products"
+	// CategoriesInverseTable is the table name for the ProductCategory entity.
 	// It exists in this package in order to avoid circular dependency with the "productcategory" package.
-	CategoryInverseTable = "product_categories"
+	CategoriesInverseTable = "product_categories"
 )
 
 // Columns holds all SQL columns for product fields.
@@ -78,9 +78,9 @@ var (
 	// OrderItemsPrimaryKey and OrderItemsColumn2 are the table columns denoting the
 	// primary key for the order_items relation (M2M).
 	OrderItemsPrimaryKey = []string{"product_id", "order_item_id"}
-	// CategoryPrimaryKey and CategoryColumn2 are the table columns denoting the
-	// primary key for the category relation (M2M).
-	CategoryPrimaryKey = []string{"product_category_id", "product_id"}
+	// CategoriesPrimaryKey and CategoriesColumn2 are the table columns denoting the
+	// primary key for the categories relation (M2M).
+	CategoriesPrimaryKey = []string{"product_category_id", "product_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -199,17 +199,17 @@ func ByOrderItems(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByCategoryCount orders the results by category count.
-func ByCategoryCount(opts ...sql.OrderTermOption) OrderOption {
+// ByCategoriesCount orders the results by categories count.
+func ByCategoriesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newCategoryStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newCategoriesStep(), opts...)
 	}
 }
 
-// ByCategory orders the results by category terms.
-func ByCategory(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByCategories orders the results by categories terms.
+func ByCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newCategoryStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newCartItemsStep() *sqlgraph.Step {
@@ -226,10 +226,10 @@ func newOrderItemsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2M, false, OrderItemsTable, OrderItemsPrimaryKey...),
 	)
 }
-func newCategoryStep() *sqlgraph.Step {
+func newCategoriesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(CategoryInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, CategoryTable, CategoryPrimaryKey...),
+		sqlgraph.To(CategoriesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, CategoriesTable, CategoriesPrimaryKey...),
 	)
 }

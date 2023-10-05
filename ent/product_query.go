@@ -27,7 +27,7 @@ type ProductQuery struct {
 	predicates     []predicate.Product
 	withCartItems  *CartItemQuery
 	withOrderItems *OrderItemQuery
-	withCategory   *ProductCategoryQuery
+	withCategories *ProductCategoryQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -108,8 +108,8 @@ func (pq *ProductQuery) QueryOrderItems() *OrderItemQuery {
 	return query
 }
 
-// QueryCategory chains the current query on the "category" edge.
-func (pq *ProductQuery) QueryCategory() *ProductCategoryQuery {
+// QueryCategories chains the current query on the "categories" edge.
+func (pq *ProductQuery) QueryCategories() *ProductCategoryQuery {
 	query := (&ProductCategoryClient{config: pq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pq.prepareQuery(ctx); err != nil {
@@ -122,7 +122,7 @@ func (pq *ProductQuery) QueryCategory() *ProductCategoryQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(product.Table, product.FieldID, selector),
 			sqlgraph.To(productcategory.Table, productcategory.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, product.CategoryTable, product.CategoryPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, true, product.CategoriesTable, product.CategoriesPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -324,7 +324,7 @@ func (pq *ProductQuery) Clone() *ProductQuery {
 		predicates:     append([]predicate.Product{}, pq.predicates...),
 		withCartItems:  pq.withCartItems.Clone(),
 		withOrderItems: pq.withOrderItems.Clone(),
-		withCategory:   pq.withCategory.Clone(),
+		withCategories: pq.withCategories.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -353,14 +353,14 @@ func (pq *ProductQuery) WithOrderItems(opts ...func(*OrderItemQuery)) *ProductQu
 	return pq
 }
 
-// WithCategory tells the query-builder to eager-load the nodes that are connected to
-// the "category" edge. The optional arguments are used to configure the query builder of the edge.
-func (pq *ProductQuery) WithCategory(opts ...func(*ProductCategoryQuery)) *ProductQuery {
+// WithCategories tells the query-builder to eager-load the nodes that are connected to
+// the "categories" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProductQuery) WithCategories(opts ...func(*ProductCategoryQuery)) *ProductQuery {
 	query := (&ProductCategoryClient{config: pq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	pq.withCategory = query
+	pq.withCategories = query
 	return pq
 }
 
@@ -445,7 +445,7 @@ func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prod
 		loadedTypes = [3]bool{
 			pq.withCartItems != nil,
 			pq.withOrderItems != nil,
-			pq.withCategory != nil,
+			pq.withCategories != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -480,10 +480,10 @@ func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prod
 			return nil, err
 		}
 	}
-	if query := pq.withCategory; query != nil {
-		if err := pq.loadCategory(ctx, query, nodes,
-			func(n *Product) { n.Edges.Category = []*ProductCategory{} },
-			func(n *Product, e *ProductCategory) { n.Edges.Category = append(n.Edges.Category, e) }); err != nil {
+	if query := pq.withCategories; query != nil {
+		if err := pq.loadCategories(ctx, query, nodes,
+			func(n *Product) { n.Edges.Categories = []*ProductCategory{} },
+			func(n *Product, e *ProductCategory) { n.Edges.Categories = append(n.Edges.Categories, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -612,7 +612,7 @@ func (pq *ProductQuery) loadOrderItems(ctx context.Context, query *OrderItemQuer
 	}
 	return nil
 }
-func (pq *ProductQuery) loadCategory(ctx context.Context, query *ProductCategoryQuery, nodes []*Product, init func(*Product), assign func(*Product, *ProductCategory)) error {
+func (pq *ProductQuery) loadCategories(ctx context.Context, query *ProductCategoryQuery, nodes []*Product, init func(*Product), assign func(*Product, *ProductCategory)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[int]*Product)
 	nids := make(map[int]map[*Product]struct{})
@@ -624,11 +624,11 @@ func (pq *ProductQuery) loadCategory(ctx context.Context, query *ProductCategory
 		}
 	}
 	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(product.CategoryTable)
-		s.Join(joinT).On(s.C(productcategory.FieldID), joinT.C(product.CategoryPrimaryKey[0]))
-		s.Where(sql.InValues(joinT.C(product.CategoryPrimaryKey[1]), edgeIDs...))
+		joinT := sql.Table(product.CategoriesTable)
+		s.Join(joinT).On(s.C(productcategory.FieldID), joinT.C(product.CategoriesPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(product.CategoriesPrimaryKey[1]), edgeIDs...))
 		columns := s.SelectedColumns()
-		s.Select(joinT.C(product.CategoryPrimaryKey[1]))
+		s.Select(joinT.C(product.CategoriesPrimaryKey[1]))
 		s.AppendSelect(columns...)
 		s.SetDistinct(false)
 	})
@@ -665,7 +665,7 @@ func (pq *ProductQuery) loadCategory(ctx context.Context, query *ProductCategory
 	for _, n := range neighbors {
 		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "category" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected "categories" node returned %v`, n.ID)
 		}
 		for kn := range nodes {
 			assign(kn, n)

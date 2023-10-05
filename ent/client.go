@@ -1784,15 +1784,15 @@ func (c *ProductClient) QueryOrderItems(pr *Product) *OrderItemQuery {
 	return query
 }
 
-// QueryCategory queries the category edge of a Product.
-func (c *ProductClient) QueryCategory(pr *Product) *ProductCategoryQuery {
+// QueryCategories queries the categories edge of a Product.
+func (c *ProductClient) QueryCategories(pr *Product) *ProductCategoryQuery {
 	query := (&ProductCategoryClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := pr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(product.Table, product.FieldID, id),
 			sqlgraph.To(productcategory.Table, productcategory.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, product.CategoryTable, product.CategoryPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, true, product.CategoriesTable, product.CategoriesPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil

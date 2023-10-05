@@ -42,6 +42,20 @@
             {{template "field-errors" (.Form.Submission.GetFieldErrors "Quantity")}}
         </div>
     </div>
+    <div class="field">
+    <label for="category_ids" class="label">Categories</label>
+    <div class="control">
+        <div class="select is-multiple {{.Form.Submission.GetFieldStatusClass "CategoryIDs"}}">
+        <select id="category_ids" name="category_ids" multiple>
+            <option value="">None</option>
+            {{range .Data.Categories}}
+                <option value="{{.ID}}">{{.Name}}</option>
+            {{end}}
+        </select>
+        </div>
+        {{template "field-errors" (.Form.Submission.GetFieldErrors "CategoryIDs")}}
+        </div>
+    </div>
     <div class="field is-grouped">
         <p class="control">
             <button class="button is-primary">Add Product</button>
