@@ -25,6 +25,8 @@ func (Company) Fields() []ent.Field {
 			NotEmpty(),
 		field.String("billing_address").
 			NotEmpty(),
+		field.String("tax_identifier").
+			Comment("Usually government-issued tax ID or business ID such as ABN in Australia"),
 		// ... Other company-specific fields ...
 	}
 }
