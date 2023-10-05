@@ -37,22 +37,22 @@ type (
 	}
 
 	Order struct {
-		Status      string
-		PlacedAt    string // Use time.Time if you want to work with time objects directly
-		BalanceDue  float64
+		Status     string
+		PlacedAt   string // Use time.Time if you want to work with time objects directly
+		BalanceDue float64
 		// Customer    ent.Customer
 		// ProcessedBy ent.StaffMember // Placeholder if you need to display the staff member's name
-		ID          int
+		ID int
 	}
 
 	OrderForm struct {
-		ID          *int    `form:"id"` // Note use of pointer to allow for nil values, and no "required" validation
-		Status      string  `form:"status" validate:"required"`
-		PlacedAt    string  `form:"placed_at" validate:"required"`
-		BalanceDue  float64 `form:"balance_due" validate:"required"`
+		ID         *int    `form:"id"` // Note use of pointer to allow for nil values, and no "required" validation
+		Status     string  `form:"status" validate:"required"`
+		PlacedAt   string  `form:"placed_at" validate:"required"`
+		BalanceDue float64 `form:"balance_due" validate:"required"`
 		// Customer    string  `form:"customer" validate:"required"`
 		// ProcessedBy float64 `form:"processed_by" validate:"required,gte=0"`
-		Submission  controller.FormSubmission
+		Submission controller.FormSubmission
 	}
 )
 
@@ -124,10 +124,10 @@ func (c *OrderController) handleEditByIdGet(ctx echo.Context) error {
 	page.Name = "orders/edit"
 	page.Title = "Editing Order"
 	page.Form = OrderForm{
-		ID: &order.ID, // Make sure to pass the address of order.ID
-		PlacedAt: order.PlacedAt.Format(orderDateFormat),
+		ID:         &order.ID, // Make sure to pass the address of order.ID
+		PlacedAt:   order.PlacedAt.Format(orderDateFormat),
 		BalanceDue: order.BalanceDue,
-		Status: string(order.Status),
+		Status:     string(order.Status),
 		// ... populate other fields ...
 	}
 	// ... rest of your code ...
@@ -157,8 +157,8 @@ func (c *OrderController) handleEditByIdPost(ctx echo.Context) error {
 
 	// Fetch the existing order and update its fields
 	order, err := c.Container.ORM.Order.UpdateOneID(*form.ID). // Assuming form.ID exists
-		SetStatus(order.Status(form.Status)).
-		SetBalanceDue(form.BalanceDue).
+									SetStatus(order.Status(form.Status)).
+									SetBalanceDue(form.BalanceDue).
 
 		// ... set other fields ...
 		Save(ctx.Request().Context())
@@ -170,7 +170,7 @@ func (c *OrderController) handleEditByIdPost(ctx echo.Context) error {
 	ctx.Logger().Infof("Order updated: %s", order.ID)
 	msg.Success(ctx, "The order was successfully updated.")
 
-	return c.Redirect(ctx, "orders")
+	return c.Redirect(ctx, "orders.view_all")
 }
 
 func (c *OrderController) Add(ctx echo.Context) error {
@@ -239,7 +239,7 @@ func (c *OrderController) handleAddPost(ctx echo.Context) error {
 	ctx.Logger().Infof("created: Order ID %d with status %s", o.ID, o.Status)
 	msg.Success(ctx, fmt.Sprintf("Order successfully added with ID: %d", o.ID))
 
-	return c.Redirect(ctx, "orders")
+	return c.Redirect(ctx, "orders.view_all")
 }
 
 // Helper methods
@@ -266,7 +266,7 @@ func (c *OrderController) fetchOrders(ctx echo.Context, pager *controller.Pager)
 	for i, p := range prods {
 		orders[i] = Order{
 			ID:         p.ID,
-			PlacedAt: 	p.PlacedAt.Format(orderDateFormat),
+			PlacedAt:   p.PlacedAt.Format(orderDateFormat),
 			BalanceDue: p.BalanceDue,
 		}
 	}
