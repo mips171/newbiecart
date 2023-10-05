@@ -30,13 +30,29 @@ var (
 	// CartItemsColumns holds the columns for the "cart_items" table.
 	CartItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "quantity", Type: field.TypeInt, Default: 1},
+		{Name: "quantity", Type: field.TypeInt},
+		{Name: "cart_item_product", Type: field.TypeInt},
+		{Name: "product_cart_items", Type: field.TypeInt, Nullable: true},
 	}
 	// CartItemsTable holds the schema information for the "cart_items" table.
 	CartItemsTable = &schema.Table{
 		Name:       "cart_items",
 		Columns:    CartItemsColumns,
 		PrimaryKey: []*schema.Column{CartItemsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "cart_items_products_product",
+				Columns:    []*schema.Column{CartItemsColumns[2]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "cart_items_products_cart_items",
+				Columns:    []*schema.Column{CartItemsColumns[3]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// CompaniesColumns holds the columns for the "companies" table.
 	CompaniesColumns = []*schema.Column{
@@ -46,6 +62,7 @@ var (
 		{Name: "billing_email", Type: field.TypeString},
 		{Name: "billing_phone", Type: field.TypeString},
 		{Name: "billing_address", Type: field.TypeString},
+		{Name: "tax_identifier", Type: field.TypeString},
 	}
 	// CompaniesTable holds the schema information for the "companies" table.
 	CompaniesTable = &schema.Table{
@@ -319,31 +336,6 @@ var (
 			},
 		},
 	}
-	// ProductCartItemsColumns holds the columns for the "product_cart_items" table.
-	ProductCartItemsColumns = []*schema.Column{
-		{Name: "product_id", Type: field.TypeInt},
-		{Name: "cart_item_id", Type: field.TypeInt},
-	}
-	// ProductCartItemsTable holds the schema information for the "product_cart_items" table.
-	ProductCartItemsTable = &schema.Table{
-		Name:       "product_cart_items",
-		Columns:    ProductCartItemsColumns,
-		PrimaryKey: []*schema.Column{ProductCartItemsColumns[0], ProductCartItemsColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "product_cart_items_product_id",
-				Columns:    []*schema.Column{ProductCartItemsColumns[0]},
-				RefColumns: []*schema.Column{ProductsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "product_cart_items_cart_item_id",
-				Columns:    []*schema.Column{ProductCartItemsColumns[1]},
-				RefColumns: []*schema.Column{CartItemsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-	}
 	// ProductOrderItemsColumns holds the columns for the "product_order_items" table.
 	ProductOrderItemsColumns = []*schema.Column{
 		{Name: "product_id", Type: field.TypeInt},
@@ -437,7 +429,6 @@ var (
 		CustomerOrdersTable,
 		OrderOrderItemsTable,
 		OrderPaymentsTable,
-		ProductCartItemsTable,
 		ProductOrderItemsTable,
 		ProductCategoryProductsTable,
 		StaffMemberProcessedOrdersTable,
@@ -446,6 +437,8 @@ var (
 
 func init() {
 	CartsTable.ForeignKeys[0].RefTable = CustomersTable
+	CartItemsTable.ForeignKeys[0].RefTable = ProductsTable
+	CartItemsTable.ForeignKeys[1].RefTable = ProductsTable
 	CustomersTable.ForeignKeys[0].RefTable = CompaniesTable
 	OrdersTable.ForeignKeys[0].RefTable = CompaniesTable
 	OrdersTable.ForeignKeys[1].RefTable = UsersTable
@@ -458,8 +451,6 @@ func init() {
 	OrderOrderItemsTable.ForeignKeys[1].RefTable = OrderItemsTable
 	OrderPaymentsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPaymentsTable.ForeignKeys[1].RefTable = PaymentsTable
-	ProductCartItemsTable.ForeignKeys[0].RefTable = ProductsTable
-	ProductCartItemsTable.ForeignKeys[1].RefTable = CartItemsTable
 	ProductOrderItemsTable.ForeignKeys[0].RefTable = ProductsTable
 	ProductOrderItemsTable.ForeignKeys[1].RefTable = OrderItemsTable
 	ProductCategoryProductsTable.ForeignKeys[0].RefTable = ProductCategoriesTable

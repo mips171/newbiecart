@@ -59,6 +59,12 @@ func (cu *CompanyUpdate) SetBillingAddress(s string) *CompanyUpdate {
 	return cu
 }
 
+// SetTaxIdentifier sets the "tax_identifier" field.
+func (cu *CompanyUpdate) SetTaxIdentifier(s string) *CompanyUpdate {
+	cu.mutation.SetTaxIdentifier(s)
+	return cu
+}
+
 // AddCustomerIDs adds the "customers" edge to the Customer entity by IDs.
 func (cu *CompanyUpdate) AddCustomerIDs(ids ...int) *CompanyUpdate {
 	cu.mutation.AddCustomerIDs(ids...)
@@ -220,6 +226,9 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.BillingAddress(); ok {
 		_spec.SetField(company.FieldBillingAddress, field.TypeString, value)
 	}
+	if value, ok := cu.mutation.TaxIdentifier(); ok {
+		_spec.SetField(company.FieldTaxIdentifier, field.TypeString, value)
+	}
 	if cu.mutation.CustomersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -357,6 +366,12 @@ func (cuo *CompanyUpdateOne) SetBillingPhone(s string) *CompanyUpdateOne {
 // SetBillingAddress sets the "billing_address" field.
 func (cuo *CompanyUpdateOne) SetBillingAddress(s string) *CompanyUpdateOne {
 	cuo.mutation.SetBillingAddress(s)
+	return cuo
+}
+
+// SetTaxIdentifier sets the "tax_identifier" field.
+func (cuo *CompanyUpdateOne) SetTaxIdentifier(s string) *CompanyUpdateOne {
+	cuo.mutation.SetTaxIdentifier(s)
 	return cuo
 }
 
@@ -550,6 +565,9 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 	}
 	if value, ok := cuo.mutation.BillingAddress(); ok {
 		_spec.SetField(company.FieldBillingAddress, field.TypeString, value)
+	}
+	if value, ok := cuo.mutation.TaxIdentifier(); ok {
+		_spec.SetField(company.FieldTaxIdentifier, field.TypeString, value)
 	}
 	if cuo.mutation.CustomersCleared() {
 		edge := &sqlgraph.EdgeSpec{

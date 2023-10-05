@@ -22,6 +22,8 @@ const (
 	FieldBillingPhone = "billing_phone"
 	// FieldBillingAddress holds the string denoting the billing_address field in the database.
 	FieldBillingAddress = "billing_address"
+	// FieldTaxIdentifier holds the string denoting the tax_identifier field in the database.
+	FieldTaxIdentifier = "tax_identifier"
 	// EdgeCustomers holds the string denoting the customers edge name in mutations.
 	EdgeCustomers = "customers"
 	// EdgeOrders holds the string denoting the orders edge name in mutations.
@@ -52,6 +54,7 @@ var Columns = []string{
 	FieldBillingEmail,
 	FieldBillingPhone,
 	FieldBillingAddress,
+	FieldTaxIdentifier,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -108,6 +111,11 @@ func ByBillingPhone(opts ...sql.OrderTermOption) OrderOption {
 // ByBillingAddress orders the results by the billing_address field.
 func ByBillingAddress(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBillingAddress, opts...).ToFunc()
+}
+
+// ByTaxIdentifier orders the results by the tax_identifier field.
+func ByTaxIdentifier(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTaxIdentifier, opts...).ToFunc()
 }
 
 // ByCustomersCount orders the results by customers count.

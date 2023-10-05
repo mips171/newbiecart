@@ -27,14 +27,6 @@ func (cic *CartItemCreate) SetQuantity(i int) *CartItemCreate {
 	return cic
 }
 
-// SetNillableQuantity sets the "quantity" field if the given value is not nil.
-func (cic *CartItemCreate) SetNillableQuantity(i *int) *CartItemCreate {
-	if i != nil {
-		cic.SetQuantity(*i)
-	}
-	return cic
-}
-
 // AddCartIDs adds the "cart" edge to the Cart entity by IDs.
 func (cic *CartItemCreate) AddCartIDs(ids ...int) *CartItemCreate {
 	cic.mutation.AddCartIDs(ids...)
@@ -50,19 +42,15 @@ func (cic *CartItemCreate) AddCart(c ...*Cart) *CartItemCreate {
 	return cic.AddCartIDs(ids...)
 }
 
-// AddProductIDs adds the "product" edge to the Product entity by IDs.
-func (cic *CartItemCreate) AddProductIDs(ids ...int) *CartItemCreate {
-	cic.mutation.AddProductIDs(ids...)
+// SetProductID sets the "product" edge to the Product entity by ID.
+func (cic *CartItemCreate) SetProductID(id int) *CartItemCreate {
+	cic.mutation.SetProductID(id)
 	return cic
 }
 
-// AddProduct adds the "product" edges to the Product entity.
-func (cic *CartItemCreate) AddProduct(p ...*Product) *CartItemCreate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return cic.AddProductIDs(ids...)
+// SetProduct sets the "product" edge to the Product entity.
+func (cic *CartItemCreate) SetProduct(p *Product) *CartItemCreate {
+	return cic.SetProductID(p.ID)
 }
 
 // Mutation returns the CartItemMutation object of the builder.
@@ -72,7 +60,6 @@ func (cic *CartItemCreate) Mutation() *CartItemMutation {
 
 // Save creates the CartItem in the database.
 func (cic *CartItemCreate) Save(ctx context.Context) (*CartItem, error) {
-	cic.defaults()
 	return withHooks(ctx, cic.sqlSave, cic.mutation, cic.hooks)
 }
 
@@ -98,14 +85,6 @@ func (cic *CartItemCreate) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (cic *CartItemCreate) defaults() {
-	if _, ok := cic.mutation.Quantity(); !ok {
-		v := cartitem.DefaultQuantity
-		cic.mutation.SetQuantity(v)
-	}
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (cic *CartItemCreate) check() error {
 	if _, ok := cic.mutation.Quantity(); !ok {
@@ -115,6 +94,12 @@ func (cic *CartItemCreate) check() error {
 		if err := cartitem.QuantityValidator(v); err != nil {
 			return &ValidationError{Name: "quantity", err: fmt.Errorf(`ent: validator failed for field "CartItem.quantity": %w`, err)}
 		}
+	}
+	if len(cic.mutation.CartIDs()) == 0 {
+		return &ValidationError{Name: "cart", err: errors.New(`ent: missing required edge "CartItem.cart"`)}
+	}
+	if _, ok := cic.mutation.ProductID(); !ok {
+		return &ValidationError{Name: "product", err: errors.New(`ent: missing required edge "CartItem.product"`)}
 	}
 	return nil
 }
@@ -164,10 +149,10 @@ func (cic *CartItemCreate) createSpec() (*CartItem, *sqlgraph.CreateSpec) {
 	}
 	if nodes := cic.mutation.ProductIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
 			Table:   cartitem.ProductTable,
-			Columns: cartitem.ProductPrimaryKey,
+			Columns: []string{cartitem.ProductColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(product.FieldID, field.TypeInt),
@@ -176,6 +161,7 @@ func (cic *CartItemCreate) createSpec() (*CartItem, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.cart_item_product = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -199,7 +185,6 @@ func (cicb *CartItemCreateBulk) Save(ctx context.Context) ([]*CartItem, error) {
 	for i := range cicb.builders {
 		func(i int, root context.Context) {
 			builder := cicb.builders[i]
-			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*CartItemMutation)
 				if !ok {

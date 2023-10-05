@@ -26,6 +26,8 @@ type Company struct {
 	BillingPhone string `json:"billing_phone,omitempty"`
 	// BillingAddress holds the value of the "billing_address" field.
 	BillingAddress string `json:"billing_address,omitempty"`
+	// Usually government-issued tax ID or business ID such as ABN in Australia
+	TaxIdentifier string `json:"tax_identifier,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CompanyQuery when eager-loading is set.
 	Edges        CompanyEdges `json:"edges"`
@@ -68,7 +70,7 @@ func (*Company) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case company.FieldID:
 			values[i] = new(sql.NullInt64)
-		case company.FieldName, company.FieldBillingContact, company.FieldBillingEmail, company.FieldBillingPhone, company.FieldBillingAddress:
+		case company.FieldName, company.FieldBillingContact, company.FieldBillingEmail, company.FieldBillingPhone, company.FieldBillingAddress, company.FieldTaxIdentifier:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -120,6 +122,12 @@ func (c *Company) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field billing_address", values[i])
 			} else if value.Valid {
 				c.BillingAddress = value.String
+			}
+		case company.FieldTaxIdentifier:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field tax_identifier", values[i])
+			} else if value.Valid {
+				c.TaxIdentifier = value.String
 			}
 		default:
 			c.selectValues.Set(columns[i], values[i])
@@ -181,6 +189,9 @@ func (c *Company) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("billing_address=")
 	builder.WriteString(c.BillingAddress)
+	builder.WriteString(", ")
+	builder.WriteString("tax_identifier=")
+	builder.WriteString(c.TaxIdentifier)
 	builder.WriteByte(')')
 	return builder.String()
 }

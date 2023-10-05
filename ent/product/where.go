@@ -560,7 +560,7 @@ func HasCartItems() predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, CartItemsTable, CartItemsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, CartItemsTable, CartItemsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

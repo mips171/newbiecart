@@ -78,6 +78,11 @@ func BillingAddress(v string) predicate.Company {
 	return predicate.Company(sql.FieldEQ(FieldBillingAddress, v))
 }
 
+// TaxIdentifier applies equality check predicate on the "tax_identifier" field. It's identical to TaxIdentifierEQ.
+func TaxIdentifier(v string) predicate.Company {
+	return predicate.Company(sql.FieldEQ(FieldTaxIdentifier, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Company {
 	return predicate.Company(sql.FieldEQ(FieldName, v))
@@ -401,6 +406,71 @@ func BillingAddressEqualFold(v string) predicate.Company {
 // BillingAddressContainsFold applies the ContainsFold predicate on the "billing_address" field.
 func BillingAddressContainsFold(v string) predicate.Company {
 	return predicate.Company(sql.FieldContainsFold(FieldBillingAddress, v))
+}
+
+// TaxIdentifierEQ applies the EQ predicate on the "tax_identifier" field.
+func TaxIdentifierEQ(v string) predicate.Company {
+	return predicate.Company(sql.FieldEQ(FieldTaxIdentifier, v))
+}
+
+// TaxIdentifierNEQ applies the NEQ predicate on the "tax_identifier" field.
+func TaxIdentifierNEQ(v string) predicate.Company {
+	return predicate.Company(sql.FieldNEQ(FieldTaxIdentifier, v))
+}
+
+// TaxIdentifierIn applies the In predicate on the "tax_identifier" field.
+func TaxIdentifierIn(vs ...string) predicate.Company {
+	return predicate.Company(sql.FieldIn(FieldTaxIdentifier, vs...))
+}
+
+// TaxIdentifierNotIn applies the NotIn predicate on the "tax_identifier" field.
+func TaxIdentifierNotIn(vs ...string) predicate.Company {
+	return predicate.Company(sql.FieldNotIn(FieldTaxIdentifier, vs...))
+}
+
+// TaxIdentifierGT applies the GT predicate on the "tax_identifier" field.
+func TaxIdentifierGT(v string) predicate.Company {
+	return predicate.Company(sql.FieldGT(FieldTaxIdentifier, v))
+}
+
+// TaxIdentifierGTE applies the GTE predicate on the "tax_identifier" field.
+func TaxIdentifierGTE(v string) predicate.Company {
+	return predicate.Company(sql.FieldGTE(FieldTaxIdentifier, v))
+}
+
+// TaxIdentifierLT applies the LT predicate on the "tax_identifier" field.
+func TaxIdentifierLT(v string) predicate.Company {
+	return predicate.Company(sql.FieldLT(FieldTaxIdentifier, v))
+}
+
+// TaxIdentifierLTE applies the LTE predicate on the "tax_identifier" field.
+func TaxIdentifierLTE(v string) predicate.Company {
+	return predicate.Company(sql.FieldLTE(FieldTaxIdentifier, v))
+}
+
+// TaxIdentifierContains applies the Contains predicate on the "tax_identifier" field.
+func TaxIdentifierContains(v string) predicate.Company {
+	return predicate.Company(sql.FieldContains(FieldTaxIdentifier, v))
+}
+
+// TaxIdentifierHasPrefix applies the HasPrefix predicate on the "tax_identifier" field.
+func TaxIdentifierHasPrefix(v string) predicate.Company {
+	return predicate.Company(sql.FieldHasPrefix(FieldTaxIdentifier, v))
+}
+
+// TaxIdentifierHasSuffix applies the HasSuffix predicate on the "tax_identifier" field.
+func TaxIdentifierHasSuffix(v string) predicate.Company {
+	return predicate.Company(sql.FieldHasSuffix(FieldTaxIdentifier, v))
+}
+
+// TaxIdentifierEqualFold applies the EqualFold predicate on the "tax_identifier" field.
+func TaxIdentifierEqualFold(v string) predicate.Company {
+	return predicate.Company(sql.FieldEqualFold(FieldTaxIdentifier, v))
+}
+
+// TaxIdentifierContainsFold applies the ContainsFold predicate on the "tax_identifier" field.
+func TaxIdentifierContainsFold(v string) predicate.Company {
+	return predicate.Company(sql.FieldContainsFold(FieldTaxIdentifier, v))
 }
 
 // HasCustomers applies the HasEdge predicate on the "customers" edge.

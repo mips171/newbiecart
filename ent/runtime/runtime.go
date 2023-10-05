@@ -27,8 +27,6 @@ func init() {
 	_ = cartitemFields
 	// cartitemDescQuantity is the schema descriptor for quantity field.
 	cartitemDescQuantity := cartitemFields[0].Descriptor()
-	// cartitem.DefaultQuantity holds the default value on creation for the quantity field.
-	cartitem.DefaultQuantity = cartitemDescQuantity.Default.(int)
 	// cartitem.QuantityValidator is a validator for the "quantity" field. It is called by the builders before save.
 	cartitem.QuantityValidator = cartitemDescQuantity.Validators[0].(func(int) error)
 	companyFields := schema.Company{}.Fields()

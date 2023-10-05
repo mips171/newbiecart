@@ -353,10 +353,10 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if pu.mutation.CartItemsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   product.CartItemsTable,
-			Columns: product.CartItemsPrimaryKey,
+			Columns: []string{product.CartItemsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
@@ -366,10 +366,10 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := pu.mutation.RemovedCartItemsIDs(); len(nodes) > 0 && !pu.mutation.CartItemsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   product.CartItemsTable,
-			Columns: product.CartItemsPrimaryKey,
+			Columns: []string{product.CartItemsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
@@ -382,10 +382,10 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := pu.mutation.CartItemsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   product.CartItemsTable,
-			Columns: product.CartItemsPrimaryKey,
+			Columns: []string{product.CartItemsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
@@ -858,10 +858,10 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	}
 	if puo.mutation.CartItemsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   product.CartItemsTable,
-			Columns: product.CartItemsPrimaryKey,
+			Columns: []string{product.CartItemsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
@@ -871,10 +871,10 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	}
 	if nodes := puo.mutation.RemovedCartItemsIDs(); len(nodes) > 0 && !puo.mutation.CartItemsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   product.CartItemsTable,
-			Columns: product.CartItemsPrimaryKey,
+			Columns: []string{product.CartItemsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),
@@ -887,10 +887,10 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	}
 	if nodes := puo.mutation.CartItemsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   product.CartItemsTable,
-			Columns: product.CartItemsPrimaryKey,
+			Columns: []string{product.CartItemsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cartitem.FieldID, field.TypeInt),

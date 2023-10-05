@@ -477,8 +477,7 @@ type CartItemMutation struct {
 	cart           map[int]struct{}
 	removedcart    map[int]struct{}
 	clearedcart    bool
-	product        map[int]struct{}
-	removedproduct map[int]struct{}
+	product        *int
 	clearedproduct bool
 	done           bool
 	oldValue       func(context.Context) (*CartItem, error)
@@ -693,14 +692,9 @@ func (m *CartItemMutation) ResetCart() {
 	m.removedcart = nil
 }
 
-// AddProductIDs adds the "product" edge to the Product entity by ids.
-func (m *CartItemMutation) AddProductIDs(ids ...int) {
-	if m.product == nil {
-		m.product = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.product[ids[i]] = struct{}{}
-	}
+// SetProductID sets the "product" edge to the Product entity by id.
+func (m *CartItemMutation) SetProductID(id int) {
+	m.product = &id
 }
 
 // ClearProduct clears the "product" edge to the Product entity.
@@ -713,29 +707,20 @@ func (m *CartItemMutation) ProductCleared() bool {
 	return m.clearedproduct
 }
 
-// RemoveProductIDs removes the "product" edge to the Product entity by IDs.
-func (m *CartItemMutation) RemoveProductIDs(ids ...int) {
-	if m.removedproduct == nil {
-		m.removedproduct = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.product, ids[i])
-		m.removedproduct[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedProduct returns the removed IDs of the "product" edge to the Product entity.
-func (m *CartItemMutation) RemovedProductIDs() (ids []int) {
-	for id := range m.removedproduct {
-		ids = append(ids, id)
+// ProductID returns the "product" edge ID in the mutation.
+func (m *CartItemMutation) ProductID() (id int, exists bool) {
+	if m.product != nil {
+		return *m.product, true
 	}
 	return
 }
 
 // ProductIDs returns the "product" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ProductID instead. It exists only for internal usage by the builders.
 func (m *CartItemMutation) ProductIDs() (ids []int) {
-	for id := range m.product {
-		ids = append(ids, id)
+	if id := m.product; id != nil {
+		ids = append(ids, *id)
 	}
 	return
 }
@@ -744,7 +729,6 @@ func (m *CartItemMutation) ProductIDs() (ids []int) {
 func (m *CartItemMutation) ResetProduct() {
 	m.product = nil
 	m.clearedproduct = false
-	m.removedproduct = nil
 }
 
 // Where appends a list predicates to the CartItemMutation builder.
@@ -916,11 +900,9 @@ func (m *CartItemMutation) AddedIDs(name string) []ent.Value {
 		}
 		return ids
 	case cartitem.EdgeProduct:
-		ids := make([]ent.Value, 0, len(m.product))
-		for id := range m.product {
-			ids = append(ids, id)
+		if id := m.product; id != nil {
+			return []ent.Value{*id}
 		}
-		return ids
 	}
 	return nil
 }
@@ -930,9 +912,6 @@ func (m *CartItemMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
 	if m.removedcart != nil {
 		edges = append(edges, cartitem.EdgeCart)
-	}
-	if m.removedproduct != nil {
-		edges = append(edges, cartitem.EdgeProduct)
 	}
 	return edges
 }
@@ -944,12 +923,6 @@ func (m *CartItemMutation) RemovedIDs(name string) []ent.Value {
 	case cartitem.EdgeCart:
 		ids := make([]ent.Value, 0, len(m.removedcart))
 		for id := range m.removedcart {
-			ids = append(ids, id)
-		}
-		return ids
-	case cartitem.EdgeProduct:
-		ids := make([]ent.Value, 0, len(m.removedproduct))
-		for id := range m.removedproduct {
 			ids = append(ids, id)
 		}
 		return ids
@@ -985,6 +958,9 @@ func (m *CartItemMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *CartItemMutation) ClearEdge(name string) error {
 	switch name {
+	case cartitem.EdgeProduct:
+		m.ClearProduct()
+		return nil
 	}
 	return fmt.Errorf("unknown CartItem unique edge %s", name)
 }
@@ -1014,6 +990,7 @@ type CompanyMutation struct {
 	billing_email    *string
 	billing_phone    *string
 	billing_address  *string
+	tax_identifier   *string
 	clearedFields    map[string]struct{}
 	customers        map[int]struct{}
 	removedcustomers map[int]struct{}
@@ -1304,6 +1281,42 @@ func (m *CompanyMutation) ResetBillingAddress() {
 	m.billing_address = nil
 }
 
+// SetTaxIdentifier sets the "tax_identifier" field.
+func (m *CompanyMutation) SetTaxIdentifier(s string) {
+	m.tax_identifier = &s
+}
+
+// TaxIdentifier returns the value of the "tax_identifier" field in the mutation.
+func (m *CompanyMutation) TaxIdentifier() (r string, exists bool) {
+	v := m.tax_identifier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaxIdentifier returns the old "tax_identifier" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldTaxIdentifier(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaxIdentifier is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaxIdentifier requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaxIdentifier: %w", err)
+	}
+	return oldValue.TaxIdentifier, nil
+}
+
+// ResetTaxIdentifier resets all changes to the "tax_identifier" field.
+func (m *CompanyMutation) ResetTaxIdentifier() {
+	m.tax_identifier = nil
+}
+
 // AddCustomerIDs adds the "customers" edge to the Customer entity by ids.
 func (m *CompanyMutation) AddCustomerIDs(ids ...int) {
 	if m.customers == nil {
@@ -1446,7 +1459,7 @@ func (m *CompanyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CompanyMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.name != nil {
 		fields = append(fields, company.FieldName)
 	}
@@ -1461,6 +1474,9 @@ func (m *CompanyMutation) Fields() []string {
 	}
 	if m.billing_address != nil {
 		fields = append(fields, company.FieldBillingAddress)
+	}
+	if m.tax_identifier != nil {
+		fields = append(fields, company.FieldTaxIdentifier)
 	}
 	return fields
 }
@@ -1480,6 +1496,8 @@ func (m *CompanyMutation) Field(name string) (ent.Value, bool) {
 		return m.BillingPhone()
 	case company.FieldBillingAddress:
 		return m.BillingAddress()
+	case company.FieldTaxIdentifier:
+		return m.TaxIdentifier()
 	}
 	return nil, false
 }
@@ -1499,6 +1517,8 @@ func (m *CompanyMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldBillingPhone(ctx)
 	case company.FieldBillingAddress:
 		return m.OldBillingAddress(ctx)
+	case company.FieldTaxIdentifier:
+		return m.OldTaxIdentifier(ctx)
 	}
 	return nil, fmt.Errorf("unknown Company field %s", name)
 }
@@ -1542,6 +1562,13 @@ func (m *CompanyMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBillingAddress(v)
+		return nil
+	case company.FieldTaxIdentifier:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaxIdentifier(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Company field %s", name)
@@ -1606,6 +1633,9 @@ func (m *CompanyMutation) ResetField(name string) error {
 		return nil
 	case company.FieldBillingAddress:
 		m.ResetBillingAddress()
+		return nil
+	case company.FieldTaxIdentifier:
+		m.ResetTaxIdentifier()
 		return nil
 	}
 	return fmt.Errorf("unknown Company field %s", name)

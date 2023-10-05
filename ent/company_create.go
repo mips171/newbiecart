@@ -51,6 +51,12 @@ func (cc *CompanyCreate) SetBillingAddress(s string) *CompanyCreate {
 	return cc
 }
 
+// SetTaxIdentifier sets the "tax_identifier" field.
+func (cc *CompanyCreate) SetTaxIdentifier(s string) *CompanyCreate {
+	cc.mutation.SetTaxIdentifier(s)
+	return cc
+}
+
 // AddCustomerIDs adds the "customers" edge to the Customer entity by IDs.
 func (cc *CompanyCreate) AddCustomerIDs(ids ...int) *CompanyCreate {
 	cc.mutation.AddCustomerIDs(ids...)
@@ -155,6 +161,9 @@ func (cc *CompanyCreate) check() error {
 			return &ValidationError{Name: "billing_address", err: fmt.Errorf(`ent: validator failed for field "Company.billing_address": %w`, err)}
 		}
 	}
+	if _, ok := cc.mutation.TaxIdentifier(); !ok {
+		return &ValidationError{Name: "tax_identifier", err: errors.New(`ent: missing required field "Company.tax_identifier"`)}
+	}
 	return nil
 }
 
@@ -200,6 +209,10 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.BillingAddress(); ok {
 		_spec.SetField(company.FieldBillingAddress, field.TypeString, value)
 		_node.BillingAddress = value
+	}
+	if value, ok := cc.mutation.TaxIdentifier(); ok {
+		_spec.SetField(company.FieldTaxIdentifier, field.TypeString, value)
+		_node.TaxIdentifier = value
 	}
 	if nodes := cc.mutation.CustomersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

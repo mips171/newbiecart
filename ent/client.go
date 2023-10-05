@@ -589,7 +589,7 @@ func (c *CartItemClient) QueryProduct(ci *CartItem) *ProductQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(cartitem.Table, cartitem.FieldID, id),
 			sqlgraph.To(product.Table, product.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, cartitem.ProductTable, cartitem.ProductPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, false, cartitem.ProductTable, cartitem.ProductColumn),
 		)
 		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
 		return fromV, nil
@@ -1760,7 +1760,7 @@ func (c *ProductClient) QueryCartItems(pr *Product) *CartItemQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(product.Table, product.FieldID, id),
 			sqlgraph.To(cartitem.Table, cartitem.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, product.CartItemsTable, product.CartItemsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, product.CartItemsTable, product.CartItemsColumn),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil

@@ -40,11 +40,13 @@ const (
 	EdgeCategories = "categories"
 	// Table holds the table name of the product in the database.
 	Table = "products"
-	// CartItemsTable is the table that holds the cart_items relation/edge. The primary key declared below.
-	CartItemsTable = "product_cart_items"
+	// CartItemsTable is the table that holds the cart_items relation/edge.
+	CartItemsTable = "cart_items"
 	// CartItemsInverseTable is the table name for the CartItem entity.
 	// It exists in this package in order to avoid circular dependency with the "cartitem" package.
 	CartItemsInverseTable = "cart_items"
+	// CartItemsColumn is the table column denoting the cart_items relation/edge.
+	CartItemsColumn = "product_cart_items"
 	// OrderItemsTable is the table that holds the order_items relation/edge. The primary key declared below.
 	OrderItemsTable = "product_order_items"
 	// OrderItemsInverseTable is the table name for the OrderItem entity.
@@ -72,9 +74,6 @@ var Columns = []string{
 }
 
 var (
-	// CartItemsPrimaryKey and CartItemsColumn2 are the table columns denoting the
-	// primary key for the cart_items relation (M2M).
-	CartItemsPrimaryKey = []string{"product_id", "cart_item_id"}
 	// OrderItemsPrimaryKey and OrderItemsColumn2 are the table columns denoting the
 	// primary key for the order_items relation (M2M).
 	OrderItemsPrimaryKey = []string{"product_id", "order_item_id"}
@@ -216,7 +215,7 @@ func newCartItemsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CartItemsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, CartItemsTable, CartItemsPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.O2M, false, CartItemsTable, CartItemsColumn),
 	)
 }
 func newOrderItemsStep() *sqlgraph.Step {

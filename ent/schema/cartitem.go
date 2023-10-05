@@ -14,19 +14,18 @@ type CartItem struct {
 // Fields of the CartItem.
 func (CartItem) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("quantity").
-			Default(1).
-			NonNegative(),
+		field.Int("quantity").Positive(),
 	}
-
 }
 
 // Edges of the CartItem.
 func (CartItem) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("cart", Cart.Type).
-			Ref("cart_items"),
-		edge.From("product", Product.Type).
-			Ref("cart_items"),
+			Ref("cart_items").
+			Required(),
+		edge.To("product", Product.Type).
+			Unique().
+			Required(),
 	}
 }
