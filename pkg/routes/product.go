@@ -56,8 +56,8 @@ type (
 	}
 
 	ProductPageData struct {
-		Products   []Product
-		Categories []ProductCategory
+		Products   []*ent.Product
+		Categories []*ent.ProductCategory
 	}
 )
 
@@ -68,11 +68,21 @@ var _ ProductAdder = &ProductController{}
 func (c *ProductController) GetAll(ctx echo.Context) error {
 	page := controller.NewPage(ctx)
 	page.Layout = "main"
-	page.Name = "products/view_all" // Located at templates/pages/products/
+	page.Name = "products/view_all"
 	page.Metatags.Description = "Browse our products."
 	page.Metatags.Keywords = []string{"Shopping", "Products", "Buy"}
 	page.Pager = controller.NewPager(ctx, 10)
-	page.Data = c.fetchProducts(ctx, &page.Pager)
+
+	prods, err := c.Container.ORM.Product.Query().
+		Offset(page.Pager.GetOffset()).
+		Limit(page.Pager.ItemsPerPage).
+		Order(ent.Asc(product.FieldName)).
+		All(ctx.Request().Context())
+	if err != nil {
+		return c.handleError(err, "unable to fetch products")
+	}
+	page.Pager.SetItems(len(prods))
+	page.Data = prods
 
 	return c.RenderPage(ctx, page)
 }
@@ -88,7 +98,6 @@ func (c *ProductController) GetByID(ctx echo.Context) error {
 		Where(product.IDEQ(productID)).
 		WithCategories().
 		Only(ctx.Request().Context())
-
 	if err != nil {
 		return c.handleError(err, "Unable to fetch product details")
 	}
@@ -220,9 +229,32 @@ func (c *ProductController) handleAddGet(ctx echo.Context) error {
 		page.Form = form.(*ProductForm)
 	}
 
+	prods, err := c.Container.ORM.Product.Query().
+		Offset(page.Pager.GetOffset()).
+		Limit(page.Pager.ItemsPerPage).
+		Order(ent.Asc(product.FieldName)).
+		All(ctx.Request().Context())
+	if err != nil {
+		return c.handleError(err, "Unable to fetch products")
+	}
+
+	page.Pager.SetItems(len(prods))
+	categories, err := c.Container.ORM.ProductCategory.Query().All(ctx.Request().Context())
+	if err != nil {
+		return c.handleError(err, "unable to fetch categories for product")
+	}
+
+	catList := make([]ProductCategory, len(categories))
+	for i, cat := range categories {
+		catList[i] = ProductCategory{
+			ID:   cat.ID,
+			Name: cat.Name,
+		}
+	}
+
 	pageData := ProductPageData{
-		Products:   c.fetchProducts(ctx, &page.Pager),
-		Categories: c.fetchCategories(ctx),
+		Products:   prods,
+		Categories: categories,
 	}
 
 	page.Data = pageData
@@ -279,44 +311,4 @@ func (c *ProductController) getProductIDFromContext(ctx echo.Context) (int, erro
 func (c *ProductController) handleError(err error, msg string) error {
 	// Handle errors, e.g., logging, setting HTTP status
 	return c.Fail(err, msg)
-}
-
-func (c *ProductController) fetchProducts(ctx echo.Context, pager *controller.Pager) []Product {
-	prods, _ := c.Container.ORM.Product.Query().
-		Offset(pager.GetOffset()).
-		Limit(pager.ItemsPerPage).
-		Order(ent.Asc(product.FieldName)).
-		All(ctx.Request().Context())
-
-	pager.SetItems(len(prods))
-
-	products := make([]Product, len(prods))
-	for i, p := range prods {
-		price, err := types.CurrencyFromString(p.Price)
-		if err != nil {
-			ctx.Logger().Errorf("could not convert price: %s", p.Name)
-			continue
-		}
-		products[i] = Product{
-			Name:        p.Name,
-			Description: p.Description,
-			Price:       price,
-			ID:          p.ID,
-		}
-	}
-	return products
-}
-
-func (c *ProductController) fetchCategories(ctx echo.Context) []ProductCategory {
-	// Fetch categories from the ORM and convert them into ProductCategory structs
-	// This is just a placeholder; adapt to your ORM and schema
-	categories, _ := c.Container.ORM.ProductCategory.Query().All(ctx.Request().Context())
-	catList := make([]ProductCategory, len(categories))
-	for i, cat := range categories {
-		catList[i] = ProductCategory{
-			ID:   cat.ID,
-			Name: cat.Name,
-		}
-	}
-	return catList
 }
