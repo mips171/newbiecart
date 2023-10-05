@@ -1,16 +1,19 @@
 {{define "content"}}
 <div class="product-container">
-    <!-- Product Header with Name and SKU -->
-    <div class="product-header">
-        <h1 class="title">{{.Data.Name}}</h1>
-        <span class="subtitle">SKU: {{.Data.Sku}}</span>
-    </div>
 
-	<!-- Product Image -->
+    <!-- Product Image -->
     <div class="product-image">
         <figure class="image is-128x128">
             <img src="{{.Data.ImageURL}}" alt="{{.Data.Name}}">
         </figure>
+    </div>
+
+    <!-- Product Header with Name and SKU -->
+    <div class="product-header">
+        <div class="tags has-addons">
+            <span class="tag is-dark">SKU</span>
+            <span class="tag is-info">{{.Data.Sku}}</span>
+        </div>
     </div>
 
     <!-- Product Description -->
@@ -34,7 +37,7 @@
             <div class="control">
                 <div class="tags has-addons">
                     <span class="tag is-dark">Price</span>
-                    <span class="tag is-info">${{.Data.Price}}</span>
+                    <span class="tag is-success">${{.Data.Price}}</span>
                 </div>
             </div>
         </div>
