@@ -22,7 +22,8 @@ func (Product) Fields() []ent.Field {
 			NotEmpty().Unique(),
 		field.Text("description").
 			Default(""),
-		field.String("price").Default("0.00"),
+		field.String("price").
+			Default("0.00"),
 		field.Int("stock_count").
 			Default(0).
 			NonNegative(),

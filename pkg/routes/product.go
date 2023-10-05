@@ -10,6 +10,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/msg"
+	"github.com/mikestefanello/pagoda/pkg/types"
 )
 
 type (
@@ -37,7 +38,7 @@ type (
 	Product struct {
 		Name        string
 		Description string
-		Price       string
+		Price       types.Currency
 		ID          int
 	}
 
@@ -151,12 +152,17 @@ func (c *ProductController) handleEditByIdPost(ctx echo.Context) error {
 
 	ctx.Logger().Infof("Attempting to update product with ID: %d", form.ID)
 
+	price, err := types.CurrencyFromString(form.Price)
+	if err != nil {
+		return c.Fail(err, "unable to process price")
+	}
+
 	// Fetch the existing product and update its fields
 	product, err := c.Container.ORM.Product.UpdateOneID(*form.ID). // Assuming form.ID exists
 									SetName(form.Name).
 									SetSku(form.Sku).
 									SetDescription(form.Description).
-									SetPrice(form.Price).
+									SetPrice(price.String()).
 									SetStockCount(form.Quantity).
 
 		// ... set other fields ...
@@ -258,10 +264,15 @@ func (c *ProductController) fetchProducts(ctx echo.Context, pager *controller.Pa
 
 	products := make([]Product, len(prods))
 	for i, p := range prods {
+		price, err := types.CurrencyFromString(p.Price)
+		if err != nil {
+			ctx.Logger().Errorf("could not convert price: %s", p.Name)
+			continue
+		}
 		products[i] = Product{
 			Name:        p.Name,
 			Description: p.Description,
-			Price:       p.Price,
+			Price:       price,
 			ID:          p.ID,
 		}
 	}
