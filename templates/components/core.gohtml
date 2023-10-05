@@ -40,3 +40,51 @@
         });
     </script>
 {{end}}
+
+{{define "main_menu"}}
+	<div class="container mt-5">
+	<div class="columns">
+		<div class="column is-2">
+			<aside class="menu" hx-boost="true">
+				<p class="menu-label">General</p>
+				<ul class="menu-list">
+					<!-- The .ToURL needs to be to the route, not the URL -->
+					<li>{{link (call .ToURL "product_categories.view_all") "Categories" .Path}}</li>
+					<li>{{link (call .ToURL "products.view_all") "Products" .Path}}</li>
+					<li>{{link (call .ToURL "orders.view_all") "Orders" .Path}}</li>
+
+					<li>{{link (call .ToURL "home") "Dashboard" .Path}}</li>
+					<li>{{link (call .ToURL "about") "About" .Path}}</li>
+					<li>{{link (call .ToURL "contact") "Contact" .Path}}</li>
+				</ul>
+
+				<p class="menu-label">Account</p>
+				<ul class="menu-list">
+					{{- if .IsAuth}}
+						<li>{{link (call .ToURL "add_product") "Add Product" .Path}}</li>
+
+						<li>{{link (call .ToURL "logout") "Logout" .Path}}</li>
+					{{- else}}
+						<li>{{link (call .ToURL "login") "Customer Login" .Path}}</li>
+						<li>{{link (call .ToURL "stafflogin") "Staff Login" .Path}}</li>
+
+						<li>{{link (call .ToURL "register") "Register" .Path}}</li>
+						<li>{{link (call .ToURL "forgot_password") "Forgot password" .Path}}</li>
+					{{- end}}
+				</ul>
+			</aside>
+		</div>
+
+		<div class="column is-10">
+			<div class="box">
+				{{- if .Title}}
+					<h1 class="title">{{.Title}}</h1>
+				{{- end}}
+
+				{{template "messages" .}}
+				{{template "content" .}}
+			</div>
+		</div>
+	</div>
+	</div>
+{{end}}
