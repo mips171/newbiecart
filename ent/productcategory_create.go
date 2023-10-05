@@ -26,6 +26,20 @@ func (pcc *ProductCategoryCreate) SetName(s string) *ProductCategoryCreate {
 	return pcc
 }
 
+// SetDescription sets the "description" field.
+func (pcc *ProductCategoryCreate) SetDescription(s string) *ProductCategoryCreate {
+	pcc.mutation.SetDescription(s)
+	return pcc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (pcc *ProductCategoryCreate) SetNillableDescription(s *string) *ProductCategoryCreate {
+	if s != nil {
+		pcc.SetDescription(*s)
+	}
+	return pcc
+}
+
 // AddProductIDs adds the "products" edge to the Product entity by IDs.
 func (pcc *ProductCategoryCreate) AddProductIDs(ids ...int) *ProductCategoryCreate {
 	pcc.mutation.AddProductIDs(ids...)
@@ -48,6 +62,7 @@ func (pcc *ProductCategoryCreate) Mutation() *ProductCategoryMutation {
 
 // Save creates the ProductCategory in the database.
 func (pcc *ProductCategoryCreate) Save(ctx context.Context) (*ProductCategory, error) {
+	pcc.defaults()
 	return withHooks(ctx, pcc.sqlSave, pcc.mutation, pcc.hooks)
 }
 
@@ -73,6 +88,14 @@ func (pcc *ProductCategoryCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (pcc *ProductCategoryCreate) defaults() {
+	if _, ok := pcc.mutation.Description(); !ok {
+		v := productcategory.DefaultDescription
+		pcc.mutation.SetDescription(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (pcc *ProductCategoryCreate) check() error {
 	if _, ok := pcc.mutation.Name(); !ok {
@@ -82,6 +105,9 @@ func (pcc *ProductCategoryCreate) check() error {
 		if err := productcategory.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "ProductCategory.name": %w`, err)}
 		}
+	}
+	if _, ok := pcc.mutation.Description(); !ok {
+		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "ProductCategory.description"`)}
 	}
 	return nil
 }
@@ -112,6 +138,10 @@ func (pcc *ProductCategoryCreate) createSpec() (*ProductCategory, *sqlgraph.Crea
 	if value, ok := pcc.mutation.Name(); ok {
 		_spec.SetField(productcategory.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := pcc.mutation.Description(); ok {
+		_spec.SetField(productcategory.FieldDescription, field.TypeString, value)
+		_node.Description = value
 	}
 	if nodes := pcc.mutation.ProductsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -150,6 +180,7 @@ func (pccb *ProductCategoryCreateBulk) Save(ctx context.Context) ([]*ProductCate
 	for i := range pccb.builders {
 		func(i int, root context.Context) {
 			builder := pccb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ProductCategoryMutation)
 				if !ok {

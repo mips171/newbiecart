@@ -159,10 +159,13 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "sku", Type: field.TypeString, Unique: true},
-		{Name: "description", Type: field.TypeString, Size: 2147483647},
-		{Name: "price", Type: field.TypeFloat64},
+		{Name: "description", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "price", Type: field.TypeString, Default: "0.00"},
 		{Name: "stock_count", Type: field.TypeInt, Default: 0},
 		{Name: "image_url", Type: field.TypeString, Default: "https://via.placeholder.com/150"},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
 	}
 	// ProductsTable holds the schema information for the "products" table.
 	ProductsTable = &schema.Table{
@@ -173,7 +176,8 @@ var (
 	// ProductCategoriesColumns holds the columns for the "product_categories" table.
 	ProductCategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString, Size: 2147483647, Default: ""},
 	}
 	// ProductCategoriesTable holds the schema information for the "product_categories" table.
 	ProductCategoriesTable = &schema.Table{

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -48,16 +49,25 @@ func (pu *ProductUpdate) SetDescription(s string) *ProductUpdate {
 	return pu
 }
 
-// SetPrice sets the "price" field.
-func (pu *ProductUpdate) SetPrice(f float64) *ProductUpdate {
-	pu.mutation.ResetPrice()
-	pu.mutation.SetPrice(f)
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (pu *ProductUpdate) SetNillableDescription(s *string) *ProductUpdate {
+	if s != nil {
+		pu.SetDescription(*s)
+	}
 	return pu
 }
 
-// AddPrice adds f to the "price" field.
-func (pu *ProductUpdate) AddPrice(f float64) *ProductUpdate {
-	pu.mutation.AddPrice(f)
+// SetPrice sets the "price" field.
+func (pu *ProductUpdate) SetPrice(s string) *ProductUpdate {
+	pu.mutation.SetPrice(s)
+	return pu
+}
+
+// SetNillablePrice sets the "price" field if the given value is not nil.
+func (pu *ProductUpdate) SetNillablePrice(s *string) *ProductUpdate {
+	if s != nil {
+		pu.SetPrice(*s)
+	}
 	return pu
 }
 
@@ -93,6 +103,40 @@ func (pu *ProductUpdate) SetNillableImageURL(s *string) *ProductUpdate {
 	if s != nil {
 		pu.SetImageURL(*s)
 	}
+	return pu
+}
+
+// SetIsActive sets the "is_active" field.
+func (pu *ProductUpdate) SetIsActive(b bool) *ProductUpdate {
+	pu.mutation.SetIsActive(b)
+	return pu
+}
+
+// SetNillableIsActive sets the "is_active" field if the given value is not nil.
+func (pu *ProductUpdate) SetNillableIsActive(b *bool) *ProductUpdate {
+	if b != nil {
+		pu.SetIsActive(*b)
+	}
+	return pu
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (pu *ProductUpdate) SetCreatedAt(t time.Time) *ProductUpdate {
+	pu.mutation.SetCreatedAt(t)
+	return pu
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (pu *ProductUpdate) SetNillableCreatedAt(t *time.Time) *ProductUpdate {
+	if t != nil {
+		pu.SetCreatedAt(*t)
+	}
+	return pu
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (pu *ProductUpdate) SetUpdatedAt(t time.Time) *ProductUpdate {
+	pu.mutation.SetUpdatedAt(t)
 	return pu
 }
 
@@ -211,6 +255,7 @@ func (pu *ProductUpdate) RemoveCategory(p ...*ProductCategory) *ProductUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (pu *ProductUpdate) Save(ctx context.Context) (int, error) {
+	pu.defaults()
 	return withHooks(ctx, pu.sqlSave, pu.mutation, pu.hooks)
 }
 
@@ -236,6 +281,14 @@ func (pu *ProductUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (pu *ProductUpdate) defaults() {
+	if _, ok := pu.mutation.UpdatedAt(); !ok {
+		v := product.UpdateDefaultUpdatedAt()
+		pu.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (pu *ProductUpdate) check() error {
 	if v, ok := pu.mutation.Name(); ok {
@@ -246,11 +299,6 @@ func (pu *ProductUpdate) check() error {
 	if v, ok := pu.mutation.Sku(); ok {
 		if err := product.SkuValidator(v); err != nil {
 			return &ValidationError{Name: "sku", err: fmt.Errorf(`ent: validator failed for field "Product.sku": %w`, err)}
-		}
-	}
-	if v, ok := pu.mutation.Price(); ok {
-		if err := product.PriceValidator(v); err != nil {
-			return &ValidationError{Name: "price", err: fmt.Errorf(`ent: validator failed for field "Product.price": %w`, err)}
 		}
 	}
 	if v, ok := pu.mutation.StockCount(); ok {
@@ -283,10 +331,7 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(product.FieldDescription, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.Price(); ok {
-		_spec.SetField(product.FieldPrice, field.TypeFloat64, value)
-	}
-	if value, ok := pu.mutation.AddedPrice(); ok {
-		_spec.AddField(product.FieldPrice, field.TypeFloat64, value)
+		_spec.SetField(product.FieldPrice, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.StockCount(); ok {
 		_spec.SetField(product.FieldStockCount, field.TypeInt, value)
@@ -296,6 +341,15 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pu.mutation.ImageURL(); ok {
 		_spec.SetField(product.FieldImageURL, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.IsActive(); ok {
+		_spec.SetField(product.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := pu.mutation.CreatedAt(); ok {
+		_spec.SetField(product.FieldCreatedAt, field.TypeTime, value)
+	}
+	if value, ok := pu.mutation.UpdatedAt(); ok {
+		_spec.SetField(product.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if pu.mutation.CartItemsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -470,16 +524,25 @@ func (puo *ProductUpdateOne) SetDescription(s string) *ProductUpdateOne {
 	return puo
 }
 
-// SetPrice sets the "price" field.
-func (puo *ProductUpdateOne) SetPrice(f float64) *ProductUpdateOne {
-	puo.mutation.ResetPrice()
-	puo.mutation.SetPrice(f)
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (puo *ProductUpdateOne) SetNillableDescription(s *string) *ProductUpdateOne {
+	if s != nil {
+		puo.SetDescription(*s)
+	}
 	return puo
 }
 
-// AddPrice adds f to the "price" field.
-func (puo *ProductUpdateOne) AddPrice(f float64) *ProductUpdateOne {
-	puo.mutation.AddPrice(f)
+// SetPrice sets the "price" field.
+func (puo *ProductUpdateOne) SetPrice(s string) *ProductUpdateOne {
+	puo.mutation.SetPrice(s)
+	return puo
+}
+
+// SetNillablePrice sets the "price" field if the given value is not nil.
+func (puo *ProductUpdateOne) SetNillablePrice(s *string) *ProductUpdateOne {
+	if s != nil {
+		puo.SetPrice(*s)
+	}
 	return puo
 }
 
@@ -515,6 +578,40 @@ func (puo *ProductUpdateOne) SetNillableImageURL(s *string) *ProductUpdateOne {
 	if s != nil {
 		puo.SetImageURL(*s)
 	}
+	return puo
+}
+
+// SetIsActive sets the "is_active" field.
+func (puo *ProductUpdateOne) SetIsActive(b bool) *ProductUpdateOne {
+	puo.mutation.SetIsActive(b)
+	return puo
+}
+
+// SetNillableIsActive sets the "is_active" field if the given value is not nil.
+func (puo *ProductUpdateOne) SetNillableIsActive(b *bool) *ProductUpdateOne {
+	if b != nil {
+		puo.SetIsActive(*b)
+	}
+	return puo
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (puo *ProductUpdateOne) SetCreatedAt(t time.Time) *ProductUpdateOne {
+	puo.mutation.SetCreatedAt(t)
+	return puo
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (puo *ProductUpdateOne) SetNillableCreatedAt(t *time.Time) *ProductUpdateOne {
+	if t != nil {
+		puo.SetCreatedAt(*t)
+	}
+	return puo
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (puo *ProductUpdateOne) SetUpdatedAt(t time.Time) *ProductUpdateOne {
+	puo.mutation.SetUpdatedAt(t)
 	return puo
 }
 
@@ -646,6 +743,7 @@ func (puo *ProductUpdateOne) Select(field string, fields ...string) *ProductUpda
 
 // Save executes the query and returns the updated Product entity.
 func (puo *ProductUpdateOne) Save(ctx context.Context) (*Product, error) {
+	puo.defaults()
 	return withHooks(ctx, puo.sqlSave, puo.mutation, puo.hooks)
 }
 
@@ -671,6 +769,14 @@ func (puo *ProductUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (puo *ProductUpdateOne) defaults() {
+	if _, ok := puo.mutation.UpdatedAt(); !ok {
+		v := product.UpdateDefaultUpdatedAt()
+		puo.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (puo *ProductUpdateOne) check() error {
 	if v, ok := puo.mutation.Name(); ok {
@@ -681,11 +787,6 @@ func (puo *ProductUpdateOne) check() error {
 	if v, ok := puo.mutation.Sku(); ok {
 		if err := product.SkuValidator(v); err != nil {
 			return &ValidationError{Name: "sku", err: fmt.Errorf(`ent: validator failed for field "Product.sku": %w`, err)}
-		}
-	}
-	if v, ok := puo.mutation.Price(); ok {
-		if err := product.PriceValidator(v); err != nil {
-			return &ValidationError{Name: "price", err: fmt.Errorf(`ent: validator failed for field "Product.price": %w`, err)}
 		}
 	}
 	if v, ok := puo.mutation.StockCount(); ok {
@@ -735,10 +836,7 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 		_spec.SetField(product.FieldDescription, field.TypeString, value)
 	}
 	if value, ok := puo.mutation.Price(); ok {
-		_spec.SetField(product.FieldPrice, field.TypeFloat64, value)
-	}
-	if value, ok := puo.mutation.AddedPrice(); ok {
-		_spec.AddField(product.FieldPrice, field.TypeFloat64, value)
+		_spec.SetField(product.FieldPrice, field.TypeString, value)
 	}
 	if value, ok := puo.mutation.StockCount(); ok {
 		_spec.SetField(product.FieldStockCount, field.TypeInt, value)
@@ -748,6 +846,15 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	}
 	if value, ok := puo.mutation.ImageURL(); ok {
 		_spec.SetField(product.FieldImageURL, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.IsActive(); ok {
+		_spec.SetField(product.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := puo.mutation.CreatedAt(); ok {
+		_spec.SetField(product.FieldCreatedAt, field.TypeTime, value)
+	}
+	if value, ok := puo.mutation.UpdatedAt(); ok {
+		_spec.SetField(product.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if puo.mutation.CartItemsCleared() {
 		edge := &sqlgraph.EdgeSpec{

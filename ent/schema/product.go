@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -18,13 +20,22 @@ func (Product) Fields() []ent.Field {
 			NotEmpty(),
 		field.String("sku").
 			NotEmpty().Unique(),
-		field.Text("description"),
-		field.Float("price").
-			Positive(),
+		field.Text("description").
+			Default(""),
+		field.String("price").Default("0.00"),
 		field.Int("stock_count").
 			Default(0).
 			NonNegative(),
-		field.String("image_url").Default("https://via.placeholder.com/150"),
+		field.String("image_url").
+			Default("https://via.placeholder.com/150"),
+		field.Bool("is_active").
+			Default(true),
+		field.Time("created_at").
+			Default(time.Now),
+		field.Time("updated_at").
+			Default(time.Now).
+			UpdateDefault(time.Now),
+		// ... other fields
 	}
 }
 

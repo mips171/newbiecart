@@ -117,10 +117,14 @@ func init() {
 	productDescSku := productFields[1].Descriptor()
 	// product.SkuValidator is a validator for the "sku" field. It is called by the builders before save.
 	product.SkuValidator = productDescSku.Validators[0].(func(string) error)
+	// productDescDescription is the schema descriptor for description field.
+	productDescDescription := productFields[2].Descriptor()
+	// product.DefaultDescription holds the default value on creation for the description field.
+	product.DefaultDescription = productDescDescription.Default.(string)
 	// productDescPrice is the schema descriptor for price field.
 	productDescPrice := productFields[3].Descriptor()
-	// product.PriceValidator is a validator for the "price" field. It is called by the builders before save.
-	product.PriceValidator = productDescPrice.Validators[0].(func(float64) error)
+	// product.DefaultPrice holds the default value on creation for the price field.
+	product.DefaultPrice = productDescPrice.Default.(string)
 	// productDescStockCount is the schema descriptor for stock_count field.
 	productDescStockCount := productFields[4].Descriptor()
 	// product.DefaultStockCount holds the default value on creation for the stock_count field.
@@ -131,12 +135,30 @@ func init() {
 	productDescImageURL := productFields[5].Descriptor()
 	// product.DefaultImageURL holds the default value on creation for the image_url field.
 	product.DefaultImageURL = productDescImageURL.Default.(string)
+	// productDescIsActive is the schema descriptor for is_active field.
+	productDescIsActive := productFields[6].Descriptor()
+	// product.DefaultIsActive holds the default value on creation for the is_active field.
+	product.DefaultIsActive = productDescIsActive.Default.(bool)
+	// productDescCreatedAt is the schema descriptor for created_at field.
+	productDescCreatedAt := productFields[7].Descriptor()
+	// product.DefaultCreatedAt holds the default value on creation for the created_at field.
+	product.DefaultCreatedAt = productDescCreatedAt.Default.(func() time.Time)
+	// productDescUpdatedAt is the schema descriptor for updated_at field.
+	productDescUpdatedAt := productFields[8].Descriptor()
+	// product.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	product.DefaultUpdatedAt = productDescUpdatedAt.Default.(func() time.Time)
+	// product.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	product.UpdateDefaultUpdatedAt = productDescUpdatedAt.UpdateDefault.(func() time.Time)
 	productcategoryFields := schema.ProductCategory{}.Fields()
 	_ = productcategoryFields
 	// productcategoryDescName is the schema descriptor for name field.
 	productcategoryDescName := productcategoryFields[0].Descriptor()
 	// productcategory.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	productcategory.NameValidator = productcategoryDescName.Validators[0].(func(string) error)
+	// productcategoryDescDescription is the schema descriptor for description field.
+	productcategoryDescDescription := productcategoryFields[1].Descriptor()
+	// productcategory.DefaultDescription holds the default value on creation for the description field.
+	productcategory.DefaultDescription = productcategoryDescDescription.Default.(string)
 	staffmemberFields := schema.StaffMember{}.Fields()
 	_ = staffmemberFields
 	// staffmemberDescName is the schema descriptor for name field.

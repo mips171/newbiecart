@@ -34,6 +34,20 @@ func (pcu *ProductCategoryUpdate) SetName(s string) *ProductCategoryUpdate {
 	return pcu
 }
 
+// SetDescription sets the "description" field.
+func (pcu *ProductCategoryUpdate) SetDescription(s string) *ProductCategoryUpdate {
+	pcu.mutation.SetDescription(s)
+	return pcu
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (pcu *ProductCategoryUpdate) SetNillableDescription(s *string) *ProductCategoryUpdate {
+	if s != nil {
+		pcu.SetDescription(*s)
+	}
+	return pcu
+}
+
 // AddProductIDs adds the "products" edge to the Product entity by IDs.
 func (pcu *ProductCategoryUpdate) AddProductIDs(ids ...int) *ProductCategoryUpdate {
 	pcu.mutation.AddProductIDs(ids...)
@@ -127,6 +141,9 @@ func (pcu *ProductCategoryUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := pcu.mutation.Name(); ok {
 		_spec.SetField(productcategory.FieldName, field.TypeString, value)
 	}
+	if value, ok := pcu.mutation.Description(); ok {
+		_spec.SetField(productcategory.FieldDescription, field.TypeString, value)
+	}
 	if pcu.mutation.ProductsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -195,6 +212,20 @@ type ProductCategoryUpdateOne struct {
 // SetName sets the "name" field.
 func (pcuo *ProductCategoryUpdateOne) SetName(s string) *ProductCategoryUpdateOne {
 	pcuo.mutation.SetName(s)
+	return pcuo
+}
+
+// SetDescription sets the "description" field.
+func (pcuo *ProductCategoryUpdateOne) SetDescription(s string) *ProductCategoryUpdateOne {
+	pcuo.mutation.SetDescription(s)
+	return pcuo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (pcuo *ProductCategoryUpdateOne) SetNillableDescription(s *string) *ProductCategoryUpdateOne {
+	if s != nil {
+		pcuo.SetDescription(*s)
+	}
 	return pcuo
 }
 
@@ -320,6 +351,9 @@ func (pcuo *ProductCategoryUpdateOne) sqlSave(ctx context.Context) (_node *Produ
 	}
 	if value, ok := pcuo.mutation.Name(); ok {
 		_spec.SetField(productcategory.FieldName, field.TypeString, value)
+	}
+	if value, ok := pcuo.mutation.Description(); ok {
+		_spec.SetField(productcategory.FieldDescription, field.TypeString, value)
 	}
 	if pcuo.mutation.ProductsCleared() {
 		edge := &sqlgraph.EdgeSpec{

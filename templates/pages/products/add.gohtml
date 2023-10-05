@@ -24,11 +24,14 @@
         </div>
     </div>
     <div class="field">
-        <label for="price" class="label">Price</label>
-        <div class="control">
-            <input type="number" id="price" name="price" class="input {{.Form.Submission.GetFieldStatusClass "Price"}}"
-                value="{{.Form.Price}}">
-            {{template "field-errors" (.Form.Submission.GetFieldErrors "Price")}}
+    <label for="price" class="label">Price</label>
+    <div class="control">
+        <input type="number" id="price" name="price" step="0.01"
+               class="input {{.Form.Submission.GetFieldStatusClass "Price"}}"
+               value="{{.Form.Price}}"
+               x-data
+               x-on:input="$event.target.value = parseFloat($event.target.value).toFixed(2)">
+        {{template "field-errors" (.Form.Submission.GetFieldErrors "Price")}}
         </div>
     </div>
     <div class="field">

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/mikestefanello/pagoda/ent"
@@ -36,17 +37,17 @@ type (
 	Product struct {
 		Name        string
 		Description string
-		Price       float64
+		Price       string
 		ID          int
 	}
 
 	ProductForm struct {
-		ID          *int    `form:"id"` // Note use of pointer to allow for nil values, and no "required" validation
-		Name        string  `form:"name" validate:"required"`
-		Sku         string  `form:"sku" validate:"required"`
-		Description string  `form:"description" validate:"required"`
-		Price       float64 `form:"price" validate:"required,gte=0"`
-		Quantity    int     `form:"quantity" validate:"required,gte=0"`
+		ID          *int   `form:"id"` // Note use of pointer to allow for nil values, and no "required" validation
+		Name        string `form:"name" validate:"required"`
+		Sku         string `form:"sku" validate:"required"`
+		Description string `form:"description" validate:"required"`
+		Price       string `form:"price" validate:"required"`
+		Quantity    int    `form:"quantity" validate:"required,gte=0"`
 		Submission  controller.FormSubmission
 	}
 )
@@ -102,7 +103,6 @@ func (c *ProductController) EditByID(ctx echo.Context) error {
 	}
 }
 
-
 func (c *ProductController) handleEditByIdGet(ctx echo.Context) error {
 	productID, err := c.getProductIDFromContext(ctx)
 	if err != nil {
@@ -119,7 +119,7 @@ func (c *ProductController) handleEditByIdGet(ctx echo.Context) error {
 	page.Name = "products/edit"
 	page.Title = "Edit Product"
 	page.Form = ProductForm{
-		ID:          &product.ID,  // Make sure to pass the address of product.ID
+		ID:          &product.ID, // Make sure to pass the address of product.ID
 		Name:        product.Name,
 		Sku:         product.Sku,
 		Description: product.Description,
@@ -158,6 +158,7 @@ func (c *ProductController) handleEditByIdPost(ctx echo.Context) error {
 									SetDescription(form.Description).
 									SetPrice(form.Price).
 									SetStockCount(form.Quantity).
+
 		// ... set other fields ...
 		Save(ctx.Request().Context())
 
@@ -168,7 +169,7 @@ func (c *ProductController) handleEditByIdPost(ctx echo.Context) error {
 	ctx.Logger().Infof("Product updated: %s", product.Name)
 	msg.Success(ctx, "The product was successfully updated.")
 
-	return c.Redirect(ctx, "products")
+	return c.Redirect(ctx, "products.view_all")
 }
 
 func (c *ProductController) Add(ctx echo.Context) error {
@@ -221,16 +222,18 @@ func (c *ProductController) handleAddPost(ctx echo.Context) error {
 		SetDescription(form.Description).
 		SetPrice(form.Price).
 		SetStockCount(form.Quantity).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
 		Save(ctx.Request().Context())
 
 	if err != nil {
 		return c.Fail(err, "unable to create product")
 	}
 
-	ctx.Logger().Infof("created: %s",p.Name)
-	msg.Success(ctx, "Added successfully: %s" + p.Name)
+	ctx.Logger().Infof("created: %s", p.Name)
+	msg.Success(ctx, "Added successfully: "+p.Name)
 
-	return c.Redirect(ctx, "products")
+	return c.Redirect(ctx, "products.view_all")
 }
 
 // Helper methods

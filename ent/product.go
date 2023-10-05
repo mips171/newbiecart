@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -23,11 +24,17 @@ type Product struct {
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// Price holds the value of the "price" field.
-	Price float64 `json:"price,omitempty"`
+	Price string `json:"price,omitempty"`
 	// StockCount holds the value of the "stock_count" field.
 	StockCount int `json:"stock_count,omitempty"`
 	// ImageURL holds the value of the "image_url" field.
 	ImageURL string `json:"image_url,omitempty"`
+	// IsActive holds the value of the "is_active" field.
+	IsActive bool `json:"is_active,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProductQuery when eager-loading is set.
 	Edges        ProductEdges `json:"edges"`
@@ -79,12 +86,14 @@ func (*Product) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case product.FieldPrice:
-			values[i] = new(sql.NullFloat64)
+		case product.FieldIsActive:
+			values[i] = new(sql.NullBool)
 		case product.FieldID, product.FieldStockCount:
 			values[i] = new(sql.NullInt64)
-		case product.FieldName, product.FieldSku, product.FieldDescription, product.FieldImageURL:
+		case product.FieldName, product.FieldSku, product.FieldDescription, product.FieldPrice, product.FieldImageURL:
 			values[i] = new(sql.NullString)
+		case product.FieldCreatedAt, product.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -125,10 +134,10 @@ func (pr *Product) assignValues(columns []string, values []any) error {
 				pr.Description = value.String
 			}
 		case product.FieldPrice:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field price", values[i])
 			} else if value.Valid {
-				pr.Price = value.Float64
+				pr.Price = value.String
 			}
 		case product.FieldStockCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -141,6 +150,24 @@ func (pr *Product) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field image_url", values[i])
 			} else if value.Valid {
 				pr.ImageURL = value.String
+			}
+		case product.FieldIsActive:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_active", values[i])
+			} else if value.Valid {
+				pr.IsActive = value.Bool
+			}
+		case product.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				pr.CreatedAt = value.Time
+			}
+		case product.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				pr.UpdatedAt = value.Time
 			}
 		default:
 			pr.selectValues.Set(columns[i], values[i])
@@ -203,13 +230,22 @@ func (pr *Product) String() string {
 	builder.WriteString(pr.Description)
 	builder.WriteString(", ")
 	builder.WriteString("price=")
-	builder.WriteString(fmt.Sprintf("%v", pr.Price))
+	builder.WriteString(pr.Price)
 	builder.WriteString(", ")
 	builder.WriteString("stock_count=")
 	builder.WriteString(fmt.Sprintf("%v", pr.StockCount))
 	builder.WriteString(", ")
 	builder.WriteString("image_url=")
 	builder.WriteString(pr.ImageURL)
+	builder.WriteString(", ")
+	builder.WriteString("is_active=")
+	builder.WriteString(fmt.Sprintf("%v", pr.IsActive))
+	builder.WriteString(", ")
+	builder.WriteString("created_at=")
+	builder.WriteString(pr.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(pr.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

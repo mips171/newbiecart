@@ -18,6 +18,8 @@ type ProductCategory struct {
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProductCategoryQuery when eager-loading is set.
 	Edges        ProductCategoryEdges `json:"edges"`
@@ -49,7 +51,7 @@ func (*ProductCategory) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case productcategory.FieldID:
 			values[i] = new(sql.NullInt64)
-		case productcategory.FieldName:
+		case productcategory.FieldName, productcategory.FieldDescription:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -77,6 +79,12 @@ func (pc *ProductCategory) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				pc.Name = value.String
+			}
+		case productcategory.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				pc.Description = value.String
 			}
 		default:
 			pc.selectValues.Set(columns[i], values[i])
@@ -121,6 +129,9 @@ func (pc *ProductCategory) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", pc.ID))
 	builder.WriteString("name=")
 	builder.WriteString(pc.Name)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(pc.Description)
 	builder.WriteByte(')')
 	return builder.String()
 }

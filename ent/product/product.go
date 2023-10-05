@@ -3,6 +3,8 @@
 package product
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -24,6 +26,12 @@ const (
 	FieldStockCount = "stock_count"
 	// FieldImageURL holds the string denoting the image_url field in the database.
 	FieldImageURL = "image_url"
+	// FieldIsActive holds the string denoting the is_active field in the database.
+	FieldIsActive = "is_active"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// EdgeCartItems holds the string denoting the cart_items edge name in mutations.
 	EdgeCartItems = "cart_items"
 	// EdgeOrderItems holds the string denoting the order_items edge name in mutations.
@@ -58,6 +66,9 @@ var Columns = []string{
 	FieldPrice,
 	FieldStockCount,
 	FieldImageURL,
+	FieldIsActive,
+	FieldCreatedAt,
+	FieldUpdatedAt,
 }
 
 var (
@@ -87,14 +98,24 @@ var (
 	NameValidator func(string) error
 	// SkuValidator is a validator for the "sku" field. It is called by the builders before save.
 	SkuValidator func(string) error
-	// PriceValidator is a validator for the "price" field. It is called by the builders before save.
-	PriceValidator func(float64) error
+	// DefaultDescription holds the default value on creation for the "description" field.
+	DefaultDescription string
+	// DefaultPrice holds the default value on creation for the "price" field.
+	DefaultPrice string
 	// DefaultStockCount holds the default value on creation for the "stock_count" field.
 	DefaultStockCount int
 	// StockCountValidator is a validator for the "stock_count" field. It is called by the builders before save.
 	StockCountValidator func(int) error
 	// DefaultImageURL holds the default value on creation for the "image_url" field.
 	DefaultImageURL string
+	// DefaultIsActive holds the default value on creation for the "is_active" field.
+	DefaultIsActive bool
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the Product queries.
@@ -133,6 +154,21 @@ func ByStockCount(opts ...sql.OrderTermOption) OrderOption {
 // ByImageURL orders the results by the image_url field.
 func ByImageURL(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldImageURL, opts...).ToFunc()
+}
+
+// ByIsActive orders the results by the is_active field.
+func ByIsActive(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsActive, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
 // ByCartItemsCount orders the results by cart_items count.

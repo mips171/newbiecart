@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -40,9 +41,25 @@ func (pc *ProductCreate) SetDescription(s string) *ProductCreate {
 	return pc
 }
 
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableDescription(s *string) *ProductCreate {
+	if s != nil {
+		pc.SetDescription(*s)
+	}
+	return pc
+}
+
 // SetPrice sets the "price" field.
-func (pc *ProductCreate) SetPrice(f float64) *ProductCreate {
-	pc.mutation.SetPrice(f)
+func (pc *ProductCreate) SetPrice(s string) *ProductCreate {
+	pc.mutation.SetPrice(s)
+	return pc
+}
+
+// SetNillablePrice sets the "price" field if the given value is not nil.
+func (pc *ProductCreate) SetNillablePrice(s *string) *ProductCreate {
+	if s != nil {
+		pc.SetPrice(*s)
+	}
 	return pc
 }
 
@@ -70,6 +87,48 @@ func (pc *ProductCreate) SetImageURL(s string) *ProductCreate {
 func (pc *ProductCreate) SetNillableImageURL(s *string) *ProductCreate {
 	if s != nil {
 		pc.SetImageURL(*s)
+	}
+	return pc
+}
+
+// SetIsActive sets the "is_active" field.
+func (pc *ProductCreate) SetIsActive(b bool) *ProductCreate {
+	pc.mutation.SetIsActive(b)
+	return pc
+}
+
+// SetNillableIsActive sets the "is_active" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableIsActive(b *bool) *ProductCreate {
+	if b != nil {
+		pc.SetIsActive(*b)
+	}
+	return pc
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (pc *ProductCreate) SetCreatedAt(t time.Time) *ProductCreate {
+	pc.mutation.SetCreatedAt(t)
+	return pc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableCreatedAt(t *time.Time) *ProductCreate {
+	if t != nil {
+		pc.SetCreatedAt(*t)
+	}
+	return pc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (pc *ProductCreate) SetUpdatedAt(t time.Time) *ProductCreate {
+	pc.mutation.SetUpdatedAt(t)
+	return pc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableUpdatedAt(t *time.Time) *ProductCreate {
+	if t != nil {
+		pc.SetUpdatedAt(*t)
 	}
 	return pc
 }
@@ -154,6 +213,14 @@ func (pc *ProductCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (pc *ProductCreate) defaults() {
+	if _, ok := pc.mutation.Description(); !ok {
+		v := product.DefaultDescription
+		pc.mutation.SetDescription(v)
+	}
+	if _, ok := pc.mutation.Price(); !ok {
+		v := product.DefaultPrice
+		pc.mutation.SetPrice(v)
+	}
 	if _, ok := pc.mutation.StockCount(); !ok {
 		v := product.DefaultStockCount
 		pc.mutation.SetStockCount(v)
@@ -161,6 +228,18 @@ func (pc *ProductCreate) defaults() {
 	if _, ok := pc.mutation.ImageURL(); !ok {
 		v := product.DefaultImageURL
 		pc.mutation.SetImageURL(v)
+	}
+	if _, ok := pc.mutation.IsActive(); !ok {
+		v := product.DefaultIsActive
+		pc.mutation.SetIsActive(v)
+	}
+	if _, ok := pc.mutation.CreatedAt(); !ok {
+		v := product.DefaultCreatedAt()
+		pc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := pc.mutation.UpdatedAt(); !ok {
+		v := product.DefaultUpdatedAt()
+		pc.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -188,11 +267,6 @@ func (pc *ProductCreate) check() error {
 	if _, ok := pc.mutation.Price(); !ok {
 		return &ValidationError{Name: "price", err: errors.New(`ent: missing required field "Product.price"`)}
 	}
-	if v, ok := pc.mutation.Price(); ok {
-		if err := product.PriceValidator(v); err != nil {
-			return &ValidationError{Name: "price", err: fmt.Errorf(`ent: validator failed for field "Product.price": %w`, err)}
-		}
-	}
 	if _, ok := pc.mutation.StockCount(); !ok {
 		return &ValidationError{Name: "stock_count", err: errors.New(`ent: missing required field "Product.stock_count"`)}
 	}
@@ -203,6 +277,15 @@ func (pc *ProductCreate) check() error {
 	}
 	if _, ok := pc.mutation.ImageURL(); !ok {
 		return &ValidationError{Name: "image_url", err: errors.New(`ent: missing required field "Product.image_url"`)}
+	}
+	if _, ok := pc.mutation.IsActive(); !ok {
+		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "Product.is_active"`)}
+	}
+	if _, ok := pc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Product.created_at"`)}
+	}
+	if _, ok := pc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Product.updated_at"`)}
 	}
 	return nil
 }
@@ -243,7 +326,7 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		_node.Description = value
 	}
 	if value, ok := pc.mutation.Price(); ok {
-		_spec.SetField(product.FieldPrice, field.TypeFloat64, value)
+		_spec.SetField(product.FieldPrice, field.TypeString, value)
 		_node.Price = value
 	}
 	if value, ok := pc.mutation.StockCount(); ok {
@@ -253,6 +336,18 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.ImageURL(); ok {
 		_spec.SetField(product.FieldImageURL, field.TypeString, value)
 		_node.ImageURL = value
+	}
+	if value, ok := pc.mutation.IsActive(); ok {
+		_spec.SetField(product.FieldIsActive, field.TypeBool, value)
+		_node.IsActive = value
+	}
+	if value, ok := pc.mutation.CreatedAt(); ok {
+		_spec.SetField(product.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := pc.mutation.UpdatedAt(); ok {
+		_spec.SetField(product.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if nodes := pc.mutation.CartItemsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
