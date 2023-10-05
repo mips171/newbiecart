@@ -46,13 +46,16 @@
 	<div class="columns">
 		<div class="column is-2">
 			<aside class="menu" hx-boost="true">
-				<p class="menu-label">General</p>
+				<p class="menu-label">Shop</p>
 				<ul class="menu-list">
 					<!-- The .ToURL needs to be to the route, not the URL -->
 					<li>{{link (call .ToURL "product_categories.view_all") "Categories" .Path}}</li>
 					<li>{{link (call .ToURL "products.view_all") "Products" .Path}}</li>
 					<li>{{link (call .ToURL "orders.view_all") "Orders" .Path}}</li>
+				</ul>
 
+				<p class="menu-label">General</p>
+				<ul class="menu-list">
 					<li>{{link (call .ToURL "home") "Dashboard" .Path}}</li>
 					<li>{{link (call .ToURL "about") "About" .Path}}</li>
 					<li>{{link (call .ToURL "contact") "Contact" .Path}}</li>
