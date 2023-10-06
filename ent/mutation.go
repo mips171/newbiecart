@@ -3383,8 +3383,7 @@ type OrderItemMutation struct {
 	id             *int
 	quantity       *int
 	addquantity    *int
-	unit_price     *float64
-	addunit_price  *float64
+	unit_price     *string
 	clearedFields  map[string]struct{}
 	product        map[int]struct{}
 	removedproduct map[int]struct{}
@@ -3552,13 +3551,12 @@ func (m *OrderItemMutation) ResetQuantity() {
 }
 
 // SetUnitPrice sets the "unit_price" field.
-func (m *OrderItemMutation) SetUnitPrice(f float64) {
-	m.unit_price = &f
-	m.addunit_price = nil
+func (m *OrderItemMutation) SetUnitPrice(s string) {
+	m.unit_price = &s
 }
 
 // UnitPrice returns the value of the "unit_price" field in the mutation.
-func (m *OrderItemMutation) UnitPrice() (r float64, exists bool) {
+func (m *OrderItemMutation) UnitPrice() (r string, exists bool) {
 	v := m.unit_price
 	if v == nil {
 		return
@@ -3569,7 +3567,7 @@ func (m *OrderItemMutation) UnitPrice() (r float64, exists bool) {
 // OldUnitPrice returns the old "unit_price" field's value of the OrderItem entity.
 // If the OrderItem object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderItemMutation) OldUnitPrice(ctx context.Context) (v float64, err error) {
+func (m *OrderItemMutation) OldUnitPrice(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUnitPrice is only allowed on UpdateOne operations")
 	}
@@ -3583,28 +3581,9 @@ func (m *OrderItemMutation) OldUnitPrice(ctx context.Context) (v float64, err er
 	return oldValue.UnitPrice, nil
 }
 
-// AddUnitPrice adds f to the "unit_price" field.
-func (m *OrderItemMutation) AddUnitPrice(f float64) {
-	if m.addunit_price != nil {
-		*m.addunit_price += f
-	} else {
-		m.addunit_price = &f
-	}
-}
-
-// AddedUnitPrice returns the value that was added to the "unit_price" field in this mutation.
-func (m *OrderItemMutation) AddedUnitPrice() (r float64, exists bool) {
-	v := m.addunit_price
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetUnitPrice resets all changes to the "unit_price" field.
 func (m *OrderItemMutation) ResetUnitPrice() {
 	m.unit_price = nil
-	m.addunit_price = nil
 }
 
 // AddProductIDs adds the "product" edge to the Product entity by ids.
@@ -3798,7 +3777,7 @@ func (m *OrderItemMutation) SetField(name string, value ent.Value) error {
 		m.SetQuantity(v)
 		return nil
 	case orderitem.FieldUnitPrice:
-		v, ok := value.(float64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -3815,9 +3794,6 @@ func (m *OrderItemMutation) AddedFields() []string {
 	if m.addquantity != nil {
 		fields = append(fields, orderitem.FieldQuantity)
 	}
-	if m.addunit_price != nil {
-		fields = append(fields, orderitem.FieldUnitPrice)
-	}
 	return fields
 }
 
@@ -3828,8 +3804,6 @@ func (m *OrderItemMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case orderitem.FieldQuantity:
 		return m.AddedQuantity()
-	case orderitem.FieldUnitPrice:
-		return m.AddedUnitPrice()
 	}
 	return nil, false
 }
@@ -3845,13 +3819,6 @@ func (m *OrderItemMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddQuantity(v)
-		return nil
-	case orderitem.FieldUnitPrice:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddUnitPrice(v)
 		return nil
 	}
 	return fmt.Errorf("unknown OrderItem numeric field %s", name)

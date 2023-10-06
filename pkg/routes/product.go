@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -305,6 +306,94 @@ func (c *ProductController) handleAddPost(ctx echo.Context) error {
 	msg.Success(ctx, "Added successfully: "+p.Name)
 
 	return c.Redirect(ctx, "products.view_all")
+}
+
+func (c *ProductController) SearchProducts(ctx echo.Context) error {
+	query := ctx.QueryParam("q")
+	products, err := c.Container.ORM.Product.Query().
+		Where(product.NameContains(query)).
+		Limit(10).
+		All(ctx.Request().Context())
+	if err != nil {
+		return c.handleError(err, "Unable to fetch products")
+	}
+
+	var response string
+	for _, product := range products {
+		response += fmt.Sprintf(
+			`<li>
+				<a href="#" hx-get="/products/%d/row" hx-target="#selected-products" hx-swap="beforeend">%s</a>
+			</li>`,
+			product.ID, product.Name)
+	}
+
+	return ctx.HTML(http.StatusOK, response)
+}
+
+func (c *ProductController) GetProductForm(ctx echo.Context) error {
+	productID, _ := strconv.Atoi(ctx.Param("id"))
+	product, err := c.Container.ORM.Product.Query().
+		Where(product.IDEQ(productID)).
+		Only(ctx.Request().Context())
+	if err != nil {
+		return c.handleError(err, "Unable to fetch product")
+	}
+
+	// Updated HTML response for the product form
+	response := fmt.Sprintf(`
+	<!-- Product Item/Row -->
+	<div class="box">
+		<div class="level">
+			<!-- Product Name -->
+			<div class="level-item has-text-centered">
+				<div>
+					<p class="title is-6">%s</p>
+				</div>
+			</div>
+
+			<!-- Quantity -->
+			<div class="level-item has-text-centered">
+				<div class="field">
+					<label class="label is-small">Quantity</label>
+					<div class="control">
+						<input class="input is-small" type="number" value="1" name="product[%d][quantity]" placeholder="Quantity">
+					</div>
+				</div>
+			</div>
+
+			<!-- Price -->
+			<div class="level-item has-text-centered">
+				<div>
+					<p class="subtitle is-6">Price: %s</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	`, product.Name, product.ID, product.Price)
+
+	return ctx.HTML(http.StatusOK, response)
+}
+
+func (c *ProductController) GetProductRow(ctx echo.Context) error {
+	productID, _ := strconv.Atoi(ctx.Param("id"))
+	fmt.Println(productID)
+	product, err := c.Container.ORM.Product.Query().
+		Where(product.IDEQ(productID)).
+		Only(ctx.Request().Context())
+	if err != nil {
+		return c.handleError(err, "Unable to fetch product")
+	}
+
+	response := fmt.Sprintf(`
+        <div class="product-row">
+            <span>%s</span>
+            <span>Price: %s</span>
+            <input type="number" value="1" name="product[%d][quantity]" placeholder="Quantity">
+        </div>
+    `, product.Name, product.Price, product.ID)
+
+	return ctx.HTML(http.StatusOK, response)
 }
 
 // Helper methods

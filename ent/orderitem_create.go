@@ -36,8 +36,8 @@ func (oic *OrderItemCreate) SetNillableQuantity(i *int) *OrderItemCreate {
 }
 
 // SetUnitPrice sets the "unit_price" field.
-func (oic *OrderItemCreate) SetUnitPrice(f float64) *OrderItemCreate {
-	oic.mutation.SetUnitPrice(f)
+func (oic *OrderItemCreate) SetUnitPrice(s string) *OrderItemCreate {
+	oic.mutation.SetUnitPrice(s)
 	return oic
 }
 
@@ -125,11 +125,6 @@ func (oic *OrderItemCreate) check() error {
 	if _, ok := oic.mutation.UnitPrice(); !ok {
 		return &ValidationError{Name: "unit_price", err: errors.New(`ent: missing required field "OrderItem.unit_price"`)}
 	}
-	if v, ok := oic.mutation.UnitPrice(); ok {
-		if err := orderitem.UnitPriceValidator(v); err != nil {
-			return &ValidationError{Name: "unit_price", err: fmt.Errorf(`ent: validator failed for field "OrderItem.unit_price": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -161,7 +156,7 @@ func (oic *OrderItemCreate) createSpec() (*OrderItem, *sqlgraph.CreateSpec) {
 		_node.Quantity = value
 	}
 	if value, ok := oic.mutation.UnitPrice(); ok {
-		_spec.SetField(orderitem.FieldUnitPrice, field.TypeFloat64, value)
+		_spec.SetField(orderitem.FieldUnitPrice, field.TypeString, value)
 		_node.UnitPrice = value
 	}
 	if nodes := oic.mutation.ProductIDs(); len(nodes) > 0 {

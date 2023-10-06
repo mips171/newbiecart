@@ -17,8 +17,7 @@ func (OrderItem) Fields() []ent.Field {
 		field.Int("quantity").
 			Default(1).
 			NonNegative(),
-		field.Float("unit_price").
-			Positive(),
+		field.String("unit_price"),
 	}
 
 }

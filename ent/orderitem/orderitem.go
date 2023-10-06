@@ -65,8 +65,6 @@ var (
 	DefaultQuantity int
 	// QuantityValidator is a validator for the "quantity" field. It is called by the builders before save.
 	QuantityValidator func(int) error
-	// UnitPriceValidator is a validator for the "unit_price" field. It is called by the builders before save.
-	UnitPriceValidator func(float64) error
 )
 
 // OrderOption defines the ordering options for the OrderItem queries.

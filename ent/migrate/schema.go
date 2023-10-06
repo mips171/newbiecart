@@ -127,7 +127,7 @@ var (
 	OrderItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "quantity", Type: field.TypeInt, Default: 1},
-		{Name: "unit_price", Type: field.TypeFloat64},
+		{Name: "unit_price", Type: field.TypeString},
 	}
 	// OrderItemsTable holds the schema information for the "order_items" table.
 	OrderItemsTable = &schema.Table{

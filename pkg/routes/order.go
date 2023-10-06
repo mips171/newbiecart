@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/ent/order"
+	"github.com/mikestefanello/pagoda/ent/product"
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/msg"
@@ -45,11 +46,17 @@ type (
 		ID int
 	}
 
+	OrderProduct struct {
+		ProductID int `form:"product_id"`
+		Quantity  int `form:"quantity"`
+	}
+
 	OrderForm struct {
-		ID         *int    `form:"id"` // Note use of pointer to allow for nil values, and no "required" validation
-		Status     string  `form:"status" validate:"required"`
-		PlacedAt   string  `form:"placed_at" validate:"required"`
-		BalanceDue float64 `form:"balance_due" validate:"required"`
+		ID         *int           `form:"id"` // Note use of pointer to allow for nil values, and no "required" validation
+		Status     string         `form:"status" validate:"required"`
+		PlacedAt   string         `form:"placed_at" validate:"required"`
+		BalanceDue float64        `form:"balance_due" validate:"required"`
+		Products   []OrderProduct `form:"products"` // replace `ent.OrderItem` with `[]OrderProduct`
 		// Customer    string  `form:"customer" validate:"required"`
 		// ProcessedBy float64 `form:"processed_by" validate:"required,gte=0"`
 		Submission controller.FormSubmission
@@ -230,9 +237,6 @@ func (c *OrderController) handleAddPost(ctx echo.Context) error {
 		return c.handleAddGet(ctx)
 	}
 
-	// Assuming you have an Order ORM similar to Product ORM, you can create the order as follows:
-	// (I am assuming some fields like 'Status', 'PlacedAt', and 'BalanceDue' based on the provided schema)
-
 	placedAt, err := time.Parse(orderDateFormat, form.PlacedAt)
 	if err != nil {
 		return c.Fail(err, "unable to parse form.PlacedAt")
@@ -248,6 +252,33 @@ func (c *OrderController) handleAddPost(ctx echo.Context) error {
 
 	if err != nil {
 		return c.Fail(err, "unable to create order")
+	}
+
+	// Create OrderItems for the given products
+	for _, prod := range form.Products {
+		// Fetch the price for the product from the database
+		productEntity, err := c.Container.ORM.Product.
+			Query().
+			Where(product.ID(prod.ProductID)).
+			Only(ctx.Request().Context())
+
+		if err != nil {
+			return c.Fail(err, fmt.Sprintf("Failed to fetch product with ID %d", prod.ProductID))
+		}
+
+		// Create an OrderItem for the given product
+		_, err = c.Container.ORM.OrderItem.
+			Create().
+			AddOrder(o).
+			AddProductIDs(prod.ProductID).
+			SetQuantity(prod.Quantity).
+			SetUnitPrice(productEntity.Price).
+			Save(ctx.Request().Context())
+
+		if err != nil {
+			// Handle error, maybe rollback the entire order creation?
+			return c.Fail(err, fmt.Sprintf("Failed to add product with ID %d to order", prod.ProductID))
+		}
 	}
 
 	ctx.Logger().Infof("created: Order ID %d with status %s", o.ID, o.Status)

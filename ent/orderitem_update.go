@@ -51,15 +51,8 @@ func (oiu *OrderItemUpdate) AddQuantity(i int) *OrderItemUpdate {
 }
 
 // SetUnitPrice sets the "unit_price" field.
-func (oiu *OrderItemUpdate) SetUnitPrice(f float64) *OrderItemUpdate {
-	oiu.mutation.ResetUnitPrice()
-	oiu.mutation.SetUnitPrice(f)
-	return oiu
-}
-
-// AddUnitPrice adds f to the "unit_price" field.
-func (oiu *OrderItemUpdate) AddUnitPrice(f float64) *OrderItemUpdate {
-	oiu.mutation.AddUnitPrice(f)
+func (oiu *OrderItemUpdate) SetUnitPrice(s string) *OrderItemUpdate {
+	oiu.mutation.SetUnitPrice(s)
 	return oiu
 }
 
@@ -174,11 +167,6 @@ func (oiu *OrderItemUpdate) check() error {
 			return &ValidationError{Name: "quantity", err: fmt.Errorf(`ent: validator failed for field "OrderItem.quantity": %w`, err)}
 		}
 	}
-	if v, ok := oiu.mutation.UnitPrice(); ok {
-		if err := orderitem.UnitPriceValidator(v); err != nil {
-			return &ValidationError{Name: "unit_price", err: fmt.Errorf(`ent: validator failed for field "OrderItem.unit_price": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -201,10 +189,7 @@ func (oiu *OrderItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.AddField(orderitem.FieldQuantity, field.TypeInt, value)
 	}
 	if value, ok := oiu.mutation.UnitPrice(); ok {
-		_spec.SetField(orderitem.FieldUnitPrice, field.TypeFloat64, value)
-	}
-	if value, ok := oiu.mutation.AddedUnitPrice(); ok {
-		_spec.AddField(orderitem.FieldUnitPrice, field.TypeFloat64, value)
+		_spec.SetField(orderitem.FieldUnitPrice, field.TypeString, value)
 	}
 	if oiu.mutation.ProductCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -338,15 +323,8 @@ func (oiuo *OrderItemUpdateOne) AddQuantity(i int) *OrderItemUpdateOne {
 }
 
 // SetUnitPrice sets the "unit_price" field.
-func (oiuo *OrderItemUpdateOne) SetUnitPrice(f float64) *OrderItemUpdateOne {
-	oiuo.mutation.ResetUnitPrice()
-	oiuo.mutation.SetUnitPrice(f)
-	return oiuo
-}
-
-// AddUnitPrice adds f to the "unit_price" field.
-func (oiuo *OrderItemUpdateOne) AddUnitPrice(f float64) *OrderItemUpdateOne {
-	oiuo.mutation.AddUnitPrice(f)
+func (oiuo *OrderItemUpdateOne) SetUnitPrice(s string) *OrderItemUpdateOne {
+	oiuo.mutation.SetUnitPrice(s)
 	return oiuo
 }
 
@@ -474,11 +452,6 @@ func (oiuo *OrderItemUpdateOne) check() error {
 			return &ValidationError{Name: "quantity", err: fmt.Errorf(`ent: validator failed for field "OrderItem.quantity": %w`, err)}
 		}
 	}
-	if v, ok := oiuo.mutation.UnitPrice(); ok {
-		if err := orderitem.UnitPriceValidator(v); err != nil {
-			return &ValidationError{Name: "unit_price", err: fmt.Errorf(`ent: validator failed for field "OrderItem.unit_price": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -518,10 +491,7 @@ func (oiuo *OrderItemUpdateOne) sqlSave(ctx context.Context) (_node *OrderItem, 
 		_spec.AddField(orderitem.FieldQuantity, field.TypeInt, value)
 	}
 	if value, ok := oiuo.mutation.UnitPrice(); ok {
-		_spec.SetField(orderitem.FieldUnitPrice, field.TypeFloat64, value)
-	}
-	if value, ok := oiuo.mutation.AddedUnitPrice(); ok {
-		_spec.AddField(orderitem.FieldUnitPrice, field.TypeFloat64, value)
+		_spec.SetField(orderitem.FieldUnitPrice, field.TypeString, value)
 	}
 	if oiuo.mutation.ProductCleared() {
 		edge := &sqlgraph.EdgeSpec{

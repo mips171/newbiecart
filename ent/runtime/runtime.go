@@ -81,10 +81,6 @@ func init() {
 	orderitem.DefaultQuantity = orderitemDescQuantity.Default.(int)
 	// orderitem.QuantityValidator is a validator for the "quantity" field. It is called by the builders before save.
 	orderitem.QuantityValidator = orderitemDescQuantity.Validators[0].(func(int) error)
-	// orderitemDescUnitPrice is the schema descriptor for unit_price field.
-	orderitemDescUnitPrice := orderitemFields[1].Descriptor()
-	// orderitem.UnitPriceValidator is a validator for the "unit_price" field. It is called by the builders before save.
-	orderitem.UnitPriceValidator = orderitemDescUnitPrice.Validators[0].(func(float64) error)
 	passwordtokenFields := schema.PasswordToken{}.Fields()
 	_ = passwordtokenFields
 	// passwordtokenDescHash is the schema descriptor for hash field.

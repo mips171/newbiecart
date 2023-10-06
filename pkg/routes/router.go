@@ -107,6 +107,10 @@ func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 	g.GET("/products/:id/edit", products.EditByID).Name = "products.edit"       // display the edit form
 	g.POST("/products/:id/edit", products.EditByID).Name = "products.edit.post" // submit the edit form
 
+	// e.g., Endpoint: /api/search/products?q=search_string
+	g.GET("/search/products", products.SearchProducts).Name = "search.products"
+	g.GET("/products/:id/row", products.GetProductRow).Name = "products.row"
+
 	orders := OrderController{Controller: ctr}
 	g.GET("/orders", orders.GetAll).Name = "orders.view_all"
 	g.GET("/orders/:id", orders.GetByID).Name = "orders.view"

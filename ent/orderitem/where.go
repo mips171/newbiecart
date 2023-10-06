@@ -59,7 +59,7 @@ func Quantity(v int) predicate.OrderItem {
 }
 
 // UnitPrice applies equality check predicate on the "unit_price" field. It's identical to UnitPriceEQ.
-func UnitPrice(v float64) predicate.OrderItem {
+func UnitPrice(v string) predicate.OrderItem {
 	return predicate.OrderItem(sql.FieldEQ(FieldUnitPrice, v))
 }
 
@@ -104,43 +104,68 @@ func QuantityLTE(v int) predicate.OrderItem {
 }
 
 // UnitPriceEQ applies the EQ predicate on the "unit_price" field.
-func UnitPriceEQ(v float64) predicate.OrderItem {
+func UnitPriceEQ(v string) predicate.OrderItem {
 	return predicate.OrderItem(sql.FieldEQ(FieldUnitPrice, v))
 }
 
 // UnitPriceNEQ applies the NEQ predicate on the "unit_price" field.
-func UnitPriceNEQ(v float64) predicate.OrderItem {
+func UnitPriceNEQ(v string) predicate.OrderItem {
 	return predicate.OrderItem(sql.FieldNEQ(FieldUnitPrice, v))
 }
 
 // UnitPriceIn applies the In predicate on the "unit_price" field.
-func UnitPriceIn(vs ...float64) predicate.OrderItem {
+func UnitPriceIn(vs ...string) predicate.OrderItem {
 	return predicate.OrderItem(sql.FieldIn(FieldUnitPrice, vs...))
 }
 
 // UnitPriceNotIn applies the NotIn predicate on the "unit_price" field.
-func UnitPriceNotIn(vs ...float64) predicate.OrderItem {
+func UnitPriceNotIn(vs ...string) predicate.OrderItem {
 	return predicate.OrderItem(sql.FieldNotIn(FieldUnitPrice, vs...))
 }
 
 // UnitPriceGT applies the GT predicate on the "unit_price" field.
-func UnitPriceGT(v float64) predicate.OrderItem {
+func UnitPriceGT(v string) predicate.OrderItem {
 	return predicate.OrderItem(sql.FieldGT(FieldUnitPrice, v))
 }
 
 // UnitPriceGTE applies the GTE predicate on the "unit_price" field.
-func UnitPriceGTE(v float64) predicate.OrderItem {
+func UnitPriceGTE(v string) predicate.OrderItem {
 	return predicate.OrderItem(sql.FieldGTE(FieldUnitPrice, v))
 }
 
 // UnitPriceLT applies the LT predicate on the "unit_price" field.
-func UnitPriceLT(v float64) predicate.OrderItem {
+func UnitPriceLT(v string) predicate.OrderItem {
 	return predicate.OrderItem(sql.FieldLT(FieldUnitPrice, v))
 }
 
 // UnitPriceLTE applies the LTE predicate on the "unit_price" field.
-func UnitPriceLTE(v float64) predicate.OrderItem {
+func UnitPriceLTE(v string) predicate.OrderItem {
 	return predicate.OrderItem(sql.FieldLTE(FieldUnitPrice, v))
+}
+
+// UnitPriceContains applies the Contains predicate on the "unit_price" field.
+func UnitPriceContains(v string) predicate.OrderItem {
+	return predicate.OrderItem(sql.FieldContains(FieldUnitPrice, v))
+}
+
+// UnitPriceHasPrefix applies the HasPrefix predicate on the "unit_price" field.
+func UnitPriceHasPrefix(v string) predicate.OrderItem {
+	return predicate.OrderItem(sql.FieldHasPrefix(FieldUnitPrice, v))
+}
+
+// UnitPriceHasSuffix applies the HasSuffix predicate on the "unit_price" field.
+func UnitPriceHasSuffix(v string) predicate.OrderItem {
+	return predicate.OrderItem(sql.FieldHasSuffix(FieldUnitPrice, v))
+}
+
+// UnitPriceEqualFold applies the EqualFold predicate on the "unit_price" field.
+func UnitPriceEqualFold(v string) predicate.OrderItem {
+	return predicate.OrderItem(sql.FieldEqualFold(FieldUnitPrice, v))
+}
+
+// UnitPriceContainsFold applies the ContainsFold predicate on the "unit_price" field.
+func UnitPriceContainsFold(v string) predicate.OrderItem {
+	return predicate.OrderItem(sql.FieldContainsFold(FieldUnitPrice, v))
 }
 
 // HasProduct applies the HasEdge predicate on the "product" edge.

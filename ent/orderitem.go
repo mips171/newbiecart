@@ -19,7 +19,7 @@ type OrderItem struct {
 	// Quantity holds the value of the "quantity" field.
 	Quantity int `json:"quantity,omitempty"`
 	// UnitPrice holds the value of the "unit_price" field.
-	UnitPrice float64 `json:"unit_price,omitempty"`
+	UnitPrice string `json:"unit_price,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderItemQuery when eager-loading is set.
 	Edges        OrderItemEdges `json:"edges"`
@@ -60,10 +60,10 @@ func (*OrderItem) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderitem.FieldUnitPrice:
-			values[i] = new(sql.NullFloat64)
 		case orderitem.FieldID, orderitem.FieldQuantity:
 			values[i] = new(sql.NullInt64)
+		case orderitem.FieldUnitPrice:
+			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -92,10 +92,10 @@ func (oi *OrderItem) assignValues(columns []string, values []any) error {
 				oi.Quantity = int(value.Int64)
 			}
 		case orderitem.FieldUnitPrice:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field unit_price", values[i])
 			} else if value.Valid {
-				oi.UnitPrice = value.Float64
+				oi.UnitPrice = value.String
 			}
 		default:
 			oi.selectValues.Set(columns[i], values[i])
@@ -147,7 +147,7 @@ func (oi *OrderItem) String() string {
 	builder.WriteString(fmt.Sprintf("%v", oi.Quantity))
 	builder.WriteString(", ")
 	builder.WriteString("unit_price=")
-	builder.WriteString(fmt.Sprintf("%v", oi.UnitPrice))
+	builder.WriteString(oi.UnitPrice)
 	builder.WriteByte(')')
 	return builder.String()
 }
