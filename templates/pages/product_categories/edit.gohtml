@@ -11,6 +11,15 @@
         </div>
     </div>
 
+    <div class="field">
+    <label for="description" class="label">Category Description</label>
+    <div class="control">
+        <input type="text" id="description" name="description" class="input {{.Form.Submission.GetFieldStatusClass "Description"}}"
+            value="{{.Form.Description}}">
+        {{template "field-errors" (.Form.Submission.GetFieldErrors "Description")}}
+        </div>
+    </div>
+
     <div class="field is-grouped">
         <p class="control">
             <button class="button is-primary">Update Category</button>
