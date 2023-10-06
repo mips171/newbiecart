@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -41,7 +42,7 @@ type (
 		Price       types.Currency
 		ID          int
 		CategoryIDs []int
-		Categories  []ProductCategory // New field
+		Categories  []ProductCategory
 	}
 
 	ProductForm struct {
@@ -184,6 +185,10 @@ func (c *ProductController) handleEditByIdPost(ctx echo.Context) error {
 	price, err := types.CurrencyFromString(form.Price)
 	if err != nil {
 		return c.Fail(err, "unable to process price")
+	}
+
+	if form.ID == nil {
+		return c.Fail(fmt.Errorf("ID is nil"), "Product ID is missing")
 	}
 
 	// Fetch the existing product and update its fields
