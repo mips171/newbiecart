@@ -63,12 +63,23 @@ var _ OrderAdder = &OrderController{}
 func (c *OrderController) GetAll(ctx echo.Context) error {
 	page := controller.NewPage(ctx)
 	page.Layout = "main"
-	page.Name = "orders/view_all" // Located at templates/pages/orders/
+	page.Name = "orders/view_all"
 	page.Title = "Orders"
 	page.Metatags.Description = "All orders"
 	page.Metatags.Keywords = []string{"Shopping", "Orders", "Buy"}
 	page.Pager = controller.NewPager(ctx, 10)
-	page.Data = c.fetchOrders(ctx, &page.Pager)
+
+	ords, err := c.Container.ORM.Order.Query().
+		Offset(page.Pager.GetOffset()).
+		Limit(page.Pager.ItemsPerPage).
+		Order(ent.Asc(order.FieldID)).
+		All(ctx.Request().Context())
+	if err != nil {
+		c.handleError(err, "Unable to fetch orders")
+	}
+
+	page.Pager.SetItems(len(ords))
+	page.Data = ords
 
 	return c.RenderPage(ctx, page)
 }
@@ -155,6 +166,10 @@ func (c *OrderController) handleEditByIdPost(ctx echo.Context) error {
 
 	ctx.Logger().Debugf("got form: %v", form)
 
+	if &form.ID == nil {
+		return c.Fail(fmt.Errorf("ID is nil"), "Order ID is missing")
+	}
+
 	// Fetch the existing order and update its fields
 	order, err := c.Container.ORM.Order.UpdateOneID(*form.ID). // Assuming form.ID exists
 									SetStatus(order.Status(form.Status)).
@@ -218,7 +233,6 @@ func (c *OrderController) handleAddPost(ctx echo.Context) error {
 	// Assuming you have an Order ORM similar to Product ORM, you can create the order as follows:
 	// (I am assuming some fields like 'Status', 'PlacedAt', and 'BalanceDue' based on the provided schema)
 
-	// turn form.PlacedAt into appropriate format
 	placedAt, err := time.Parse(orderDateFormat, form.PlacedAt)
 	if err != nil {
 		return c.Fail(err, "unable to parse form.PlacedAt")
@@ -251,24 +265,4 @@ func (c *OrderController) getOrderIDFromContext(ctx echo.Context) (int, error) {
 func (c *OrderController) handleError(err error, msg string) error {
 	// Handle errors, e.g., logging, setting HTTP status
 	return c.Fail(err, msg)
-}
-
-func (c *OrderController) fetchOrders(ctx echo.Context, pager *controller.Pager) []Order {
-	prods, _ := c.Container.ORM.Order.Query().
-		Offset(pager.GetOffset()).
-		Limit(pager.ItemsPerPage).
-		Order(ent.Asc(order.FieldID)).
-		All(ctx.Request().Context())
-
-	pager.SetItems(len(prods))
-
-	orders := make([]Order, len(prods))
-	for i, p := range prods {
-		orders[i] = Order{
-			ID:         p.ID,
-			PlacedAt:   p.PlacedAt.Format(orderDateFormat),
-			BalanceDue: p.BalanceDue,
-		}
-	}
-	return orders
 }
