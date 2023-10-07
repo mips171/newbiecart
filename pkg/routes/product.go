@@ -308,28 +308,6 @@ func (c *ProductController) handleAddPost(ctx echo.Context) error {
 	return c.Redirect(ctx, "products.view_all")
 }
 
-func (c *ProductController) SearchProducts(ctx echo.Context) error {
-	query := ctx.QueryParam("q")
-	products, err := c.Container.ORM.Product.Query().
-		Where(product.NameContains(query)).
-		Limit(10).
-		All(ctx.Request().Context())
-	if err != nil {
-		return c.handleError(err, "Unable to fetch products")
-	}
-
-	var response string
-	for _, product := range products {
-		response += fmt.Sprintf(
-			`<li>
-				<a href="#" hx-get="/products/%d/row" hx-target="#selected-products" hx-swap="beforeend">%s</a>
-			</li>`,
-			product.ID, product.Name)
-	}
-
-	return ctx.HTML(http.StatusOK, response)
-}
-
 func (c *ProductController) GetProductForm(ctx echo.Context) error {
 	productID, _ := strconv.Atoi(ctx.Param("id"))
 	product, err := c.Container.ORM.Product.Query().

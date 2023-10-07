@@ -71,6 +71,8 @@ func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 
 	search := search{Controller: ctr}
 	g.GET("/search", search.Get).Name = "search"
+	// e.g., Endpoint: /api/search/products?q=search_string
+	g.GET("/search/products", search.SearchProducts).Name = "search.products"
 
 	about := about{Controller: ctr}
 	g.GET("/about", about.Get).Name = "about"
@@ -78,18 +80,6 @@ func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 	contact := contact{Controller: ctr}
 	g.GET("/contact", contact.Get).Name = "contact"
 	g.POST("/contact", contact.Post).Name = "contact.post"
-
-	customers := customersController{Controller: ctr}
-	// List of Customers
-	g.GET("/customers", customers.GetCustomers).Name = "customers.list"
-	// View a Specific Customer
-	g.GET("/customers/:id", customers.ViewCustomer).Name = "customers.view"
-	// Edit a Specific Customer
-	g.GET("/customers/:id/edit", customers.EditCustomer).Name = "customers.edit"
-	g.POST("/customers/:id/edit", customers.EditCustomerPost).Name = "customers.edit.submit"
-	// Create a New Customer
-	g.GET("/customers/add", customers.ShowCreateCustomerForm).Name = "customers.add"
-	g.POST("/customers/add", customers.CreateCustomer).Name = "customers.add.submit"
 
 	categories := ProductCategoryController{Controller: ctr}
 	g.GET("/categories", categories.GetAll).Name = "product_categories.view_all"
@@ -106,9 +96,6 @@ func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 	g.POST("/products/add", products.Add).Name = "products.add.post"
 	g.GET("/products/:id/edit", products.EditByID).Name = "products.edit"       // display the edit form
 	g.POST("/products/:id/edit", products.EditByID).Name = "products.edit.post" // submit the edit form
-
-	// e.g., Endpoint: /api/search/products?q=search_string
-	g.GET("/search/products", products.SearchProducts).Name = "search.products"
 	g.GET("/products/:id/row", products.GetProductRow).Name = "products.row"
 
 	orders := OrderController{Controller: ctr}
