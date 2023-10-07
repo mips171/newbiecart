@@ -134,6 +134,10 @@ func userRoutes(c *services.Container, g *echo.Group, ctr controller.Controller)
 	reset := resetPassword{Controller: ctr}
 	resetGroup.GET("/token/:user/:password_token/:token", reset.Get).Name = "reset_password"
 	resetGroup.POST("/token/:user/:password_token/:token", reset.Post).Name = "reset_password.post"
+
+		user := UserPage{Controller: ctr}
+		g.GET("/user/details", user.Details, middleware.RequireAuthentication()).Name = "user.view"
+
 }
 
 func staffMemberRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {

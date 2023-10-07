@@ -1,0 +1,9 @@
+{{ define "content" }}
+<div class="order-container">
+    {{if .IsAuth}}
+        {{.AuthUser.NameFirst}} {{.AuthUser.NameSurname}}
+        <p>Email: {{ .AuthUser.Email }}</p>
+        <p>Phone: {{ .AuthUser.Phone }}</p>
+    {{ end }}
+</div>
+{{ end }}
