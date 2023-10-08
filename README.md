@@ -1,3 +1,11 @@
+## NewbieCart: E-commerce monolith in Go
+
+Based on [Pagoda](https://github.com/mikestefanello/pagoda)
+
+![image info](./docs/images/1.png)
+![image info](./docs/images/2.png)
+![image info](./docs/images/2.png)
+
 ## Pagoda: Rapid, easy full-stack web development starter kit in Go
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/mikestefanello/pagoda)](https://goreportcard.com/report/github.com/mikestefanello/pagoda)
@@ -10,6 +18,7 @@
 <p align="center"><img alt="Logo" src="https://user-images.githubusercontent.com/552328/147838644-0efac538-a97e-4a46-86a0-41e3abdf9f20.png" height="200px"/></p>
 
 ## Table of Contents
+- [NewbieCart: E-commerce monolith in Go](#newbiecart-e-commerce-monolith-in-go)
 - [Pagoda: Rapid, easy full-stack web development starter kit in Go](#pagoda-rapid-easy-full-stack-web-development-starter-kit-in-go)
 - [Table of Contents](#table-of-contents)
 - [Introduction](#introduction)
