@@ -4,7 +4,7 @@ Based on [Pagoda](https://github.com/mikestefanello/pagoda)
 
 ![image info](./docs/images/1.png)
 ![image info](./docs/images/2.png)
-![image info](./docs/images/2.png)
+![image info](./docs/images/3.png)
 
 ## Pagoda: Rapid, easy full-stack web development starter kit in Go
 
